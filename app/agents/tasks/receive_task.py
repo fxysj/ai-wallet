@@ -6,6 +6,7 @@ from app.agents.lib.llm.llm import LLMFactory
 from app.agents.proptemts.receiveTasks import RECEIVETASKS_TEMPLATE
 from app.agents.schemas import AgentState
 from app.agents.tools import GetWrapResponse
+from app.agents.toolnode.crossChainTool  import cross_chain_swap
 from app.agents.types.index import TaskAction
 from app.utuls.FieldCheckerUtil import FieldChecker
 
@@ -17,7 +18,7 @@ async def receive_task(state: AgentState) -> AgentState:
     # 先返回响应
     if state.attached_data:
         stateFieldInfo = FieldChecker.get_field_info(state.attached_data, "state")
-        if stateFieldInfo and stateFieldInfo == TaskAction.DISPLAY_QR_CODE.value:
+        if stateFieldInfo and stateFieldInfo == TaskAction.CONFIRM_SWAP.value:
             print("#不再再次走大模型流程")
             return state.copy(update={"result": state.attached_data})
 
@@ -25,7 +26,7 @@ async def receive_task(state: AgentState) -> AgentState:
         template=RECEIVETASKS_TEMPLATE,
         input_variables=["current_data", "history", "input", "langguage"],
     )
-    llm = LLMFactory.getDefaultOPENAI()
+    llm = LLMFactory.getDefaultOPENAI().bind_tools([cross_chain_swap])
     # 使用新版输出解析器
     # 如果 返回的结果确定下来 chain = prompt | llm | JsonOutputParser(pydantic_model=FullTransactionResponse)
     chain = prompt | llm | JsonOutputParser()

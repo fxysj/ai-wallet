@@ -86,3 +86,27 @@
 https://smith.langchain.com/o/b875d8b3-251a-504d-a542-97343661b0ea/projects/p/79f2c255-0de0-483c-aadd-9693a82f64bd?timeModel=%7B%22duration%22%3A%227d%22%7D&peek=996054dd-b151-4bcd-8366-bd39ff661177
 
 ```
+#收款返回的响应信息
+```json
+{
+    "role": "system",
+    "content": "目前已收集到您的钱包地址为 0x1212，区块链网络名称为 ETH，所有必填信息已收集完整，接下来将为您展示收款二维码。",
+    "success": true,
+    "message": "ok",
+    "promptNextAction": [
+        "COPY_ADDRESS",
+        "SHARE_ADDRESS"
+    ],
+    "data": {
+        "description": "目前已收集到您的钱包地址为 0x1212，区块链网络名称为 ETH，所有必填信息已收集完整，接下来将为您展示收款二维码。",
+        "state": "DISPLAY_QR_CODE",
+        "form": {
+            "myAddress": "0x1212",
+            "myChain": "ETH",
+            "qrCodeData": "https://cli.im/text/other?text=0x1212%2CETH"
+        },
+        "missFields": [],
+        "intent": "receive"
+    }
+}
+```
