@@ -1,0 +1,14 @@
+# IntelliJ IDEA 配置文件
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# 编译输出目录
+out/
+
+# 缓存和日志文件
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries
+.idea/libraries
