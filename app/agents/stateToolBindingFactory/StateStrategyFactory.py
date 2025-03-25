@@ -11,7 +11,8 @@ class StateStrategyFactory:
         "WAITING_FOR_CONFIRMATION": "app.agents.stateToolBindingFactory.ReadyToSignTransactionStrategy.WaitingForConfirmationStrategy",
         "RANSACTION_FAILED":"app.agents.stateToolBindingFactory.ReadyToSignTransactionStrategy.RANSACTIONFAILEDStrategy",
         "REQUEST_MORE_INFO":"app.agents.stateToolBindingFactory.ReadyToSignTransactionStrategy.REQUESTMOREINFOStrategy",
-        "DISPLAY_QR_CODE":"app.agents.stateToolBindingFactory.ReadyToSignTransactionStrategy.DISPLAYQRCODEStrategy"
+        "DISPLAY_QR_CODE":"app.agents.stateToolBindingFactory.ReadyToSignTransactionStrategy.DISPLAYQRCODEStrategy",
+        "CONFIRM_SWAP":"app.agents.stateToolBindingFactory.ReadyToSignTransactionStrategy.CONFIRMSWAPStrategy",
     }
 
     @classmethod

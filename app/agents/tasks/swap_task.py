@@ -50,22 +50,27 @@ async def swap_task(state: AgentState) -> AgentState:
 
     route_data = cross_chain_swap(addreess=data["form"].get("from"), to=data["form"].get("to"),
                                   amount=data["form"].get("amount"))
-    print(route_data)
+
+    routes = route_data["routes"]
+    print(routes)
     swap_info = data["form"]
+    print(swap_info)
     result = {
         "state": data["state"],
-        "routes": route_data,
+        "indent":state.detected_intent.value,
+        "routes": routes,
         "form": data["form"],
-        "bestRoute": route_data[0] if route_data else None,
-        "estimatedReturn": str(route_data[0]["expectedOutput"]) if route_data else "0",
-        "estimatedDuration": route_data[0]["estimatedDuration"] if route_data else "",
+        "bestRoute": routes[0] if route_data else None,
+        "estimatedReturn": str(routes[0]["expectedOutput"]) if routes else "0",
+        "estimatedDuration": routes[0]["estimatedDuration"] if routes else "",
         "transactionDetails": {
             "from": swap_info["from"],
             "to": swap_info["to"],
             "amount": str(swap_info["amount"]),
-            "estimatedGas": route_data[0]["fee"] if route_data and "fee" in route_data[0] else "Unknown"
+            "estimatedGas": routes[0]["fee"] if routes and "fee" in routes[0] else "Unknown"
         }
     }
+    print(result)
 
     # 下面是调用对应的工具完成
     # prompt = PromptTemplate(

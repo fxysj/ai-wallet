@@ -1,35 +1,42 @@
 {
-    "READY_TO_SIGN_TRANSACTION": {
-        "promptNextAction": [
-            "SIGN_TRANSACTION",
-            "CANCEL_TRANSACTION",
-            "EDIT_TRANSACTION"
-        ]
-    },
-    "WAITING_FOR_CONFIRMATION": {
-        "promptNextAction": [
-            "CHECK_BALANCE",
-            "REVIEW_TRANSACTION_DETAILS"
-        ]
-    },
-    "RANSACTION_FAILED": {
-        "promptNextAction": [
-            "CANCEL_TRANSACTION",
-            "EDIT_TRANSACTION",
-            "RETRY_TRANSACTION"
-        ]
-    },
-     "REQUEST_MORE_INFO": {
-        "promptNextAction": [
-            "PASTE_FROM_CLIPBOARD",
-            "PASTE_FROM_ADDRESSBOOK",
-            "SCAN_QR_CODE"
-        ]
-    },
-     "DISPLAY_QR_CODE": {
-        "promptNextAction": [
-            "COPY_ADDRESS",
-            "SHARE_ADDRESS"
-        ]
-    }
+  "READY_TO_SIGN_TRANSACTION": {
+    "promptNextAction": [
+      "SIGN_TRANSACTION",
+      "CANCEL_TRANSACTION",
+      "EDIT_TRANSACTION"
+    ]
+  },
+  "WAITING_FOR_CONFIRMATION": {
+    "promptNextAction": [
+      "CHECK_BALANCE",
+      "REVIEW_TRANSACTION_DETAILS"
+    ]
+  },
+  "RANSACTION_FAILED": {
+    "promptNextAction": [
+      "CANCEL_TRANSACTION",
+      "EDIT_TRANSACTION",
+      "RETRY_TRANSACTION"
+    ]
+  },
+  "REQUEST_MORE_INFO": {
+    "promptNextAction": [
+      "PASTE_FROM_CLIPBOARD",
+      "PASTE_FROM_ADDRESSBOOK",
+      "SCAN_QR_CODE"
+    ]
+  },
+  "DISPLAY_QR_CODE": {
+    "promptNextAction": [
+      "COPY_ADDRESS",
+      "SHARE_ADDRESS"
+    ]
+  },
+  "CONFIRM_SWAP": {
+    "promptNextAction": [
+      "CONFIRM_SWAP",
+      "CANCEL_SWAP",
+      "MODIFY_SWAP"
+    ]
+  }
 }
