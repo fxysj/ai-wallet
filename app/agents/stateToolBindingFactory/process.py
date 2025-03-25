@@ -6,11 +6,15 @@ def process_state(state: str):
         strategy = StateStrategyFactory.get_strategy(state)
         return strategy.get_prompt_next_action()
     except ValueError as e:
-        return {"error": str(e)}
+        raise e
 if __name__ == '__main__':
     # 示例调用
-    state = "READY_TO_SIGN_TRANSACTION"
-    result = process_state(state)
-    print(result)  # 输出：{"promptNextAction": ["PASTE_FROM_CLIPBOARD", "PASTE_FROM_ADDRESSBOOK", "SCAN_QR_CODE"]}
+    try:
+        state = "READY_TO_SIGN_TRANSACTION"
+        result = process_state(state)
+        print(result)  # 输出：{"promptNextAction": ["PASTE_FROM_CLIPBOARD", "PASTE_FROM_ADDRESSBOOK", "SCAN_QR_CODE"]}
+    except ValueError as e:
+        print(e)
+
 
 

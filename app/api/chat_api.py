@@ -8,6 +8,7 @@ from app.agents.tasks.analysis_task import parse_complex_intent
 from ..agents.lib.redisManger.redisManager import RedisDictManager
 from ..agents.lib.session.TranSession import TransactionSystem
 from ..agents.response.Response import SystemResponse
+from ..agents.stateToolBindingFactory.StateStrategyFactory import StateStrategyFactory
 from ..agents.tasks.user_langguage import userLangGuageAnaysic
 from ..agents.tasks.buy_task import buy_task
 from ..agents.tasks.deep_accunt_analysis import analysis_task
@@ -30,6 +31,7 @@ from app.agents.lib.redisManger.redisManager import redis_dict_manager
 # ------------------------------------------------------------------------------
 # 日志与应用初始化
 # ------------------------------------------------------------------------------
+from ..utuls.FieldCheckerUtil import FieldChecker
 from ..utuls.Messages import Session
 
 # 实例化 RedisDictManager
@@ -169,16 +171,58 @@ async def analyze_request(request: dict):
 
         print(result)
 
+        state = FieldChecker.get_field_info(
+            data=result["result"],
+            field_name="state"
+        )
+        prom_action = []
+        if state:
+            try:
+                strategy = StateStrategyFactory.get_strategy(state=state)
+                prom_action_dict = strategy.get_prompt_next_action()
+                if prom_action_dict:
+                    action = FieldChecker.get_field_info(
+                        data=prom_action_dict,
+                        field_name="promptNextAction"
+                    )
+                    if action :
+                        prom_action = action
+            except ValueError as e:
+                print(e)
+
+
+
+
         return SystemResponse.success(
-            prompt_next_action=['PASTE_FROM_CLIPBOARD', 'PASTE_FROM_ADDRESSBOOK', 'SCAN_QR_CODE'],
+            prompt_next_action=prom_action,
             data=result["result"],
             content=get_nested_description(result)
             )
     except KeyError:
-        return SystemResponse.error_with_message("Missing required field: message")
+        return SystemResponse.errorWrap(
+            data=result["result"],
+            message="系统内部错误",
+            prompt_next_action=prom_action,
+        )
     except ValidationError as e:
-        return SystemResponse.error_with_message(f"Invalid data: {str(e)}")
+        return SystemResponse.errorWrap(
+            data=result["result"],
+            message="系统内部错误",
+            prompt_next_action=prom_action,
+        )
     except Exception as e:
         logger.error(f"Processing failed: {str(e)}")
         print(e)
-        return SystemResponse.error_with_message("内部服务器错误")
+        return SystemResponse.errorWrap(
+            data=result["result"],
+            message="系统内部错误",
+            prompt_next_action=prom_action,
+        )
+    except ValueError as e:
+        logger.error(f"Processing failed: {str(e)}")
+        print(e)
+        return SystemResponse.errorWrap(
+            data=result["result"],
+            message="系统内部错误",
+            prompt_next_action=prom_action,
+        )

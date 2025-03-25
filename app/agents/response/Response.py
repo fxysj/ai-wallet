@@ -96,6 +96,17 @@ class SystemResponse:
             data=None,
             intent="",
         )
+    @staticmethod
+    def errorWrap(prompt_next_action:[],message:str,data:dict):
+        #需要这里根据 data 中返回的state indent进行结合判断
+        return SystemResponse(
+            is_success=False,
+            content="ok",
+            message=message,
+            prompt_next_action=prompt_next_action,
+            data=data
+        )
+
 
 # if __name__ == '__main__':
 #     # 示例调用

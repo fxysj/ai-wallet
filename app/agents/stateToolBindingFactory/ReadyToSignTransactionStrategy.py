@@ -14,3 +14,16 @@ class WaitingForConfirmationStrategy(StateStrategy):
 
     def get_prompt_next_action(self) -> dict:
         return CONFIG.get("WAITING_FOR_CONFIRMATION", {})
+
+
+class RANSACTIONFAILEDStrategy(StateStrategy):
+        """处理 RANSACTION_FAILED 状态的策略"""
+
+        def get_prompt_next_action(self) -> dict:
+            return CONFIG.get("RANSACTION_FAILED", {})
+
+class  REQUESTMOREINFOStrategy(StateStrategy):
+     """处理 REQUEST_MORE_INFO 状态的策略"""
+
+     def get_prompt_next_action(self) -> dict:
+         return CONFIG.get("REQUEST_MORE_INFO", {})

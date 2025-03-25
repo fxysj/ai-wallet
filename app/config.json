@@ -1,15 +1,29 @@
 {
     "READY_TO_SIGN_TRANSACTION": {
         "promptNextAction": [
-            "PASTE_FROM_CLIPBOARD",
-            "PASTE_FROM_ADDRESSBOOK",
-            "SCAN_QR_CODE"
+            "SIGN_TRANSACTION",
+            "CANCEL_TRANSACTION",
+            "EDIT_TRANSACTION"
         ]
     },
     "WAITING_FOR_CONFIRMATION": {
         "promptNextAction": [
             "CHECK_BALANCE",
             "REVIEW_TRANSACTION_DETAILS"
+        ]
+    },
+    "RANSACTION_FAILED": {
+        "promptNextAction": [
+            "CANCEL_TRANSACTION",
+            "EDIT_TRANSACTION",
+            "RETRY_TRANSACTION"
+        ]
+    },
+     "REQUEST_MORE_INFO": {
+        "promptNextAction": [
+            "PASTE_FROM_CLIPBOARD",
+            "PASTE_FROM_ADDRESSBOOK",
+            "SCAN_QR_CODE"
         ]
     }
 }
