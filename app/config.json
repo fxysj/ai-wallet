@@ -1,0 +1,15 @@
+{
+    "READY_TO_SIGN_TRANSACTION": {
+        "promptNextAction": [
+            "PASTE_FROM_CLIPBOARD",
+            "PASTE_FROM_ADDRESSBOOK",
+            "SCAN_QR_CODE"
+        ]
+    },
+    "WAITING_FOR_CONFIRMATION": {
+        "promptNextAction": [
+            "CHECK_BALANCE",
+            "REVIEW_TRANSACTION_DETAILS"
+        ]
+    }
+}
