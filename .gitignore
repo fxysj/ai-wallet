@@ -3,10 +3,9 @@
 *.iml
 *.ipr
 *.iws
-
 # 编译输出目录
 out/
-
+.DS_Store
 # 缓存和日志文件
 .idea/workspace.xml
 .idea/tasks.xml
