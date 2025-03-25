@@ -25,5 +25,11 @@
             "PASTE_FROM_ADDRESSBOOK",
             "SCAN_QR_CODE"
         ]
+    },
+     "DISPLAY_QR_CODE": {
+        "promptNextAction": [
+            "COPY_ADDRESS",
+            "SHARE_ADDRESS"
+        ]
     }
 }

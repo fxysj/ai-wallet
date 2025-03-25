@@ -10,7 +10,7 @@ def process_state(state: str):
 if __name__ == '__main__':
     # 示例调用
     try:
-        state = "READY_TO_SIGN_TRANSACTION"
+        state = "DISPLAY_QR_CODE"
         result = process_state(state)
         print(result)  # 输出：{"promptNextAction": ["PASTE_FROM_CLIPBOARD", "PASTE_FROM_ADDRESSBOOK", "SCAN_QR_CODE"]}
     except ValueError as e:

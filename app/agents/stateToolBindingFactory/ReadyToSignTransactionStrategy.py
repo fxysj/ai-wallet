@@ -27,3 +27,8 @@ class  REQUESTMOREINFOStrategy(StateStrategy):
 
      def get_prompt_next_action(self) -> dict:
          return CONFIG.get("REQUEST_MORE_INFO", {})
+
+class  DISPLAYQRCODEStrategy(StateStrategy):
+    """处理 DISPLAY_QR_CODE 状态的策略"""
+    def get_prompt_next_action(self) -> dict:
+        return CONFIG.get("DISPLAY_QR_CODE", {})
