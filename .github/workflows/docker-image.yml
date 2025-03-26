@@ -83,7 +83,9 @@ jobs:
             docker login -u "986244259@qq.com" -p "${{ secrets.ACR_PASSWORD }}" registry.cn-hangzhou.aliyuncs.com
 
             # 拉取新镜像
-            docker pull ${{ env.REGISTRY }}/${{ env.REPO }}:${{ env.TAG }}
+            docker rmi  ${{ env.REGISTRY }}/${{ env.REPO }}:latest
+            docker pull  ${{ env.REGISTRY }}/${{ env.REPO }}:latest
+            #docker pull ${{ env.REGISTRY }}/${{ env.REPO }}:${{ env.TAG }}
 
             # 使用 docker-compose 部署应用
             docker-compose down         # 停止并移除旧容器
