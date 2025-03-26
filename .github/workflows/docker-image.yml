@@ -23,13 +23,18 @@ jobs:
         id: tag
         run: echo "TAG=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
-      # 3. 登录阿里云容器镜像服务 (使用 --password-stdin 避免交互式问题)
-      - name: Docker Login
+      # 3. **手动创建 Docker 登录凭据文件**
+      - name: Manually Create Docker Config
         run: |
-          echo "${{ secrets.ACR_PASSWORD }}" | docker login \
-            --username "986244259@qq.com" \
-            --password-stdin \
-            ${{ env.REGISTRY }}
+          mkdir -p ~/.docker
+          echo '{
+            "auths": {
+              "${{ env.REGISTRY }}": {
+                "auth": "'$(echo -n "986244259@qq.com:${{ secrets.ACR_PASSWORD }}" | base64)'"
+              }
+            }
+          }' > ~/.docker/config.json
+          chmod 600 ~/.docker/config.json
 
       # 4. 构建镜像 (带时间戳和 latest 双标签)
       - name: Build image
@@ -55,11 +60,16 @@ jobs:
           script: |
             echo "=== Starting Deployment ==="
 
-            # 登录阿里云镜像仓库
-            echo "${{ secrets.ACR_PASSWORD }}" | docker login \
-              --username "986244259@qq.com" \
-              --password-stdin \
-              ${{ env.REGISTRY }}
+            # **服务器上手动创建 Docker 登录凭据**
+            mkdir -p ~/.docker
+            echo '{
+              "auths": {
+                "${{ env.REGISTRY }}": {
+                  "auth": "'$(echo -n "986244259@qq.com:${{ secrets.ACR_PASSWORD }}" | base64)'"
+                }
+              }
+            }' > ~/.docker/config.json
+            chmod 600 ~/.docker/config.json
 
             # 拉取新镜像
             docker pull ${{ env.REGISTRY }}/${{ env.REPO }}:${{ env.TAG }}
