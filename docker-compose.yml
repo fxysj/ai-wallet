@@ -2,40 +2,34 @@ version: '3.8'
 
 services:
   python-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${REGISTRY}/${REPO}:latest  # 使用推送到阿里云的镜像
     working_dir: /tikeAgent
     volumes:
-      - .:/tikeAgent                       # 挂载项目目录
-      - ./ci/.env:/tikeAgent/.env             # 显式挂载 .env 文件
+      - .env:/tikeAgent/.env
     ports:
-      - "8000:8000"                        # 应用端口
+      - "8000:8000"
     environment:
-      - PYTHONPATH=/tikeAgent               # Python 模块搜索路径
-      - ENV_FILE=/tikeAgent/.env            # 环境变量文件路径
-      - REDIS_HOST=redis                    # Redis 服务名
-      - REDIS_PORT=6379                     # Redis 端口
+      - PYTHONPATH=/tikeAgent
+      - ENV_FILE=/tikeAgent/.env
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     networks:
       - tike-agent-net
     depends_on:
-      - redis                               # 依赖 Redis 服务
+      - redis
 
   redis:
-    image: redis:alpine                     # 轻量级 Redis 镜像
+    image: redis:alpine
     ports:
-      - "6379:6379"                         # 暴露 Redis 端口
+      - "6379:6379"
     volumes:
-      - redis_data:/data                    # 持久化 Redis 数据
+      - redis_data:/data
     networks:
       - tike-agent-net
-    # 可选：设置密码
-    # environment:
-    #   - REDIS_PASSWORD=yourpassword
 
 networks:
   tike-agent-net:
-    driver: bridge                          # 自定义网络
+    driver: bridge
 
 volumes:
-  redis_data:                               # Redis 数据卷声明
+  redis_data:

@@ -9,6 +9,8 @@ env:
   REPO: sinrpc/ai-wallet
   SSH_HOST: 120.26.250.150
   SSH_USER: root
+  DEPLOY_DIR: /root/ai-wallet  # 服务器部署路径
+  GIT_REPO: https://github.com/fxysj/ai-wallet.git  # 你的 GitHub 仓库地址
 
 jobs:
   build-deploy:
@@ -21,8 +23,8 @@ jobs:
         id: tag
         run: echo "TAG=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
-      # Docker 登录优化（去掉 ~/.docker 删除，防止影响登录）
-      - name: Docker Login (非交互式)
+      # 优化 Docker 登录方式
+      - name: Docker Login
         run: |
           mkdir -p ~/.docker
           AUTH=$(echo -n "986244259@qq.com:${{ secrets.ACR_PASSWORD }}" | base64 -w 0)
@@ -37,7 +39,7 @@ jobs:
           docker login -u "986244259@qq.com" -p "${{ secrets.ACR_PASSWORD }}" registry.cn-hangzhou.aliyuncs.com
           echo "✅ Docker 登录成功"
 
-      # 启用 DOCKER_BUILDKIT 并优化构建过程
+      # 使用 DOCKER_BUILDKIT 加速构建
       - name: Build image
         run: |
           export DOCKER_BUILDKIT=1
@@ -46,7 +48,7 @@ jobs:
             --tag ${{ env.REGISTRY }}/${{ env.REPO }}:latest \
             --progress=plain
 
-      # 并行推送镜像，加快上传速度
+      # 并发推送镜像，加快上传速度
       - name: Push image (Parallel)
         run: |
           export DOCKER_CLIENT_TIMEOUT=300
@@ -65,6 +67,9 @@ jobs:
           script: |
             echo "🚀 开始部署新版本"
 
+            # 直接切换到 /root/ai-wallet 目录
+            cd ${{ env.DEPLOY_DIR }}
+
             # 登录阿里云镜像仓库（服务器端）
             mkdir -p ~/.docker
             echo '{
@@ -80,8 +85,9 @@ jobs:
             # 拉取新镜像
             docker pull ${{ env.REGISTRY }}/${{ env.REPO }}:${{ env.TAG }}
 
-            # 先启动新版本，再清理旧版本，避免服务中断
-            docker-compose up -d
-            docker image prune -f
+            # 使用 docker-compose 部署应用
+            docker-compose down         # 停止并移除旧容器
+            docker-compose up -d       # 启动新版本
+            docker image prune -f      # 清理旧镜像，避免占用过多磁盘空间
 
             echo "✅ 部署完成"
