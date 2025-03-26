@@ -100,7 +100,7 @@ display_and_save_graph(app=app,filename="graph.png",output_dir="graphs")
 # ------------------------------------------------------------------------------
 # API 接口
 # ------------------------------------------------------------------------------
-@router.post("/start")
+@router.get("/start")
 async def create_session() -> dict:
     """
     创建新会话接口：
