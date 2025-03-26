@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   python-app:
-    image: ${REGISTRY}/${REPO}:latest  # 使用推送到阿里云的镜像
+    image: registry.cn-hangzhou.aliyuncs.com/sinrpc/ai-wallet:latest  # 使用推送到阿里云的镜像
     working_dir: /tikeAgent
     volumes:
       - .env:/tikeAgent/.env
