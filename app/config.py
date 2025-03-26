@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
-from pydantic import  Field
+from pydantic import Field
 
 # 先加载 .env 文件，确保环境变量可用
 load_dotenv()
@@ -12,7 +12,7 @@ class Settings(BaseSettings):
 
     # OpenAI API Key
     OPENAI_API_KEY: str = Field(..., env="OPENAI_API_KEY")
-    OPENAI_API_BASE_URL: str = Field(...,env="OPENAI_API_BASE_URL")
+    OPENAI_API_BASE_URL: str = Field(..., env="OPENAI_API_BASE_URL")
 
     # MySQL 数据库配置
     MYSQL_HOST: str = Field(default="localhost", env="MYSQL_HOST")
@@ -25,7 +25,13 @@ class Settings(BaseSettings):
     REDIS_PORT: int = Field(default=6379, env="REDIS_PORT")
     REDIS_DB: int = Field(default=0, env="REDIS_DB")
 
-    #其他缓队列的配置
+    LANGSMITH_TRACING: bool = Field(default=True, env="LANGSMITH_TRACING")
+    LANGSMITH_ENDPOINT: str = Field(default="", env="LANGSMITH_ENDPOINT")
+    LANGSMITH_API_KEY: str = Field(default="", env="LANGSMITH_API_KEY")
+    LANGSMITH_PROJECT: str = Field(default="", env="LANGSMITH_PROJECT")
+    SERPAPI_API_KEY: str = Field(default="", env="SERPAPI_API_KEY")
+
+    # 其他缓队列的配置
 
     class Config:
         env_file = ".env"  # 指定环境变量文件
@@ -52,8 +58,11 @@ OPEAI_CONFIG = {
     "URL": settings.OPENAI_API_BASE_URL
 }
 import json
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # 获取当前文件所在目录
 CONFIG_PATH = os.path.join(BASE_DIR, "config.json")  # 计算 config.json 的绝对路径
+
+
 def load_config():
     """加载状态配置文件"""
     if not os.path.exists(CONFIG_PATH):
@@ -61,5 +70,5 @@ def load_config():
     with open(CONFIG_PATH, "r", encoding="utf-8") as file:
         return json.load(file)
 
-CONFIG = load_config()  # 加载配置
 
+CONFIG = load_config()  # 加载配置

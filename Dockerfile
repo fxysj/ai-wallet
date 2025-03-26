@@ -1,20 +1,27 @@
-# 使用 Python 3.12 官方镜像
-FROM python:3.12-slim-bookworm
+# 使用 Python 3.10 官方镜像
+FROM python:3.10-slim-buster
 
+# 设置环境变量
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/tikeAgent \
+    PIP_CACHE_DIR=/root/.cache/pip \
+    ENV_FILE=/tikeAgent/.env
 
-
-# 设置工作目录为 tikeAgent（容器中的路径）
+# 设置工作目录
 WORKDIR /tikeAgent
 
-# 复制项目文件到容器
+# 先单独复制依赖列表（利用缓存层）
+COPY ./app/requirements.txt .
+
+# 安装依赖（requirements.txt 不变时跳过）
+RUN pip install --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple \
+    && pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# 再复制项目所有文件（频繁变动的步骤放最后）
 COPY . .
 
-
-# 使用国内 pip 源加速安装依赖
-RUN python -m pip install --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple \
-    && pip install -r app/requirements.txt
-# 暴露应用端口（根据实际应用端口调整，例如 8000）
+# 暴露端口
 EXPOSE 8000
 
-# 启动应用
+# 启动命令
 CMD ["python", "app/main.py"]
