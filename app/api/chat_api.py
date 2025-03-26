@@ -37,8 +37,9 @@ from ..utuls.Messages import Session
 # 实例化 RedisDictManager
 redis_dict_manager = redis_dict_manager
 #实例化日志模块
-logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+# logger.info("Received a request to the root endpoint")
 #初始化路由
 router = APIRouter()
 #初始化大模型
