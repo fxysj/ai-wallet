@@ -19,14 +19,12 @@ jobs:
 
       - name: Generate tag
         id: tag
-        run: echo "TAG=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+        run: echo "TAG=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
-      # 绝对有效的登录方案 ▼▼▼
+      # Docker 登录优化（去掉 ~/.docker 删除，防止影响登录）
       - name: Docker Login (非交互式)
         run: |
-          rm -rf ~/.docker
           mkdir -p ~/.docker
-          
           AUTH=$(echo -n "986244259@qq.com:${{ secrets.ACR_PASSWORD }}" | base64 -w 0)
           echo '{
             "auths": {
@@ -36,21 +34,27 @@ jobs:
             }
           }' > ~/.docker/config.json
           
-          # 测试登录状态
-          docker pull ${{ env.REGISTRY }}/${{ env.REPO }}:latest || true
-          echo "✅ 登录凭证已配置"
+          docker login -u "986244259@qq.com" -p "${{ secrets.ACR_PASSWORD }}" registry.cn-hangzhou.aliyuncs.com
+          echo "✅ Docker 登录成功"
 
+      # 启用 DOCKER_BUILDKIT 并优化构建过程
       - name: Build image
         run: |
+          export DOCKER_BUILDKIT=1
           docker build . \
-            --tag ${{ env.REGISTRY }}/${{ env.REPO }}:${{ steps.tag.outputs.TAG }} \
+            --tag ${{ env.REGISTRY }}/${{ env.REPO }}:${{ env.TAG }} \
             --tag ${{ env.REGISTRY }}/${{ env.REPO }}:latest \
-            --progress plain
+            --progress=plain
 
-      - name: Push image
+      # 并行推送镜像，加快上传速度
+      - name: Push image (Parallel)
         run: |
-          docker push ${{ env.REGISTRY }}/${{ env.REPO }}:${{ steps.tag.outputs.TAG }}
-          docker push ${{ env.REGISTRY }}/${{ env.REPO }}:latest
+          export DOCKER_CLIENT_TIMEOUT=300
+          export COMPOSE_HTTP_TIMEOUT=300
+          docker push ${{ env.REGISTRY }}/${{ env.REPO }}:${{ env.TAG }} &
+          docker push ${{ env.REGISTRY }}/${{ env.REPO }}:latest &
+          wait
+          echo "✅ Docker 镜像推送完成"
 
       - name: Deploy to Server
         uses: appleboy/ssh-action@v1
@@ -59,7 +63,9 @@ jobs:
           username: ${{ env.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
-            # 服务器端同样使用配置文件登录 
+            echo "🚀 开始部署新版本"
+
+            # 登录阿里云镜像仓库（服务器端）
             mkdir -p ~/.docker
             echo '{
               "auths": {
@@ -68,7 +74,14 @@ jobs:
                 }
               }
             }' > ~/.docker/config.json
-            
-            docker pull ${{ env.REGISTRY }}/${{ env.REPO }}:${{ steps.tag.outputs.TAG }}
-            docker-compose down
+
+            docker login -u "986244259@qq.com" -p "${{ secrets.ACR_PASSWORD }}" registry.cn-hangzhou.aliyuncs.com
+
+            # 拉取新镜像
+            docker pull ${{ env.REGISTRY }}/${{ env.REPO }}:${{ env.TAG }}
+
+            # 先启动新版本，再清理旧版本，避免服务中断
             docker-compose up -d
+            docker image prune -f
+
+            echo "✅ 部署完成"
