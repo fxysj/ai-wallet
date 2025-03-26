@@ -9,24 +9,24 @@ env:
   REGISTRY: registry.cn-hangzhou.aliyuncs.com
   REPO_PATH: sinrpc/ai-wallet
   # 服务器配置
-  DOCKER_COMPOSE_FILE: docker-compose.yaml
   SSH_HOST: 120.26.250.150
   SSH_USER: root
+  DOCKER_COMPOSE_FILE: docker-compose.yaml
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-    # 第一步：拉取代码
+    # 1. 拉取代码
     - uses: actions/checkout@v4
 
-    # 第二步：生成时间戳作为镜像标签
-    - name: 生成时间戳标签
-      id: timestamp
+    # 2. 生成时间戳标签 (格式: 年月日时分秒)
+    - name: 生成镜像标签
+      id: tag
       run: echo "TAG=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
 
-    # 第三步：登录阿里云容器镜像服务
+    # 3. 登录阿里云容器镜像服务 (关键修复点)
     - name: 登录阿里云镜像仓库
       run: |
         echo "${{ secrets.ACR_PASSWORD }}" | docker login \
@@ -34,44 +34,38 @@ jobs:
           ${{ env.REGISTRY }} \
           --password-stdin
 
-    # 第四步：构建Docker镜像（带时间戳和latest两个标签）
-    - name: 构建Docker镜像
+    # 4. 构建Docker镜像 (同时打时间戳和latest标签)
+    - name: 构建镜像
       run: |
         docker build . \
-          --file Dockerfile \
-          --tag ${{ env.REGISTRY }}/${{ env.REPO_PATH }}:${{ steps.timestamp.outputs.TAG }} \
+          --tag ${{ env.REGISTRY }}/${{ env.REPO_PATH }}:${{ steps.tag.outputs.TAG }} \
           --tag ${{ env.REGISTRY }}/${{ env.REPO_PATH }}:latest
 
-    # 第五步：推送镜像到仓库
-    - name: 推送Docker镜像
+    # 5. 推送镜像到仓库
+    - name: 推送镜像
       run: |
-        docker push ${{ env.REGISTRY }}/${{ env.REPO_PATH }}:${{ steps.timestamp.outputs.TAG }}
+        docker push ${{ env.REGISTRY }}/${{ env.REPO_PATH }}:${{ steps.tag.outputs.TAG }}
         docker push ${{ env.REGISTRY }}/${{ env.REPO_PATH }}:latest
 
-    # 第六步：SSH连接到服务器部署
-    - name: 部署到生产服务器
+    # 6. 通过SSH部署到服务器
+    - name: 服务器部署
       uses: appleboy/ssh-action@v1
       with:
         host: ${{ env.SSH_HOST }}
         username: ${{ env.SSH_USER }}
         password: ${{ secrets.SSH_PASSWORD }}
         script: |
-          # 1. 登录阿里云镜像仓库
+          # 在服务器上执行以下命令:
           echo "${{ secrets.ACR_PASSWORD }}" | docker login \
             --username=986244259@qq.com \
             ${{ env.REGISTRY }} \
             --password-stdin
+
+          docker pull ${{ env.REGISTRY }}/${{ env.REPO_PATH }}:${{ steps.tag.outputs.TAG }}
           
-          # 2. 拉取新镜像
-          echo "正在拉取新镜像..."
-          docker pull ${{ env.REGISTRY }}/${{ env.REPO_PATH }}:${{ steps.timestamp.outputs.TAG }}
-          
-          # 3. 使用docker-compose重新部署服务
-          echo "正在重启服务..."
+          # 使用docker-compose重启服务
           docker-compose -f ${{ env.DOCKER_COMPOSE_FILE }} down
           docker-compose -f ${{ env.DOCKER_COMPOSE_FILE }} up -d
           
-          # 4. 清理24小时前的旧镜像
-          echo "正在清理旧镜像..."
-          docker image prune -af --filter "until=24h"
-          echo "部署完成！"
+          # 清理旧镜像 (保留最近2个版本)
+          docker image prune -af --filter "until=48h"
