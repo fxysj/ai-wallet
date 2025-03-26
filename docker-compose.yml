@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  python-app:
+    build: .
+    container_name: python-app
+    working_dir: /tikeAgent  # 设置容器内的工作目录为 /tikeAgent
+    volumes:
+      - .:/tikeAgent  # 将当前目录挂载到容器内的 /tikeAgent 目录
+    ports:
+      - "8000:8000"  # 暴露容器的端口 8000
+    environment:
+      - ENV_FILE=/tikeAgent/.env  # 指定 .env 文件路径
+    command: ["python", "app/main.py"]  # 启动应用的命令
+    networks:
+      - tike-agent-net
+
+networks:
+  tike-agent-net:
+    driver: bridge
