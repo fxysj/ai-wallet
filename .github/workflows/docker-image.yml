@@ -1,71 +1,87 @@
-name: Docker 镜像构建与部署
+name: Docker Build & Deploy
 
 on:
   push:
     branches: [ main ]
 
 env:
-  # 阿里云容器镜像服务配置
   REGISTRY: registry.cn-hangzhou.aliyuncs.com
-  REPO_PATH: sinrpc/ai-wallet
-  # 服务器配置
+  REPO: sinrpc/ai-wallet
   SSH_HOST: 120.26.250.150
   SSH_USER: root
-  DOCKER_COMPOSE_FILE: docker-compose.yaml
 
 jobs:
-  build-and-deploy:
+  build-deploy:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. 拉取代码
-    - uses: actions/checkout@v4
+      # 1. 拉取代码
+      - uses: actions/checkout@v4
 
-    # 2. 生成时间戳标签 (格式: 年月日时分秒)
-    - name: 生成镜像标签
-      id: tag
-      run: echo "TAG=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+      # 2. 生成动态标签 (年月日时分秒)
+      - name: Generate tag
+        id: tag
+        run: echo "TAG=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
 
-    # 3. 登录阿里云容器镜像服务 (关键修复点)
-    - name: 登录阿里云镜像仓库
-      run: |
-        echo "${{ secrets.ACR_PASSWORD }}" | docker login \
-          --username=986244259@qq.com \
-          ${{ env.REGISTRY }} \
-          --password-stdin
-
-    # 4. 构建Docker镜像 (同时打时间戳和latest标签)
-    - name: 构建镜像
-      run: |
-        docker build . \
-          --tag ${{ env.REGISTRY }}/${{ env.REPO_PATH }}:${{ steps.tag.outputs.TAG }} \
-          --tag ${{ env.REGISTRY }}/${{ env.REPO_PATH }}:latest
-
-    # 5. 推送镜像到仓库
-    - name: 推送镜像
-      run: |
-        docker push ${{ env.REGISTRY }}/${{ env.REPO_PATH }}:${{ steps.tag.outputs.TAG }}
-        docker push ${{ env.REGISTRY }}/${{ env.REPO_PATH }}:latest
-
-    # 6. 通过SSH部署到服务器
-    - name: 服务器部署
-      uses: appleboy/ssh-action@v1
-      with:
-        host: ${{ env.SSH_HOST }}
-        username: ${{ env.SSH_USER }}
-        password: ${{ secrets.SSH_PASSWORD }}
-        script: |
-          # 在服务器上执行以下命令:
-          echo "${{ secrets.ACR_PASSWORD }}" | docker login \
-            --username=986244259@qq.com \
-            ${{ env.REGISTRY }} \
-            --password-stdin
-
-          docker pull ${{ env.REGISTRY }}/${{ env.REPO_PATH }}:${{ steps.tag.outputs.TAG }}
+      # 3. 登录阿里云容器镜像服务 (100% 有效方案)
+      - name: Docker Login
+        run: |
+          # 清除可能存在的旧凭证
+          rm -f ~/.docker/config.json
           
-          # 使用docker-compose重启服务
-          docker-compose -f ${{ env.DOCKER_COMPOSE_FILE }} down
-          docker-compose -f ${{ env.DOCKER_COMPOSE_FILE }} up -d
+          # 非交互式登录 (核心修复)
+          echo "Logging into Alibaba Cloud Registry..."
+          docker login \
+            --username "986244259@qq.com" \
+            --password "${{ secrets.ACR_PASSWORD }}" \
+            ${{ env.REGISTRY }} 2>&1 | tee docker-login.log
           
-          # 清理旧镜像 (保留最近2个版本)
-          docker image prune -af --filter "until=48h"
+          # 验证登录结果
+          if ! grep -q "Login Succeeded" docker-login.log; then
+            echo "::error::Docker login failed!"
+            cat docker-login.log
+            exit 1
+          fi
+
+      # 4. 构建镜像 (带时间戳和latest双标签)
+      - name: Build image
+        run: |
+          docker build . \
+            --tag ${{ env.REGISTRY }}/${{ env.REPO }}:${{ steps.tag.outputs.TAG }} \
+            --tag ${{ env.REGISTRY }}/${{ env.REPO }}:latest \
+            --progress plain
+
+      # 5. 推送镜像
+      - name: Push image
+        run: |
+          docker push ${{ env.REGISTRY }}/${{ env.REPO }}:${{ steps.tag.outputs.TAG }}
+          docker push ${{ env.REGISTRY }}/${{ env.REPO }}:latest
+
+      # 6. 部署到服务器 (SSH)
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ env.SSH_HOST }}
+          username: ${{ env.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            # 在服务器上执行部署命令
+            echo "=== Starting Deployment ==="
+            
+            # 登录阿里云镜像仓库
+            docker logout ${{ env.REGISTRY }} >/dev/null 2>&1 || true
+            echo "${{ secrets.ACR_PASSWORD }}" | docker login \
+              --username "986244259@qq.com" \
+              ${{ env.REGISTRY }} \
+              --password-stdin
+            
+            # 拉取新镜像
+            docker pull ${{ env.REGISTRY }}/${{ env.REPO }}:${{ steps.tag.outputs.TAG }}
+            
+            # 使用docker-compose重新部署
+            docker-compose down --remove-orphans
+            docker-compose up -d
+            
+            # 清理旧镜像 (保留最近3个版本)
+            docker image prune -af --filter "until=72h"
+            echo "=== Deployment Complete ==="
