@@ -1,4 +1,5 @@
 import logging
+import time
 
 from langchain_core.tracers import LangChainTracer
 from langsmith import Client
@@ -39,7 +40,6 @@ redis_dict_manager = redis_dict_manager
 #实例化日志模块
 # logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-# logger.info("Received a request to the root endpoint")
 #初始化路由
 router = APIRouter()
 #初始化大模型
@@ -117,6 +117,8 @@ async def create_session() -> dict:
     except Exception as e:
         logger.error(f"会话创建失败: {str(e)}")
         return BaseResponse.error(500, "服务初始化失败")
+
+
 
 
 # API端点

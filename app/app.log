@@ -1,0 +1,7 @@
+2025-03-26 16:29:30,660 - app.api.chat_api - INFO - chat
+2025-03-26 16:31:14,993 - app.api.chat_api - INFO - chat
+2025-03-26 16:32:37,156 - app.api.chat_api - INFO - chat
+2025-03-26 16:41:00 | INFO | __main__ | /Users/shijun/PycharmProjects/tikeAgent/app/main.py:56 | Path: /api/v1/chat | Method: POST | Status: None | Duration: 0ms | Message: Incoming request
+2025-03-26 16:41:03 | INFO | __main__ | /Users/shijun/PycharmProjects/tikeAgent/app/main.py:89 | Path: /api/v1/chat | Method: POST | Status: 200 | Duration: 2119ms | Message: Request completed
+2025-03-26 16:41:57 | INFO | __main__ | /Users/shijun/PycharmProjects/tikeAgent/app/main.py:56 | Path: /api/v1/chat | Method: POST | Status: None | Duration: 0ms | Message: Incoming request
+2025-03-26 16:41:59 | INFO | __main__ | /Users/shijun/PycharmProjects/tikeAgent/app/main.py:89 | Path: /api/v1/chat | Method: POST | Status: 200 | Duration: 1598ms | Message: Request completed
