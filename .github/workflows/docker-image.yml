@@ -1,0 +1,27 @@
+name: Docker build and scan security issue by sas-image-scanner
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REPO_TAG: 2269232413918/ai-wallet:1.0
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag ${{ env.REPO_TAG }}
+    - name: Scan image by sas-image-scanner
+      run: >
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock --network=host
+          sas-image-scanner-registry.cn-hangzhou.cr.aliyuncs.com/sas_public/sas-image-scanner:latest
+          --accessKeyId=${{ secrets.ACCESSKEYID }} --accessKeySecret=${{ secrets.ACCESSKEYSECRET }}
+          --token=${{ secrets.SAS_TOKEN }} --imageId=${{ env.REPO_TAG }}
