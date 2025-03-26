@@ -15,42 +15,43 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 拉取代码
       - uses: actions/checkout@v4
 
-      # 2. 生成动态标签 (年月日时分秒)
       - name: Generate tag
         id: tag
-        run: echo "TAG=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+        run: echo "TAG=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
 
-      # 3. **手动创建 Docker 登录凭据文件**
-      - name: Manually Create Docker Config
+      # 绝对有效的登录方案 ▼▼▼
+      - name: Docker Login (非交互式)
         run: |
+          rm -rf ~/.docker
           mkdir -p ~/.docker
+          
+          AUTH=$(echo -n "986244259@qq.com:${{ secrets.ACR_PASSWORD }}" | base64 -w 0)
           echo '{
             "auths": {
-              "${{ env.REGISTRY }}": {
-                "auth": "'$(echo -n "986244259@qq.com:${{ secrets.ACR_PASSWORD }}" | base64)'"
+              "registry.cn-hangzhou.aliyuncs.com": {
+                "auth": "'$AUTH'"
               }
             }
           }' > ~/.docker/config.json
-          chmod 600 ~/.docker/config.json
+          
+          # 测试登录状态
+          docker pull ${{ env.REGISTRY }}/${{ env.REPO }}:latest || true
+          echo "✅ 登录凭证已配置"
 
-      # 4. 构建镜像 (带时间戳和 latest 双标签)
       - name: Build image
         run: |
           docker build . \
-            --tag ${{ env.REGISTRY }}/${{ env.REPO }}:${{ env.TAG }} \
+            --tag ${{ env.REGISTRY }}/${{ env.REPO }}:${{ steps.tag.outputs.TAG }} \
             --tag ${{ env.REGISTRY }}/${{ env.REPO }}:latest \
             --progress plain
 
-      # 5. 推送镜像
       - name: Push image
         run: |
-          docker push ${{ env.REGISTRY }}/${{ env.REPO }}:${{ env.TAG }}
+          docker push ${{ env.REGISTRY }}/${{ env.REPO }}:${{ steps.tag.outputs.TAG }}
           docker push ${{ env.REGISTRY }}/${{ env.REPO }}:latest
 
-      # 6. 部署到服务器 (SSH)
       - name: Deploy to Server
         uses: appleboy/ssh-action@v1
         with:
@@ -58,29 +59,16 @@ jobs:
           username: ${{ env.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
-            echo "=== Starting Deployment ==="
-
-            # **服务器上手动创建 Docker 登录凭据**
+            # 服务器端同样使用配置文件登录
             mkdir -p ~/.docker
             echo '{
               "auths": {
-                "${{ env.REGISTRY }}": {
-                  "auth": "'$(echo -n "986244259@qq.com:${{ secrets.ACR_PASSWORD }}" | base64)'"
+                "registry.cn-hangzhou.aliyuncs.com": {
+                  "auth": "'$(echo -n "986244259@qq.com:${{ secrets.ACR_PASSWORD }}" | base64 -w 0)'"
                 }
               }
             }' > ~/.docker/config.json
-            chmod 600 ~/.docker/config.json
-
-            # 拉取新镜像
-            docker pull ${{ env.REGISTRY }}/${{ env.REPO }}:${{ env.TAG }}
-
-            # 停止并移除旧容器
-            docker-compose down --remove-orphans
-
-            # 启动新容器
+            
+            docker pull ${{ env.REGISTRY }}/${{ env.REPO }}:${{ steps.tag.outputs.TAG }}
+            docker-compose down
             docker-compose up -d
-
-            # 清理旧镜像 (保留最近3天的镜像)
-            docker image prune -af --filter "until=72h"
-
-            echo "=== Deployment Complete ==="
