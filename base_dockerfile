@@ -1,0 +1,19 @@
+# 使用 Python 3.10 官方镜像
+FROM python:3.10-slim-buster AS base
+
+# 设置环境变量
+ENV PYTHONUNBUFFERED=1 \
+    PIP_CACHE_DIR=/root/.cache/pip
+
+# 设置工作目录
+WORKDIR /tikeBase
+
+# 复制 requirements.txt
+COPY ./app/requirements.txt .
+
+# 安装 Python 依赖
+RUN pip install --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple \
+    && pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# 标记为基础镜像
+CMD ["python3"]
