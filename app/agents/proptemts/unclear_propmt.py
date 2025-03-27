@@ -13,12 +13,9 @@ user:{input}
 json
 {{"data": {{
     "description": "系统生成的自然语言回复内容(需要根据当前的语言进行翻译 如果是英文则翻译为英文)",
-    "state": "{{}}",
-    "form": {{}},
-    "missFields":[
-    {{}}
-],
-    "DxTransActionDetail": {{}}
+    "state": "",
+    "form": "",
+    "missFields":[],
 }}}}
 在上面的json结果中 只要涉及到自然语言的 必须按照 {langguage} 进行翻译即可
 """

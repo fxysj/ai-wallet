@@ -22,4 +22,4 @@ async def unclear_task(state: AgentState) -> AgentState:
     input_data = {"input": state.user_input, "langguage": state.langguage}
     result = await chain.ainvoke(input_data)
     print("进入无法匹配模式")
-    return state.copy(update={"result": result})
+    return state.copy(update={"result": result["data"]})
