@@ -260,6 +260,7 @@ def GetWrapResponse(data:Any,history:[],system_response:str,missfield:str,descri
             "is_completed":is_completed ,
             "detected_intent": detected_intent
         }
+
 import random
 #随机生成
 #一个合理的代币合约地址应该是 以太坊（Ethereum）或其他区块链上的智能合约地址，通常是一个 42 位的十六进制字符串，以 0x 开头。例如：

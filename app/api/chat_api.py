@@ -360,41 +360,43 @@ async def analyze_request(request: Request):
             content=get_nested_description(result)
         )
 
-        response =  StreamingResponse(
-            convert_to_openai_stream(response_data.to_dict()),
-            media_type="text/event-stream",
-            headers={
-                "Cache-Control": "no-cache",
-                "Connection": "keep-alive"
-            })
-        response.headers['x-vercel-ai-data-stream'] = 'v1'
-        return response
+        # response =  StreamingResponse(
+        #     convert_to_openai_stream(response_data.to_dict()),
+        #     media_type="text/event-stream",
+        #     headers={
+        #         "Cache-Control": "no-cache",
+        #         "Connection": "keep-alive"
+        #     })
+        # response.headers['x-vercel-ai-data-stream'] = 'v1'
+        return response_data
     except KeyError:
         response_data= SystemResponse.errorWrap(
             data=result["result"],
             message="系统内部错误",
             prompt_next_action=prom_action,
         )
-        return StreamingResponse(
-        convert_to_openai_stream(result),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive"
-        })
+        # return StreamingResponse(
+        # convert_to_openai_stream(response_data.to_dict()),
+        # media_type="text/event-stream",
+        # headers={
+        #     "Cache-Control": "no-cache",
+        #     "Connection": "keep-alive"
+        # })
+        return response_data
     except ValidationError as e:
         response_data =  SystemResponse.errorWrap(
             data=result["result"],
             message="系统内部错误",
             prompt_next_action=prom_action,
         )
-        return StreamingResponse(
-        convert_to_openai_stream(result),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive"
-        })
+        # return StreamingResponse(
+        # convert_to_openai_stream(response_data.to_dict()),
+        # media_type="text/event-stream",
+        # headers={
+        #     "Cache-Control": "no-cache",
+        #     "Connection": "keep-alive"
+        # })
+        return response_data
     except Exception as e:
         logger.error(f"Processing failed: {str(e)}")
         print(e)
@@ -403,7 +405,8 @@ async def analyze_request(request: Request):
             message="系统内部错误",
             prompt_next_action=prom_action,
         )
-        return StreamingResponse(stream_response(response_data.to_dict()), media_type="application/json")
+        return response_data
+        # return StreamingResponse(stream_response(response_data.to_dict()), media_type="application/json")
     except ValueError as e:
         logger.error(f"Processing failed: {str(e)}")
         print(e)
@@ -412,4 +415,5 @@ async def analyze_request(request: Request):
             message="系统内部错误",
             prompt_next_action=prom_action,
         )
-        return StreamingResponse(stream_response(response_data), media_type="application/json")
+        return response_data
+        # return StreamingResponse(stream_response(response_data), media_type="application/json")
