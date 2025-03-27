@@ -190,6 +190,64 @@ def get_nested_description(result, description_key="description", nested_result_
             return nested_result.get(description_key)
     return None
 
+import json
+from typing import Optional, List, Dict, Any
+
+def convert_to_openai_stream(result_dict: Dict[str, Any],
+                                   tool_name: Optional[str] = None,
+                                   tool_result: Optional[Dict[str, Any]] = None,
+                                   custom_data: Optional[Dict[str, Any]] = None):
+    # Extract description and other fields from the result_dict
+    description = result_dict.get("data", {}).get("description", "")
+    other_fields = {
+        k: v for k, v in result_dict.get("data", {}).items()
+        if k != "description"
+    }
+
+    # Inject custom data (if any)
+    if custom_data:
+        other_fields.update(custom_data)
+
+    # Simulate tool call if tool_name and tool_result are provided
+    tool_calls = []
+    if tool_name and tool_result:
+        # Construct a tool call following OpenAI's expected structure
+        tool_calls.append({
+            "id": "unique_tool_call_id",  # Unique tool call ID (can be generated dynamically)
+            "name": tool_name,
+            "arguments": tool_result,  # Assuming tool_result is a dict that represents the arguments
+            "result": tool_result  # Return the same result for this example (this can be changed)
+        })
+
+    # First stage: Stream the description character by character
+    for char in description:
+        yield f"data: {json.dumps({
+            'choices': [{
+                'index': 0,
+                'delta': {'content': char},
+                'finish_reason': None
+            }]
+        })}\n\n"
+
+    # Second stage: Send tool call information if provided
+    if tool_calls:
+        for tool_call in tool_calls:
+            yield f"data: {json.dumps({
+                'tool_calls': [{
+                    'id': tool_call['id'],
+                    'name': tool_call['name'],
+                    'arguments': tool_call['arguments'],
+                    'result': tool_call['result']
+                }]
+            })}\n\n"
+
+    # Third stage: Send complete metadata (other fields and custom data)
+    yield f"data: {json.dumps({
+        'metadata': other_fields  # Other fields and custom data
+    })}\n\n"
+
+    # End marker to signify completion
+    yield "data: [DONE]\n\n"
 
 #返回
 def GetWrapResponse(data:Any,history:[],system_response:str,missfield:str,description:str,is_completed:bool,detected_intent:str)-> dict:
@@ -272,7 +330,37 @@ def get_user_id_from_authorization(request: Request) -> Dict[str, str]:
 
 if __name__ == '__main__':
     # Example usage:
-    jwt_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDQzNjczMzAsImlhdCI6MTc0MTc3NTMzMCwiRXZtQWRkcmVzcyI6IjB4ZUI3YWI2ZmI4NjJiMzQ5YzhmMDM5MTI0YTBmM0U1RWU5MzMzMGZjOCIsIlNvbGFuYUFkZHJlc3MiOiI2Z21YWGVvb2VETEN0UXEyMzRlTVB5RzY4V2dtSE11ODY0Nzl5S2Rlb1UxUiIsIlRyb25BZGRyZXNzIjoiVENjWEw1Qnh6V1VNdndKcnljcUVqNFVvNE13dU1qeDlzcyIsImlkIjoxMH0.MDhDh1ezDe5IEwdduDABLzRtBzxrxcY8GP__ihKpxR0"
+    # jwt_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDQzNjczMzAsImlhdCI6MTc0MTc3NTMzMCwiRXZtQWRkcmVzcyI6IjB4ZUI3YWI2ZmI4NjJiMzQ5YzhmMDM5MTI0YTBmM0U1RWU5MzMzMGZjOCIsIlNvbGFuYUFkZHJlc3MiOiI2Z21YWGVvb2VETEN0UXEyMzRlTVB5RzY4V2dtSE11ODY0Nzl5S2Rlb1UxUiIsIlRyb25BZGRyZXNzIjoiVENjWEw1Qnh6V1VNdndKcnljcUVqNFVvNE13dU1qeDlzcyIsImlkIjoxMH0.MDhDh1ezDe5IEwdduDABLzRtBzxrxcY8GP__ihKpxR0"
+    result_dict = {
+        "data": {
+            "description": "This is a description.",
+            "indent":"send",
+            "state":"ACTION",
+            "form": {
+                "chaindex":"111"
+            },
+            "missField":[],
+            "DxTranctionDetail":{},
+        }
+    }
+
+    tool_name = "get_current_weather"
+    tool_result = {
+        "temperature": "22°C",
+        "location": "London"
+    }
+
+    custom_data = {
+        "role":"system",
+        "content":"",
+        "Success": "true",
+        "message":"ok",
+        "propmentAction":[],
+    }
+
+    for data in convert_to_openai_stream(result_dict, tool_name=tool_name, tool_result=tool_result,
+                                               custom_data=custom_data):
+        print(data)
 
 
 
