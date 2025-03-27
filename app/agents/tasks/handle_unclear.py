@@ -19,7 +19,7 @@ async def unclear_task(state: AgentState) -> AgentState:
     )
     chain = prompt | llm | JsonOutputParser()
     # 将 state.user_input 封装成字典
-    input_data = {"input": state.user_input, "language": state.language}
+    input_data = {"input": state.user_input, "langguage": state.language}
     result = await chain.ainvoke(input_data)
     print("进入无法匹配模式")
     return state.copy(update={"result": result})
