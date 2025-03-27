@@ -1,6 +1,7 @@
 import logging
 import time
 
+from langchain_core.messages import HumanMessage
 from langchain_core.tracers import LangChainTracer
 from langsmith import Client
 
