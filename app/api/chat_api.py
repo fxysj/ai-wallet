@@ -313,7 +313,7 @@ async def analyze_request(request: Request):
             session_id=session_id,#会话信息
             history=history, #历史上下文信息
             messages=messages,#历史信息
-            langguage=settings.LANGUAGE_CODE,#语言配置
+            langguage=settings.LanGuage,#语言配置
             isAsync=settings.ISLangGuageAynsNIS,#是否进行配置
             detected_intent=Intention.unclear#默认不知道
 
