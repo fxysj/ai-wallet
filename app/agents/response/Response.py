@@ -107,6 +107,14 @@ class SystemResponse:
             data=data
         )
 
+    def to_dict(self):
+        return {
+            "success": self.success,
+            "prompt_next_action": self.promptNextAction,
+            "data": self.data,
+            "content": self.content
+        }
+
 
 # if __name__ == '__main__':
 #     # 示例调用

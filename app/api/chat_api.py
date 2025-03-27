@@ -25,6 +25,7 @@ from langgraph.graph import END
 from app.agents.tools import *
 from app.config import settings
 from app.agents.lib.redisManger.redisManager import redis_dict_manager
+from fastapi.responses import StreamingResponse
 # from app.agents.lib.session.sessionManager import  dict_manager
 # from langgraph.checkpoint.memory import MemorySaver
 # 配置 LangSmith 追踪器
@@ -36,6 +37,8 @@ from ..utuls.FieldCheckerUtil import FieldChecker
 from ..utuls.Messages import Session
 
 # 实例化 RedisDictManager
+from ..utuls.prompt import convert_to_openai_messages
+
 redis_dict_manager = redis_dict_manager
 #实例化日志模块
 # logging.basicConfig(level=logging.INFO)
@@ -94,6 +97,23 @@ app = workflow.compile()
 #保存对应的流图片
 display_and_save_graph(app=app,filename="graph.png",output_dir="graphs")
 
+# 生成流式响应的生成器函数
+async def stream_response(result: Dict):
+    try:
+        # Convert the result to JSON and then encode it
+        json_data = json.dumps(result).encode('utf-8')
+
+        # Use a chunk size for streaming. This avoids processing the entire payload in memory at once.
+        chunk_size = 1024  # Adjust depending on your use case (e.g., 1KB per chunk)
+
+        # Yield the chunks of JSON data
+        for i in range(0, len(json_data), chunk_size):
+            yield json_data[i:i + chunk_size]
+
+    except Exception as e:
+        logger.error(f"Error during stream response: {str(e)}")
+        # Instead of sending a fixed error message, it’s better to stream the error too
+        yield b"Error processing request"
 
 
 
@@ -208,39 +228,45 @@ async def analyze_request(request: Request):
             except ValueError as e:
                 print(e)
 
+                # 将结果包装为流式响应
 
-
-
-        return SystemResponse.success(
+        response_data = SystemResponse.success(
             prompt_next_action=prom_action,
             data=result["result"],
             content=get_nested_description(result)
-            )
+        )
+
+
+        return StreamingResponse(stream_response(response_data.to_dict()), media_type="application/json")
     except KeyError:
-        return SystemResponse.errorWrap(
+        response_data= SystemResponse.errorWrap(
             data=result["result"],
             message="系统内部错误",
             prompt_next_action=prom_action,
         )
+        return StreamingResponse(stream_response(response_data.to_dict()), media_type="application/json")
     except ValidationError as e:
-        return SystemResponse.errorWrap(
+        response_data =  SystemResponse.errorWrap(
             data=result["result"],
             message="系统内部错误",
             prompt_next_action=prom_action,
         )
+        return StreamingResponse(stream_response(response_data.to_dict()), media_type="application/json")
     except Exception as e:
         logger.error(f"Processing failed: {str(e)}")
         print(e)
-        return SystemResponse.errorWrap(
+        response_data= SystemResponse.errorWrap(
             data=result["result"],
             message="系统内部错误",
             prompt_next_action=prom_action,
         )
+        return StreamingResponse(stream_response(response_data.to_dict()), media_type="application/json")
     except ValueError as e:
         logger.error(f"Processing failed: {str(e)}")
         print(e)
-        return SystemResponse.errorWrap(
+        response_data =  SystemResponse.errorWrap(
             data=result["result"],
             message="系统内部错误",
             prompt_next_action=prom_action,
         )
+        return StreamingResponse(stream_response(response_data), media_type="application/json")
