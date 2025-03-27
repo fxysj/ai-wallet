@@ -117,31 +117,7 @@ async def stream_response(result: Dict):
         yield b"Error processing request"
 
 
-async def convert_to_openai_stream(result_dict):
-    # 提取需要流式化的描述文本和其他字段
-    description = result_dict.get("data", {}).get("description", "")
-    other_fields = {
-        k: v for k, v in result_dict.get("data", {}).items()
-        if k != "description"
-    }
 
-    # 第一阶段：流式输出 description
-    for char in description:
-        yield f"data: {json.dumps({
-            'choices': [{
-                'index': 0,
-                'delta': {'content': char},
-                'finish_reason': None
-            }]
-        })}\n\n"
-
-    # 第二阶段：发送完整元数据
-    yield f"data: {json.dumps({
-        'metadata': other_fields  # 其他字段单独包装
-    })}\n\n"
-
-    # 结束标记
-    yield "data: [DONE]\n\n"
 
 
 def process_tool_calls(stream,available_tools):

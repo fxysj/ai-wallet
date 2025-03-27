@@ -93,6 +93,6 @@ jobs:
             docker image prune -f      # 清理旧镜像，避免占用过多磁盘空间
             #删除其他镜像
             # 保留特定镜像并删除其他镜像
-            #docker images --format "{{.Repository}}:{{.Tag}} {{.ID}}" | grep -v "registry.cn-hangzhou.aliyuncs.com/sinrpc/ai-wallet:latest" | awk '{print $2}' | xargs docker rmi
+            docker images --format "{{.Repository}}:{{.Tag}} {{.ID}}" | grep -v "registry.cn-hangzhou.aliyuncs.com/sinrpc/ai-wallet:latest" | awk '{print $2}' | xargs docker rmi
             
             echo "✅ 部署完成"
