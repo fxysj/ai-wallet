@@ -123,7 +123,7 @@ async def create_session() -> dict:
 
 # API端点
 @router.post("/chat",summary="大模型统一入口")
-async def analyze_request(request: dict):
+async def analyze_request(request: Request):
     """
        处理用户请求接口：
          - 根据会话ID找到对应会话
@@ -131,22 +131,35 @@ async def analyze_request(request: dict):
          - 合并数据并更新会话历史
        """
     try:
-        session_id = request.get("session_id")
-        messages = request.get("messages")
-        if not session_id or redis_dict_manager.get(session_id) is None:
+        request_data = await request.json()
+        #从头部获取 id信息
+        user_id_info = get_user_id_from_authorization(request)
+        user_id = user_id_info["user_id"]
+        user_id = str(user_id)
+
+        session_id = user_id
+        messages = request_data.get("messages")
+        print(session_id)
+        if not session_id:
             return SystemResponse.error_with_message(
                 message="请先进行授权登录钱包",
             )
 
-        session = redis_dict_manager.get(session_id)
 
-        user_input_object = Session.get_last_user_message(request)
+        session = redis_dict_manager.get(session_id)
+        #如果没有找到则返回一个空的信息
+        if session == None:
+            user_seession = {"history":[]}
+            redis_dict_manager.add(user_id,user_seession)
+
+
+        user_input_object = Session.get_last_user_message(request_data)
 
         current_data = user_input_object.data
         user_attached_data = current_data
 
         # 组装最近的对话历史（取最新5条记录）
-        history = Session.get_recent_history(request,10)
+        history = Session.get_recent_history(request_data,10)
 
 
 
@@ -161,6 +174,8 @@ async def analyze_request(request: dict):
         result = await app.ainvoke(initial_state)
 
         print("DEBUG - result 类型:", type(result))
+
+        print(user_input_object)
         # 更新对话历史
         session["history"].extend([
             {"role": "user", "content": user_input_object.content,"data":user_input_object.data},

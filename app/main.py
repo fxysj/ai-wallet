@@ -14,7 +14,7 @@ app = FastAPI(title="区块链智能助手 Pro",
 app = setup_cors_middleware(app)
 #设置日志
 # 设置日志
-app = setup_logging(app)
+# app = setup_logging(app)
 # 注册 API
 app.include_router(chat_router, prefix="/api/v1")
 
