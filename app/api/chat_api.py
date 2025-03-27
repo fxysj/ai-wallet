@@ -116,6 +116,153 @@ async def stream_response(result: Dict):
         yield b"Error processing request"
 
 
+async def convert_to_openai_stream(result_dict):
+    # 提取需要流式化的描述文本和其他字段
+    description = result_dict.get("data", {}).get("description", "")
+    other_fields = {
+        k: v for k, v in result_dict.get("data", {}).items()
+        if k != "description"
+    }
+
+    # 第一阶段：流式输出 description
+    for char in description:
+        yield f"data: {json.dumps({
+            'choices': [{
+                'index': 0,
+                'delta': {'content': char},
+                'finish_reason': None
+            }]
+        })}\n\n"
+
+    # 第二阶段：发送完整元数据
+    yield f"data: {json.dumps({
+        'metadata': other_fields  # 其他字段单独包装
+    })}\n\n"
+
+    # 结束标记
+    yield "data: [DONE]\n\n"
+
+
+def process_tool_calls(stream,available_tools):
+    draft_tool_calls = []
+    draft_tool_calls_index = -1
+
+    # 处理流的每个chunk
+    for chunk in stream:
+        # Log the structure of the chunk for debugging
+        print(json.dumps(chunk, indent=2))  # This will print the chunk structure
+
+        # Check if 'choices' exist in the chunk
+        if hasattr(chunk, 'choices'):
+            for choice in chunk.choices:
+                if choice.finish_reason == "stop":
+                    continue
+
+                elif choice.finish_reason == "tool_calls":
+                    # 处理工具调用
+                    for tool_call in draft_tool_calls:
+                        # 模拟工具调用并返回状态
+                        tool_result = available_tools[tool_call["name"]](
+                            **json.loads(tool_call["arguments"]))
+                        # 更新图的状态
+                        #graph.update_state(tool_call["id"], tool_result)
+
+                        yield 'a:{{"toolCallId":"{id}","toolName":"{name}","args":{args},"result":{result}}}\n'.format(
+                            id=tool_call["id"],
+                            name=tool_call["name"],
+                            args=tool_call["arguments"],
+                            result=json.dumps(tool_result))
+
+                    # 返回图的完整状态值
+                    yield f'graph:{json.dumps(graph.get_full_state())}\n'
+
+                elif choice.delta.tool_calls:
+                    # 处理新的工具调用
+                    for tool_call in choice.delta.tool_calls:
+                        id = tool_call.id
+                        name = tool_call.function.name
+                        arguments = tool_call.function.arguments
+
+                        if id is not None:
+                            draft_tool_calls_index += 1
+                            draft_tool_calls.append(
+                                {"id": id, "name": name, "arguments": ""})
+                        else:
+                            draft_tool_calls[draft_tool_calls_index]["arguments"] += arguments
+
+                else:
+                    # 输出文本内容
+                    yield '0:{text}\n'.format(text=json.dumps(choice.delta.content))
+        else:
+            # If 'choices' attribute doesn't exist, log this
+            print(f"Chunk does not have 'choices': {json.dumps(chunk, indent=2)}")
+
+        if chunk.choices == []:
+            # 输出消耗的token信息
+            usage = chunk.usage
+            prompt_tokens = usage.prompt_tokens
+            completion_tokens = usage.completion_tokens
+
+            yield 'e:{{"finishReason":"{reason}","usage":{{"promptTokens":{prompt},"completionTokens":{completion}}},"isContinued":false}}\n'.format(
+                reason="tool-calls" if len(draft_tool_calls) > 0 else "stop",
+                prompt=prompt_tokens,
+                completion=completion_tokens
+            )
+
+
+def process_stream(stream, available_tools):
+    draft_tool_calls = []
+    draft_tool_calls_index = -1
+
+    for chunk in stream:
+        for choice in chunk.choices:
+            if choice.finish_reason == "stop":
+                continue
+
+            elif choice.finish_reason == "tool_calls":
+                for tool_call in draft_tool_calls:
+                    yield '9:{{"toolCallId":"{id}","toolName":"{name}","args":{args}}}\n'.format(
+                        id=tool_call["id"],
+                        name=tool_call["name"],
+                        args=tool_call["arguments"])
+
+                for tool_call in draft_tool_calls:
+                    tool_result = available_tools[tool_call["name"]](
+                        **json.loads(tool_call["arguments"]))
+
+                    yield 'a:{{"toolCallId":"{id}","toolName":"{name}","args":{args},"result":{result}}}\n'.format(
+                        id=tool_call["id"],
+                        name=tool_call["name"],
+                        args=tool_call["arguments"],
+                        result=json.dumps(tool_result))
+
+            elif choice.delta.tool_calls:
+                for tool_call in choice.delta.tool_calls:
+                    id = tool_call.id
+                    name = tool_call.function.name
+                    arguments = tool_call.function.arguments
+
+                    if id is not None:
+                        draft_tool_calls_index += 1
+                        draft_tool_calls.append(
+                            {"id": id, "name": name, "arguments": ""})
+                    else:
+                        draft_tool_calls[draft_tool_calls_index]["arguments"] += arguments
+
+            else:
+                yield '0:{text}\n'.format(text=json.dumps(choice.delta.content))
+
+        if not chunk.choices:
+            usage = chunk.usage
+            prompt_tokens = usage.prompt_tokens
+            completion_tokens = usage.completion_tokens
+
+            yield 'e:{{"finishReason":"{reason}","usage":{{"promptTokens":{prompt},"completionTokens":{completion}}},"isContinued":false}}\n'.format(
+                reason="tool-calls" if draft_tool_calls else "stop",
+                prompt=prompt_tokens,
+                completion=completion_tokens
+            )
+
 
 # ------------------------------------------------------------------------------
 # API 接口
@@ -236,22 +383,41 @@ async def analyze_request(request: Request):
             content=get_nested_description(result)
         )
 
-
-        return StreamingResponse(stream_response(response_data.to_dict()), media_type="application/json")
+        response =  StreamingResponse(
+            convert_to_openai_stream(response_data.to_dict()),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive"
+            })
+        response.headers['x-vercel-ai-data-stream'] = 'v1'
+        return response
     except KeyError:
         response_data= SystemResponse.errorWrap(
             data=result["result"],
             message="系统内部错误",
             prompt_next_action=prom_action,
         )
-        return StreamingResponse(stream_response(response_data.to_dict()), media_type="application/json")
+        return StreamingResponse(
+        convert_to_openai_stream(result),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive"
+        })
     except ValidationError as e:
         response_data =  SystemResponse.errorWrap(
             data=result["result"],
             message="系统内部错误",
             prompt_next_action=prom_action,
         )
-        return StreamingResponse(stream_response(response_data.to_dict()), media_type="application/json")
+        return StreamingResponse(
+        convert_to_openai_stream(result),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive"
+        })
     except Exception as e:
         logger.error(f"Processing failed: {str(e)}")
         print(e)
