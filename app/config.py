@@ -31,6 +31,10 @@ class Settings(BaseSettings):
     LANGSMITH_PROJECT: str = Field(default="", env="LANGSMITH_PROJECT")
     SERPAPI_API_KEY: str = Field(default="", env="SERPAPI_API_KEY")
 
+    LanGuage:str = Field(default="en", env="LANGUAGE")
+
+    ISLangGuageAynsNIS:bool =Field(default=False, env="ISLangGuageAynsNIS")
+
     # 其他缓队列的配置
 
     class Config:
