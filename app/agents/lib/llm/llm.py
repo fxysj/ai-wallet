@@ -8,7 +8,7 @@ class LLMFactory():
             model="gpt-4o",
             temperature=0.3,
             openai_api_key=open_key,
-            openai_api_base=url
+            openai_api_base=url,
         )
         return llm
     @staticmethod
