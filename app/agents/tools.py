@@ -193,61 +193,61 @@ def get_nested_description(result, description_key="description", nested_result_
 import json
 from typing import Optional, List, Dict, Any
 
-def convert_to_openai_stream(result_dict: Dict[str, Any],
-                                   tool_name: Optional[str] = None,
-                                   tool_result: Optional[Dict[str, Any]] = None,
-                                   custom_data: Optional[Dict[str, Any]] = None):
-    # Extract description and other fields from the result_dict
-    description = result_dict.get("data", {}).get("description", "")
-    other_fields = {
-        k: v for k, v in result_dict.get("data", {}).items()
-        if k != "description"
-    }
-
-    # Inject custom data (if any)
-    if custom_data:
-        other_fields.update(custom_data)
-
-    # Simulate tool call if tool_name and tool_result are provided
-    tool_calls = []
-    if tool_name and tool_result:
-        # Construct a tool call following OpenAI's expected structure
-        tool_calls.append({
-            "id": "unique_tool_call_id",  # Unique tool call ID (can be generated dynamically)
-            "name": tool_name,
-            "arguments": tool_result,  # Assuming tool_result is a dict that represents the arguments
-            "result": tool_result  # Return the same result for this example (this can be changed)
-        })
-
-    # First stage: Stream the description character by character
-    for char in description:
-        yield f"data: {json.dumps({
-            'choices': [{
-                'index': 0,
-                'delta': {'content': char},
-                'finish_reason': None
-            }]
-        })}\n\n"
-
-    # Second stage: Send tool call information if provided
-    if tool_calls:
-        for tool_call in tool_calls:
-            yield f"data: {json.dumps({
-                'tool_calls': [{
-                    'id': tool_call['id'],
-                    'name': tool_call['name'],
-                    'arguments': tool_call['arguments'],
-                    'result': tool_call['result']
-                }]
-            })}\n\n"
-
-    # Third stage: Send complete metadata (other fields and custom data)
-    yield f"data: {json.dumps({
-        'metadata': other_fields  # Other fields and custom data
-    })}\n\n"
-
-    # End marker to signify completion
-    yield "data: [DONE]\n\n"
+# def convert_to_openai_stream(result_dict: Dict[str, Any],
+#                                    tool_name: Optional[str] = None,
+#                                    tool_result: Optional[Dict[str, Any]] = None,
+#                                    custom_data: Optional[Dict[str, Any]] = None):
+#     # Extract description and other fields from the result_dict
+#     description = result_dict.get("data", {}).get("description", "")
+#     other_fields = {
+#         k: v for k, v in result_dict.get("data", {}).items()
+#         if k != "description"
+#     }
+#
+#     # Inject custom data (if any)
+#     if custom_data:
+#         other_fields.update(custom_data)
+#
+#     # Simulate tool call if tool_name and tool_result are provided
+#     tool_calls = []
+#     if tool_name and tool_result:
+#         # Construct a tool call following OpenAI's expected structure
+#         tool_calls.append({
+#             "id": "unique_tool_call_id",  # Unique tool call ID (can be generated dynamically)
+#             "name": tool_name,
+#             "arguments": tool_result,  # Assuming tool_result is a dict that represents the arguments
+#             "result": tool_result  # Return the same result for this example (this can be changed)
+#         })
+#
+#     # First stage: Stream the description character by character
+#     for char in description:
+#         yield f"data: {json.dumps({
+#             'choices': [{
+#                 'index': 0,
+#                 'delta': {'content': char},
+#                 'finish_reason': None
+#             }]
+#         })}\n\n"
+#
+#     # Second stage: Send tool call information if provided
+#     if tool_calls:
+#         for tool_call in tool_calls:
+#             yield f"data: {json.dumps({
+#                 'tool_calls': [{
+#                     'id': tool_call['id'],
+#                     'name': tool_call['name'],
+#                     'arguments': tool_call['arguments'],
+#                     'result': tool_call['result']
+#                 }]
+#             })}\n\n"
+#
+#     # Third stage: Send complete metadata (other fields and custom data)
+#     yield f"data: {json.dumps({
+#         'metadata': other_fields  # Other fields and custom data
+#     })}\n\n"
+#
+#     # End marker to signify completion
+#     yield "data: [DONE]\n\n"
 
 #返回
 def GetWrapResponse(data:Any,history:[],system_response:str,missfield:str,description:str,is_completed:bool,detected_intent:str)-> dict:
