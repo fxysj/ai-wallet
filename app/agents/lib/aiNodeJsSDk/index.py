@@ -5,9 +5,11 @@ from openai.types.chat.chat_completion_message_param import ChatCompletionMessag
 from pydantic import BaseModel
 from fastapi import FastAPI, Query
 from fastapi.responses import StreamingResponse
+from fastapi.requests import Request as FastAPIRequest
 from openai import OpenAI
 from app.agents.lib.aiNodeJsSDk.utils.prompt import ClientMessage, convert_to_openai_messages
 from app.agents.lib.aiNodeJsSDk.utils.tools import get_current_weather
+from app.agents.schemas import AgentState
 from app.config import settings
 
 app = FastAPI()
@@ -55,6 +57,8 @@ def do_stream(messages: List[ChatCompletionMessageParam]):
     )
 
     return stream
+
+
 
 def stream_text(messages: List[ChatCompletionMessageParam], protocol: str = 'data'):
     draft_tool_calls = []
@@ -140,15 +144,16 @@ def stream_text(messages: List[ChatCompletionMessageParam], protocol: str = 'dat
 
 
 @app.get("/api/v1/test")
-async def getTest(request:Request):
-    return {"result":"ok","data":[]}
+async def getTest(request:FastAPIRequest):
+    return {"result":"ok","data":{"headers":request.headers}}
 
 @app.post("/api/chat")
 async def handle_chat_data(request: Request, protocol: str = Query('data')):
     messages = request.messages
     openai_messages = convert_to_openai_messages(messages)
-
-    response = StreamingResponse(stream_text(openai_messages, protocol))
+    print(openai_messages)
+    res = stream_text(openai_messages, protocol)
+    response = StreamingResponse(res)
     response.headers['x-vercel-ai-data-stream'] = 'v1'
     return response
 

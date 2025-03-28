@@ -7,6 +7,7 @@ from langsmith import Client
 
 from  app.agents.lib.llm.llm import  LLMFactory
 from app.agents.tasks.analysis_task import parse_complex_intent
+from ..agents.lib.aiNodeJsSDk.tools.AgentStateResponseWrape import stream_text_agent_state
 from ..agents.lib.redisManger.redisManager import RedisDictManager
 from ..agents.lib.session.TranSession import TransactionSystem
 from ..agents.response.Response import SystemResponse
@@ -364,16 +365,15 @@ async def analyze_request(request: Request):
             data=result["result"],
             content=get_nested_description(result)
         )
+        res = stream_text_agent_state(content=get_nested_description(result),
+                                data=response_data.to_dict()
+                                )
+        # for chunk in res:
+        #     print(chunk)
 
-        # response =  StreamingResponse(
-        #     convert_to_openai_stream(response_data.to_dict()),
-        #     media_type="text/event-stream",
-        #     headers={
-        #         "Cache-Control": "no-cache",
-        #         "Connection": "keep-alive"
-        #     })
-        # response.headers['x-vercel-ai-data-stream'] = 'v1'
-        return response_data
+        response =  StreamingResponse(res)
+        response.headers['x-vercel-ai-data-stream'] = 'v1'
+        return response
     except KeyError:
         response_data= SystemResponse.errorWrap(
             data=result["result"],
