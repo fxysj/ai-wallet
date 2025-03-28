@@ -281,11 +281,11 @@ async def analyze_request(request: Request):
     try:
         request_data = await request.json()
         #从头部获取 id信息
-        user_id_info = get_user_id_from_authorization(request)
-        user_id = user_id_info["user_id"]
-        user_id = str(user_id)
+        # user_id_info = get_user_id_from_authorization(request)
+        # user_id = user_id_info["user_id"]
+        # user_id = str(user_id)
 
-        session_id = user_id
+        session_id = request_data.get("session_id")
         messages = request_data.get("messages")
         print(session_id)
         if not session_id:
@@ -299,7 +299,7 @@ async def analyze_request(request: Request):
         #如果没有找到则返回一个空的信息
         if session == None:
             user_seession = {"history":[],"data":{},"session_id": str(uuid.uuid4())}
-            redis_dict_manager.add(user_id,user_seession)
+            redis_dict_manager.add(session_id,user_seession)
 
 
         user_input_object = Session.get_last_user_message(request_data)
@@ -329,6 +329,8 @@ async def analyze_request(request: Request):
 
         print(user_input_object)
         # 更新对话历史
+        print("=====用户提交的数据==========")
+        print(user_input_object.data)
         session["history"].extend([
             {"role": "user", "content": user_input_object.content,"data":user_input_object.data},
             {"role": "system", "content": get_nested_description(result),"data":result}
