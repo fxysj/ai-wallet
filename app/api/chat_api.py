@@ -1,5 +1,6 @@
 import logging
 import time
+import uuid
 
 from langchain_core.messages import HumanMessage
 from langchain_core.tracers import LangChainTracer
@@ -294,9 +295,10 @@ async def analyze_request(request: Request):
 
 
         session = redis_dict_manager.get(session_id)
+        print(session)
         #如果没有找到则返回一个空的信息
         if session == None:
-            user_seession = {"history":[]}
+            user_seession = {"history":[],"data":{},"session_id": str(uuid.uuid4())}
             redis_dict_manager.add(user_id,user_seession)
 
 
