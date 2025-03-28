@@ -265,7 +265,7 @@ async def create_session() -> dict:
 
 @router.get("/test",summary="测试接口")
 async def test(request:Request):
-    return BaseResponse.success(request)
+    return BaseResponse.success(request.headers.values())
 
 # API端点
 @router.post("/chat",summary="大模型统一入口")
