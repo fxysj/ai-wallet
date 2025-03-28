@@ -263,7 +263,9 @@ async def create_session() -> dict:
         return BaseResponse.error(500, "服务初始化失败")
 
 
-
+@router.get("/test",summary="测试接口")
+async def test(request:Request):
+    return BaseResponse.success(request)
 
 # API端点
 @router.post("/chat",summary="大模型统一入口")
