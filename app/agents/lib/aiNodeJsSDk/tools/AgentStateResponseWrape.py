@@ -82,7 +82,24 @@ def stream_text_agent_state_sin(content: str, data: any):
     if len(output_data) > 0:
         formatted_data = json.dumps(output_data)
         yield f'2:{formatted_data}\n'
+def stream_text_agent_state_transfor(content: str, data: dict):
+    # 如果 data 是字典格式，将其转换为列表包含字典
+    annotations = data if isinstance(data, list) else [data]
 
+    # 创建一个数组来存放数据
+    output_data = []
+
+    # 1. 处理 annotations 部分，转换为 JSON 格式并输出 8: 格式
+    if isinstance(annotations, list):
+        formatted_annotations = json.dumps(annotations, ensure_ascii=False)
+        yield f'8:{formatted_annotations}\n'  # 输出 annotations 部分
+
+    # 2. 处理 content 字符串部分，逐字符输出
+    if isinstance(content, str):
+        for char in content:
+            # 将每个字符编码为 Unicode 转义格式
+            encoded_char = char.encode('unicode_escape').decode('utf-8')
+            yield f'0:"{encoded_char}"\n'
 
 if __name__ == '__main__':
     # 示例数据：content 是一个字符串，data 是一个字典或数组
@@ -101,5 +118,5 @@ if __name__ == '__main__':
     # data_list = [{"key": "object1"}, {"anotherKey": "object2"}]
 
     # 使用生成器输出结果
-    for chunk in stream_text_agent_state(content, data_dict):
+    for chunk in stream_text_agent_state_transfor(content, data_dict):
         print(chunk)
