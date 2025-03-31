@@ -173,6 +173,12 @@ async def analyze_request(request: Request):
         # 更新对话历史
         print("=====用户提交的数据==========")
         print(user_input_object.data)
+
+        # 确保 session 已初始化，防止为 None 的错误
+        if session is None:
+            session = {}
+
+        # 如果 session["history"] 为 None，则初始化为一个空列表
         # 确保 session["history"] 不是 None
         if session.get("history") is None:
             session["history"] = []
