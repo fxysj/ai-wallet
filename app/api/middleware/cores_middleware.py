@@ -7,8 +7,7 @@ def setup_cors_middleware(app: FastAPI):
     # 这里可以根据实际需求添加更多的域名，例如 ["http://example.com", "https://another-example.com"]
     # 如果要允许所有来源，可以使用 ["*"]，但这在生产环境中可能存在安全风险
     origins = [
-        "http://localhost",
-        "http://localhost:8080",
+       "*"
     ]
 
     # 添加 CORS 中间件

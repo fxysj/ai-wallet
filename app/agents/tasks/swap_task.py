@@ -48,27 +48,28 @@ async def swap_task(state: AgentState) -> AgentState:
     data = response_data.get("data")
     data["intent"] = state.detected_intent.value
 
-    route_data = cross_chain_swap(addreess=data["form"].get("from"), to=data["form"].get("to"),
-                                  amount=data["form"].get("amount"))
-
-    routes = route_data["routes"]
-    print(routes)
-    swap_info = data["form"]
-    print(swap_info)
+    # route_data = cross_chain_swap(addreess=data["form"].get("from"), to=data["form"].get("to"),
+    #                               amount=data["form"].get("amount"))
+    #
+    # routes = route_data["routes"]
+    # print(routes)
+    # swap_info = data["form"]
+    # print(swap_info)
     result = {
         "state": data["state"],
         "indent":state.detected_intent.value,
-        "routes": routes,
+        "description": data["description"],
+        # "routes": routes,
         "form": data["form"],
-        "bestRoute": routes[0] if route_data else None,
-        "estimatedReturn": str(routes[0]["expectedOutput"]) if routes else "0",
-        "estimatedDuration": routes[0]["estimatedDuration"] if routes else "",
-        "transactionDetails": {
-            "from": swap_info["from"],
-            "to": swap_info["to"],
-            "amount": str(swap_info["amount"]),
-            "estimatedGas": routes[0]["fee"] if routes and "fee" in routes[0] else "Unknown"
-        }
+        # "bestRoute": routes[0] if route_data else None,
+        # "estimatedReturn": str(routes[0]["expectedOutput"]) if routes else "0",
+        # "estimatedDuration": routes[0]["estimatedDuration"] if routes else "",
+        # "transactionDetails": {
+        #     "from": swap_info["from"],
+        #     "to": swap_info["to"],
+        #     "amount": str(swap_info["amount"]),
+        #     "estimatedGas": routes[0]["fee"] if routes and "fee" in routes[0] else "Unknown"
+        # }
     }
     print(result)
 

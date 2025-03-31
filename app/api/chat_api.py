@@ -8,7 +8,7 @@ from langsmith import Client
 
 from  app.agents.lib.llm.llm import  LLMFactory
 from app.agents.tasks.analysis_task import parse_complex_intent
-from ..agents.lib.aiNodeJsSDk.tools.AgentStateResponseWrape import stream_text_agent_state
+from ..agents.lib.aiNodeJsSDk.tools.AgentStateResponseWrape import stream_text_agent_state, generate_chat_responses
 from ..agents.lib.redisManger.redisManager import RedisDictManager
 from ..agents.lib.session.TranSession import TransactionSystem
 from ..agents.response.Response import SystemResponse
@@ -123,8 +123,11 @@ async def analyze_request(request: Request):
         # user_id = str(user_id)
 
         session_id = request_data.get("session_id")
+        id= request_data.get("id")
         messages = request_data.get("messages")
         print(session_id)
+        if id:
+            session_id  = id
         if not session_id:
             return SystemResponse.error_with_message(
                 message="请先进行授权登录钱包",
@@ -134,9 +137,9 @@ async def analyze_request(request: Request):
         session = redis_dict_manager.get(session_id)
         print(session)
         #如果没有找到则返回一个空的信息
-        if session == None:
-            user_seession = {"history":[],"data":{},"session_id": str(uuid.uuid4())}
-            redis_dict_manager.add(session_id,user_seession)
+        # if session == None:
+        #     user_seession = {"history":[],"data":{},"session_id": str(uuid.uuid4())}
+        #     redis_dict_manager.add(session_id,user_seession)
 
 
         user_input_object = Session.get_last_user_message(request_data)
@@ -158,16 +161,19 @@ async def analyze_request(request: Request):
             langguage=settings.LanGuage,#语言配置
             isAsync=settings.ISLangGuageAynsNIS,#是否进行配置
             detected_intent=Intention.unclear#默认不知道
-
         )
-        result = await app.ainvoke(initial_state)
 
+        result = await app.ainvoke(initial_state)
         print("DEBUG - result 类型:", type(result))
 
         print(user_input_object)
         # 更新对话历史
         print("=====用户提交的数据==========")
         print(user_input_object.data)
+        # 确保 session["history"] 不是 None
+        if session.get("history") is None:
+            session["history"] = []
+
         session["history"].extend([
             {"role": "user", "content": user_input_object.content,"data":user_input_object.data},
             {"role": "system", "content": get_nested_description(result),"data":result}
@@ -181,7 +187,7 @@ async def analyze_request(request: Request):
         print(result)
 
         state = FieldChecker.get_field_info(
-            data=result["result"],
+            data=result.get("result", {}),  # 如果 result["result"] 不存在，返回空字典 {}
             field_name="state"
         )
         prom_action = []
@@ -201,20 +207,22 @@ async def analyze_request(request: Request):
 
                 # 将结果包装为流式响应
 
+
+        print(prom_action)
+
         response_data = SystemResponse.success(
             prompt_next_action=prom_action,
-            data=result["result"],
+            data=result.get("result", {}),  # 如果 result["result"] 不存在，返回空字典 {}
             content=get_nested_description(result)
         )
-        # res = stream_text_agent_state(content=get_nested_description(result),
-        #                         data=response_data.to_dict()
-        #                         )
-        # for chunk in res:
-        #     print(chunk)
+        res = stream_text_agent_state(content=get_nested_description(result),
+                                data=response_data.to_dict()
+                                )
 
-        # response =  StreamingResponse(res)
-        # response.headers['x-vercel-ai-data-stream'] = 'v1'
-        return response_data
+        response =  StreamingResponse(res)
+        response.headers["x-vercel-ai-data-stream"] = "v1"
+        # return response_data
+        return response
     except KeyError:
         response_data= SystemResponse.errorWrap(
             data=result["result"],
@@ -251,8 +259,12 @@ async def analyze_request(request: Request):
             message="系统内部错误",
             prompt_next_action=prom_action,
         )
-        return response_data
-        # return StreamingResponse(stream_response(response_data.to_dict()), media_type="application/json")
+        res = stream_text_agent_state("请稍后重试",response_data.to_dict())
+        response = StreamingResponse(res)
+        response.headers["x-vercel-ai-data-stream"] = "v1"
+        return  response
+        # return response_data
+        #  return StreamingResponse(stream_text_agent_state(), media_type="application/json")
     except ValueError as e:
         logger.error(f"Processing failed: {str(e)}")
         print(e)
