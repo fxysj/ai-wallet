@@ -135,11 +135,13 @@ async def analyze_request(request: Request):
 
 
         session = redis_dict_manager.get(session_id)
+        print("--------session-------------")
         print(session)
+        print("---------id:"+id)
         #如果没有找到则返回一个空的信息
-        # if session == None:
-        #     user_seession = {"history":[],"data":{},"session_id": str(uuid.uuid4())}
-        #     redis_dict_manager.add(session_id,user_seession)
+        if session == None:
+            user_seession = {"history":[],"data":{},"session_id": str(uuid.uuid4())}
+            redis_dict_manager.add(session_id,user_seession)
 
 
         user_input_object = Session.get_last_user_message(request_data)
