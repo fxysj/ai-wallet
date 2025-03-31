@@ -329,6 +329,11 @@ def get_user_id_from_authorization(request: Request) -> Dict[str, str]:
     except:
         return {"user_id": ""}
 
+
+def convert_to_openai_stream(result_dict, tool_name, tool_result, custom_data):
+    pass
+
+
 if __name__ == '__main__':
     # Example usage:
     # jwt_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDQzNjczMzAsImlhdCI6MTc0MTc3NTMzMCwiRXZtQWRkcmVzcyI6IjB4ZUI3YWI2ZmI4NjJiMzQ5YzhmMDM5MTI0YTBmM0U1RWU5MzMzMGZjOCIsIlNvbGFuYUFkZHJlc3MiOiI2Z21YWGVvb2VETEN0UXEyMzRlTVB5RzY4V2dtSE11ODY0Nzl5S2Rlb1UxUiIsIlRyb25BZGRyZXNzIjoiVENjWEw1Qnh6V1VNdndKcnljcUVqNFVvNE13dU1qeDlzcyIsImlkIjoxMH0.MDhDh1ezDe5IEwdduDABLzRtBzxrxcY8GP__ihKpxR0"

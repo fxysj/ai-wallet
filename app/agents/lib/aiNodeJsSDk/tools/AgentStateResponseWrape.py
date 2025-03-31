@@ -101,5 +101,5 @@ if __name__ == '__main__':
     # data_list = [{"key": "object1"}, {"anotherKey": "object2"}]
 
     # 使用生成器输出结果
-    for chunk in stream_text_agent_state_sin(content, data_dict):
+    for chunk in stream_text_agent_state(content, data_dict):
         print(chunk)
