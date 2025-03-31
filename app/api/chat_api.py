@@ -225,7 +225,7 @@ async def analyze_request(request: Request):
         return response
     except KeyError:
         response_data= SystemResponse.errorWrap(
-            data=result["result"],
+            data=result.get("result", {}),
             message="系统内部错误",
             prompt_next_action=prom_action,
         )
@@ -239,7 +239,7 @@ async def analyze_request(request: Request):
         return response_data
     except ValidationError as e:
         response_data =  SystemResponse.errorWrap(
-            data=result["result"],
+            data=result.get("result", {}),
             message="系统内部错误",
             prompt_next_action=prom_action,
         )
@@ -255,7 +255,7 @@ async def analyze_request(request: Request):
         logger.error(f"Processing failed: {str(e)}")
         print(e)
         response_data= SystemResponse.errorWrap(
-            data=result["result"],
+            data=result.get("result", {}),
             message="系统内部错误",
             prompt_next_action=prom_action,
         )
@@ -269,7 +269,7 @@ async def analyze_request(request: Request):
         logger.error(f"Processing failed: {str(e)}")
         print(e)
         response_data =  SystemResponse.errorWrap(
-            data=result["result"],
+            data=result.get("result", {}),
             message="系统内部错误",
             prompt_next_action=prom_action,
         )
