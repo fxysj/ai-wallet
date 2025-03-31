@@ -217,14 +217,14 @@ async def analyze_request(request: Request):
             data=result.get("result", {}),  # 如果 result["result"] 不存在，返回空字典 {}
             content=get_nested_description(result)
         )
-        res = stream_text_agent_state(content=get_nested_description(result),
-                                data=response_data.to_dict()
-                                )
+        # res = stream_text_agent_state(content=get_nested_description(result),
+        #                         data=response_data.to_dict()
+        #                         )
 
-        response =  StreamingResponse(res)
-        response.headers["x-vercel-ai-data-stream"] = "v1"
-        # return response_data
-        return response
+        #response =  StreamingResponse(res)
+        #response.headers["x-vercel-ai-data-stream"] = "v1"
+        return response_data
+        # return response
     except KeyError:
         response_data= SystemResponse.errorWrap(
             data=result.get("result", {}),
@@ -261,11 +261,11 @@ async def analyze_request(request: Request):
             message="系统内部错误",
             prompt_next_action=prom_action,
         )
-        res = stream_text_agent_state("请稍后重试",response_data.to_dict())
-        response = StreamingResponse(res)
-        response.headers["x-vercel-ai-data-stream"] = "v1"
-        return  response
-        # return response_data
+        # res = stream_text_agent_state("请稍后重试",response_data.to_dict())
+        # response = StreamingResponse(res)
+        # response.headers["x-vercel-ai-data-stream"] = "v1"
+        # return  response
+        return response_data
         #  return StreamingResponse(stream_text_agent_state(), media_type="application/json")
     except ValueError as e:
         logger.error(f"Processing failed: {str(e)}")
