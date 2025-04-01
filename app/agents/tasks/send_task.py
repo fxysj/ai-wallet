@@ -136,4 +136,7 @@ async def send_task(state: AgentState) -> AgentState:
     response_data = chain_response
     data = response_data.get("data")
     data["intent"] = state.detected_intent.value
+    #这里需要进行修正data中的DxTransActionDetail熟悉
+    #需要重新组合为新的 对象的Class.to_Dict()
+    data["DxTransActionDetail"] = {}
     return state.copy(update={"result": data})
