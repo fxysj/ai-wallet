@@ -1,4 +1,5 @@
 import json
+from typing import Optional, List
 
 
 class SystemResponse:
@@ -8,38 +9,38 @@ class SystemResponse:
 
     def __init__(
         self,
-        is_success: bool,
-        content: str,
+        role:str,
+        content:str,
+        success: bool,
         message: str,
-        prompt_next_action: list,
         data: any,
-        intent: str = "",
+        promptedAction: Optional[List[str]] = None,
+        confidence: float = 0.0,
+            alternatives: Optional[List[str]] = None
     ):
         """
         构造一个系统响应对象
 
-        :param is_success: bool - 响应是否成功
-        :param content: str - 外部注入的字符串，用于 system 消息内容
-        :param message: str - 外部注入的消息字段（成功或错误消息）
-        :param prompt_next_action: list - 外部注入的数组，用于提示下一步动作
+        :param success: bool - 响应是否成功
+        :param message: str - 外部注入的字符串，用于 system 消息内容
+        :param promptedAction: list - 外部注入的数组，用于提示下一步动作
         :param data: any - 外部注入的任意类型数据
-        :param intent: str - （可选）意图字段，默认为空字符串
+        :param confidence:float - 大模型分数
+        :param alternatives:list -额外的信息 工具调用信息列表
         """
         self.role = "system"
         self.content = content
-        self.success = is_success
+        self.success = success
         self.message = message
-        self.promptNextAction = prompt_next_action
+        self.promptNextAction = promptedAction
         self.data = data
-        if intent:
-            self.intent = intent
-
+        self.confidence= confidence
+        self.alternatives = alternatives
     @staticmethod
     def success(
         prompt_next_action: list,
         data: any,
         content: str,
-        intent: str = "",
         message: str = "ok",
     ):
         """
@@ -52,7 +53,7 @@ class SystemResponse:
         :param message: str - （可选）消息字段，默认为 "ok"
         :return: SystemResponse - 成功响应对象
         """
-        return SystemResponse(True, content, message, prompt_next_action, data, intent)
+        return SystemResponse(role="system",success=True, content=content, message=message, promptedAction=prompt_next_action, data=data,confidence=99.9,alternatives=[])
 
     @staticmethod
     def error(
@@ -72,7 +73,7 @@ class SystemResponse:
         :param intent: str - （可选）意图字段，默认为空字符串
         :return: SystemResponse - 错误响应对象
         """
-        return SystemResponse(False, content, message, prompt_next_action, data, intent)
+        return SystemResponse(role="system",success=False, content=content, message=message, promptedAction=prompt_next_action, data=data, confidence=99.9,alternatives=[])
 
     def to_dict(self):
         """
@@ -89,30 +90,36 @@ class SystemResponse:
         :return: SystemResponse - 仅包含错误消息的错误响应对象
         """
         return SystemResponse(
-            is_success=False,
+            success=False,
             content="ok",  # 默认错误提示
             message=message,
-            prompt_next_action=[],  # 提示下一步动作
-            data=None,
-            intent="",
+            promptedAction=[],  # 提示下一步动作
+            data={},
+            confidence=99.9,
+            alternatives=[],
         )
     @staticmethod
     def errorWrap(prompt_next_action:[],message:str,data:dict):
         #需要这里根据 data 中返回的state indent进行结合判断
         return SystemResponse(
-            is_success=False,
+            success=False,
             content="ok",
             message=message,
-            prompt_next_action=prompt_next_action,
-            data=data
+            promptedAction=prompt_next_action,
+            data=data,
+            confidence=99.9,
+            alternatives=[],
         )
 
     def to_dict(self):
         return {
             "success": self.success,
-            "prompt_next_action": self.promptNextAction,
+            "promptedAction": self.promptNextAction,
             "data": self.data,
-            "content": self.content
+            "content": self.content,
+            "message":self.message,
+            "confidence":self.confidence,
+            "alternatives":self.alternatives,
         }
 
 

@@ -222,6 +222,7 @@ async def analyze_request(request: Request):
         response_data = SystemResponse.success(
             prompt_next_action=prom_action,
             data=result.get("result", {}),  # 如果 result["result"] 不存在，返回空字典 {}
+            message="ok",
             content=get_nested_description(result)
         )
         res = stream_text_agent_state_transfor(content=get_nested_description(result),

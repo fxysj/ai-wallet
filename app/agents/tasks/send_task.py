@@ -1,48 +1,18 @@
+import time
+
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 
-from app.agents.schemas import *
+from app.agents.schemas import AgentState
 import json
 from typing import Optional, Dict, Any
 
 from app.agents.lib.llm.llm import LLMFactory
-from app.agents.types.index import TaskAction
-from app.config import settings
+from app.agents.form.form import *
 from app.agents.proptemts.send_task_propmt import PROMPT_TEMPLATE
-from app.agents.lib.session.sessionManager import dict_manager
 from app.agents.tools import *
 
-
-# 真实转账功能
 from app.utuls.FieldCheckerUtil import FieldChecker
-
-
-async def real_transfer_assets(data: WalletTransactionSchema) -> dict:
-    return {
-        "tx_hash": "0x1234567890abcdef",
-        "message": "转账成功",
-        "is_signed": True
-    }
-
-
-# 处理 attached_data，确保 extJson 是字符串，而不是空字典
-def get_wallet_transaction_schema(attedcd_data: Optional[dict] = None) -> Dict[str, Any]:
-    if not attedcd_data:
-        return {
-            "chainIndex": "",
-            "fromAddr": "",
-            "toAddr": "",
-            "txAmount": "",
-            "tokenSymbol": "",
-            "tokenAddress": "",
-            "extJson": ""
-        }
-
-    # 确保 extJson 为字符串
-    if "extJson" in attedcd_data and isinstance(attedcd_data["extJson"], dict):
-        attedcd_data["extJson"] = json.dumps(attedcd_data["extJson"])
-
-    return WalletTransactionSchema(**attedcd_data).model_dump()
 
 
 # 任务处理函数
@@ -54,9 +24,17 @@ async def send_task(state: AgentState) -> AgentState:
     #如果存在
     #大模型的InterRupt 可以通过监听AgentState 中的附加数据进行作为拦截器进行拦截
     #如果拦截到则不再处理
-    if state.attached_data:
-        stateFieldInfo = FieldChecker.get_field_info(state.attached_data,"state")
-        if stateFieldInfo and  stateFieldInfo==TaskAction.READY_TO_SIGN_TRANSACTION.value:
+    res = state.attached_data
+    if res:
+        stateFieldInfo = FieldChecker.get_field_info(res,"state")
+        isSignx = FieldChecker.get_field_info(res.get("form"),"signedTx") #是否签名
+        if isSignx:
+            #修改res中的state 修改为广播操作 返回即可
+            res["state"] = TaskState.SEND_TASK_BROADCASTED
+            return state.copy(update={"result": state.attached_data})
+
+        #如果获取到填充完成需要返回给前端表单数据也不在走大模型流程
+        if stateFieldInfo and  stateFieldInfo==TaskState.SEND_TASK_READY_TO_SIGN:
             print("#不再再次走大模型流程")
             return state.copy(update={"result": state.attached_data})
 
@@ -138,5 +116,25 @@ async def send_task(state: AgentState) -> AgentState:
     data["intent"] = state.detected_intent.value
     #这里需要进行修正data中的DxTransActionDetail熟悉
     #需要重新组合为新的 对象的Class.to_Dict()
-    data["DxTransActionDetail"] = {}
+    #data["DxTransActionDetail"] = {}
+
+    # missFields=[]
+    # for index,value in data.get("missFields"):
+    #     missFieldObject =MissingField(name=value.get("name"),type_="string",description=value.get("description"))
+    #     missFields.append(missFieldObject)
+
+    # 使用 time 模块获取当前时间戳
+    timestamp_time = time.time()
+    print("使用 time 模块获取的 UTC 时间戳:", timestamp_time)
+    data["timestamp"] = timestamp_time
+    data["transactionResult"] = {}
+    #组织返回的对象返回
+    # sendTaskData=SendTaskData(intent=state.detected_intent.value,
+    #              state=data.get("state"),
+    #              form=data.get("form"),
+    #              missingFields=missFields,
+    #              transactionResult=TransactionResult(status="",txHash="",errorMessage=""),
+    #              timestamp=timestamp_time
+    #              )
+
     return state.copy(update={"result": data})

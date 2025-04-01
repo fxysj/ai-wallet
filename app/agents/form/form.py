@@ -594,28 +594,31 @@ TaskResult = Union[
 ]
 
 if __name__ == '__main__':
-    sendTaskData = SendTaskData(
-        intent=IntentType.SEND,
-        state=TaskState.SEND_TASK_READY_TO_SIGN,
-        form=SendForm(
-            chainId="60",
-            fromAddress="0x1234567890123456789012345678901234567890",
-            toAddress="0x9876543210987654321098765432109876543210",
-            amount="100",
-            tokenAddress=None,
-            slippage=0.5
-        ),
-        missingFields=[],
-        transactionResult=TransactionResult(status="pending"),
-        timestamp="2025-04-01T12:00:00Z"
-    )
-
-    sendResult = SendTaskResult(
-        success=True,
-        message="Transaction ready to sign",
-        data=sendTaskData
-    )
-
-    print(sendResult.data.intent)
-    print(sendResult.data.form.amount)
-    print(TaskState.SEND_TASK_FAILED)
+    sendTaskData = SendTaskData()
+    sendTaskData.intent = "send"
+    print(sendTaskData)
+    # sendTaskData = SendTaskData(
+    #     intent=IntentType.SEND,
+    #     state=TaskState.SEND_TASK_READY_TO_SIGN,
+    #     form=SendForm(
+    #         chainId="60",
+    #         fromAddress="0x1234567890123456789012345678901234567890",
+    #         toAddress="0x9876543210987654321098765432109876543210",
+    #         amount="100",
+    #         tokenAddress=None,
+    #         slippage=0.5
+    #     ),
+    #     missingFields=[],
+    #     transactionResult=TransactionResult(status="pending"),
+    #     timestamp="2025-04-01T12:00:00Z"
+    # )
+    #
+    # sendResult = SendTaskResult(
+    #     success=True,
+    #     message="Transaction ready to sign",
+    #     data=sendTaskData
+    # )
+    #
+    # print(sendResult.data.intent)
+    # print(sendResult.data.form.amount)
+    # print(TaskState.SEND_TASK_FAILED)
