@@ -377,6 +377,7 @@ class ActivitySnapshot:
         self.blockchainsUsed = blockchainsUsed
 
 
+
 class EnhancedAnalysisTaskOverview:
     def __init__(self, totalBalance: TotalBalance, accountHealth: AccountHealth,
                  activitySnapshot: ActivitySnapshot):
@@ -485,6 +486,10 @@ class SocialShareOptions:
         self.accountAgeCard = accountAgeCard
         self.customText = customText
 
+
+
+# class EnhancedAnalysisTaskDetail:
+#     def __init__(self,tokenHoldings:TokenHolding,performance:Performance,):
 
 class EnhancedAnalysisTaskData:
     def __init__(self, intent: str, state: str, form: AnalysisForm,

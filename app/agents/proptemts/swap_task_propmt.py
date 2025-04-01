@@ -9,10 +9,14 @@ SWAPTASK_TEMPLATE = """
 - 如果不知道相关信息别伪造。
 
 【需要收集的字段】（严格遵循字段名称和格式）：
-- from: The source token (e.g., "BSC.BNB")
-- to: The target token (e.g., "AVAX_CCHAIN.USDT.E--0xc7198437980c041c805a1edcba50c1ce5db95118")
-- amount: The amount to swap (integer number only)
-
+- fromTokenAddress: The source token (e.g., "BSC.BNB")
+- fromChain：the blockchain from which
+- fromAddress：the address from which the transfer is initiated
+- toTokenAddress：the target token address
+- toChain:Target Blockchain
+- toAddress:transfer destination address
+- amount：the amount tells how much of the specified token is being transferred. It is a key part of the transfer form or transaction request
+- slippage: refers to the difference between the expected price of a trade or transaction and the actual price at which the trade is executed. This occurs when there is a delay between the time the trade is placed and the time it is processed, leading to price fluctuations due to factors like market volatility, liquidity constraints, or order size.
 【输入内容】
 - 当前对话历史：{history}
 - 用户最新输入：{input}
@@ -24,12 +28,14 @@ SWAPTASK_TEMPLATE = """
 3. 无论用户更新或修改数据，都返回完整填充的表单信息；
 4. 当用户提出“xx错误”或“我要修改xx不对”时，识别具体字段进行更新；
 5. 生成自然流畅的回复，帮助用户了解需要补充的信息；
-6. 当所有字段都已填写，调用 `cross_chain_tool(from, to, amount)` 获取最佳兑换路径，并在 `form.route` 中返回；
-7. User may miss some information, please only return the information that explicitly mentioned in the user request, do not fake it!
 
-【State 定义】  
-- `CONFIRM_SWAP`：所有字段已填写完毕，并成功获取兑换路径。  
-- `REQUEST_MORE_INFO`：字段缺失，需要用户补充信息。  
+【State 定义】   
+- `SWAP_TASK_NEED_MORE_INFO`：字段缺失，需要用户补充信息。  
+- `SWAP_TASK_READY_TO_SIGN`：所有字段填写完毕，准备签名。  
+- `SWAP_TASK_SIGNED`：已经签名完毕。 
+- `SWAP_TASK_BROADCASTED`：进行兑换广播
+- `SWAP_TASK_FAILED`: 兑换失败
+- `SWAP_TASK_CANCELLED`:兑换取消
 
 【返回格式】
 仅返回 JSON 数据，不要附加任何其他文本（注意：布尔值必须为 true 或 false，不使用引号）：  
@@ -40,7 +46,7 @@ json
     "data": {{
         "description": "系统生成的自然语言回复内容 (需要根据当前的语言进行翻译 如果是英文则翻译为英文)",
         "state": "{{
-            'CONFIRM_SWAP' if 所有字段完整 else 'REQUEST_MORE_INFO'
+            'SWAP_TASK_READY_TO_SIGN' if 所有字段完整 else 'REQUEST_MORE_INFO'
         }}",
         "form": {{
             "from": "更新后的值",
