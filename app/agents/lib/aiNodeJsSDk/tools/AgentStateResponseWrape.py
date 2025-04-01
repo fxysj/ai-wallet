@@ -82,6 +82,7 @@ def stream_text_agent_state_sin(content: str, data: any):
     if len(output_data) > 0:
         formatted_data = json.dumps(output_data)
         yield f'2:{formatted_data}\n'
+
 def stream_text_agent_state_transfor(content: str, data: dict):
     # 如果 data 是字典格式，将其转换为列表包含字典
     annotations = data if isinstance(data, list) else [data]
@@ -93,22 +94,29 @@ def stream_text_agent_state_transfor(content: str, data: dict):
         if not isinstance(content, str):
             raise TypeError("Content must be a string")
 
-        words = [word for word in content.split() if word]
+        # 使用正则表达式保持空格
+        import re
+        # 匹配单词和空格，保持原始顺序
+        tokens = re.findall(r'\S+|\s+', content)
 
-        for word in words:
-            yield f'0:"{word}"\n'
+        for token in tokens:
+            if token.strip():  # 如果是单词
+                yield f'0:"{token}"\n'
+            else:  # 如果是空格
+                yield f'0:" "\n'
     except Exception as e:
         print(f"Error processing content: {e}")
         yield None
 
-        # 2. 处理 annotations 部分，转换为 JSON 格式并输出 8: 格式
+    # 2. 处理 annotations 部分，转换为 JSON 格式并输出 8: 格式
     if isinstance(annotations, list):
         formatted_annotations = json.dumps(annotations, ensure_ascii=False)
         yield f'8:{formatted_annotations}\n'  # 输出 annotations 部分
 
 if __name__ == '__main__':
     # 示例数据：content 是一个字符串，data 是一个字典或数组
-    content = "你好！ 这是单词 需要按照空格切分 不需要 sisns siwe hello word"
+    #按照默认空格进行切分
+    content = "address is not sysnc hellpwpored"
     data_dict = {"role": "system",
                  "content": content,
                  "proAction": ["1", "2"],
