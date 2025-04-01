@@ -108,7 +108,7 @@ def stream_text_agent_state_transfor(content: str, data: dict):
 
 if __name__ == '__main__':
     # 示例数据：content 是一个字符串，data 是一个字典或数组
-    content = "你好！"
+    content = "你好！ 这是单词 需要按照空格切分 不需要 sisns siwe hello word"
     data_dict = {"role": "system",
                  "content": content,
                  "proAction": ["1", "2"],
