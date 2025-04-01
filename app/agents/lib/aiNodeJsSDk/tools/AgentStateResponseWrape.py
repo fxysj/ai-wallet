@@ -94,16 +94,22 @@ def stream_text_agent_state_transfor(content: str, data: dict):
         if not isinstance(content, str):
             raise TypeError("Content must be a string")
 
-        # 使用正则表达式保持空格
-        import re
-        # 匹配单词和空格，保持原始顺序
-        tokens = re.findall(r'\S+|\s+', content)
-
-        for token in tokens:
-            if token.strip():  # 如果是单词
-                yield f'0:"{token}"\n'
-            else:  # 如果是空格
+        current_word = ""
+        for char in content:
+            if char.isspace():
+                # 如果当前积累的单词不为空，先输出单词
+                if current_word:
+                    yield f'0:"{current_word}"\n'
+                    current_word = ""
+                # 输出空格
                 yield f'0:" "\n'
+            else:
+                current_word += char
+        
+        # 处理最后一个单词（如果有的话）
+        if current_word:
+            yield f'0:"{current_word}"\n'
+
     except Exception as e:
         print(f"Error processing content: {e}")
         yield None
@@ -116,7 +122,7 @@ def stream_text_agent_state_transfor(content: str, data: dict):
 if __name__ == '__main__':
     # 示例数据：content 是一个字符串，data 是一个字典或数组
     #按照默认空格进行切分
-    content = "address is not sysnc hellpwpored"
+    content = "address is not sysnc"
     data_dict = {"role": "system",
                  "content": content,
                  "proAction": ["1", "2"],
