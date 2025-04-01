@@ -48,15 +48,14 @@ json
     }}",
     ”timestamp“：”Python 返回的UTC的时间戳的格式",
     "form": {{
-      "chainIndex": "更新后的区块链索引（如 ethereum）",
-      "fromAddr": "更新后的源地址（必须以 "0x" 开头）",
-      "toAddr": "更新后的目标地址 (必须以 "0x" 开头）",
-      "txAmount": "更新后的转账数量（必须大于0）",
+      "chainId": "更新后的区块链索引（如 ethereum）",
+      "fromAddress": "更新后的源地址（必须以 "0x" 开头）",
+      "toAddress": "更新后的目标地址 (必须以 "0x" 开头）",
+      "amount": "更新后的转账数量（必须大于0）",
       "slippage": "更新后的数字货币类型 (代币符号（如 ETH）合理的区块链代币)",
       "tokenAddress": "更新后的代币合约地址 (必须是合理的合约地址)",
       “rawTx”,"可以不需要填充",
       "signedTx",:"可以不需要填充 当填充不为空 则需要更新 state:SEND_TASK_BROADCASTED"
-      "extJson": "可以不需要填充 表单提交的扩展信息"
     }},
     "missFields": [
     {{
