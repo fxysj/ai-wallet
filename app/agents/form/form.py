@@ -63,9 +63,9 @@ class BuyForm:
 
 class ResearchForm:
     def __init__(self, query: str, depth: int, mode: str, selectedProject: dict):
-        self.query = query
-        self.depth = depth
-        self.mode = mode
+        self.query = query # topic, e.g. search keyword, which can be project/institution/bames, tokens, or related items
+        self.depth = depth # depth, e.g. 1, 2, 3
+        self.mode = mode # mode, e.g. "fast", "deep"
         self.selectedProject = selectedProject
 
 
