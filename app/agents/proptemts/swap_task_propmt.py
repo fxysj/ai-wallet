@@ -46,13 +46,19 @@ json
     "data": {{
         "description": "系统生成的自然语言回复内容 (需要根据当前的语言进行翻译 如果是英文则翻译为英文)",
         "state": "{{
-            'SWAP_TASK_READY_TO_SIGN' if 所有字段完整 else 'REQUEST_MORE_INFO'
+            'SWAP_TASK_READY_TO_SIGN' if 所有字段完整 else 'SWAP_TASK_NEED_MORE_INFO'
         }}",
         "form": {{
-            "from": "更新后的值",
-            "to": "更新后的值",
-            "amount": "更新后的值",
-            "route": "最佳兑换路径（调用 cross_chain_tool 获取）"
+            "fromTokenAddress": "更新后的值",
+            "fromChain": "更新后的值",
+            "fromAddress": "更新后的值",
+            "toTokenAddress": "更新后的值",
+            "toAddress": "更新后的值",
+            "toChain": "更新后的值",
+            "amount":"更新后的值",
+            "slippage":"更新后的值",
+            "disableEstimate":"更新后的值 默认为空字符串",
+            "signedTx":"更新后的值 默认为空字符串"     
         }},
         "missFields": [
             {{

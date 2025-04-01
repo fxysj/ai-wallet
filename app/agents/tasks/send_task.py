@@ -31,7 +31,7 @@ async def send_task(state: AgentState) -> AgentState:
         if isSignx:
             #修改res中的state 修改为广播操作 返回即可
             res["state"] = TaskState.SEND_TASK_BROADCASTED
-            return state.copy(update={"result": state.attached_data})
+            return state.copy(update={"result": res})
 
         #如果获取到填充完成需要返回给前端表单数据也不在走大模型流程
         if stateFieldInfo and  stateFieldInfo==TaskState.SEND_TASK_READY_TO_SIGN:

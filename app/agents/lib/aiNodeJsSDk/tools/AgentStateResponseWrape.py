@@ -89,17 +89,22 @@ def stream_text_agent_state_transfor(content: str, data: dict):
     # 创建一个数组来存放数据
     output_data = []
 
-    # 1. 处理 annotations 部分，转换为 JSON 格式并输出 8: 格式
+    try:
+        if not isinstance(content, str):
+            raise TypeError("Content must be a string")
+
+        words = [word for word in content.split() if word]
+
+        for word in words:
+            yield f'0:"{word}"\n'
+    except Exception as e:
+        print(f"Error processing content: {e}")
+        yield None
+
+        # 2. 处理 annotations 部分，转换为 JSON 格式并输出 8: 格式
     if isinstance(annotations, list):
         formatted_annotations = json.dumps(annotations, ensure_ascii=False)
         yield f'8:{formatted_annotations}\n'  # 输出 annotations 部分
-
-    # 2. 处理 content 字符串部分，逐字符输出
-    if isinstance(content, str):
-        for char in content:
-            # 将每个字符编码为 Unicode 转义格式
-            encoded_char = char.encode('unicode_escape').decode('utf-8')
-            yield f'0:"{encoded_char}"\n'
 
 if __name__ == '__main__':
     # 示例数据：content 是一个字符串，data 是一个字典或数组
