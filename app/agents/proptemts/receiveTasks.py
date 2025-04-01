@@ -25,8 +25,8 @@ RECEIVETASKS_TEMPLATE = """
 5. 生成自然流畅的回复，帮助用户了解需要补充的信息。
 
 【State 定义】  
-- `DISPLAY_QR_CODE`：所有字段已填写完毕，准备展示收款二维码。  
-- `REQUEST_MORE_INFO`：字段缺失，需要用户补充信息。  
+- `RECEIVE_TASK_SHOULD_DISPLAY_QR_CODE`：所有字段已填写完毕，准备展示收款二维码。  
+- `RECEIVE_TASK_NEED_MORE_INFO`：字段缺失，需要用户补充信息。  
 【返回格式】
 仅返回 JSON 数据，不要附加任何其他文本（注意：布尔值必须为 true 或 false，不使用引号）：
 当前语言:{langguage}
@@ -35,7 +35,7 @@ json
 {{"data": {{
     "description": "系统生成的自然语言回复内容(需要根据当前的语言进行翻译 如果是英文则翻译为英文)",
     "state": "{{
-        'DISPLAY_QR_CODE' if 所有字段完整 else 'REQUEST_MORE_INFO'
+        'RECEIVE_TASK_SHOULD_DISPLAY_QR_CODE' if 所有字段完整 else 'RECEIVE_TASK_NEED_MORE_INFO'
     }}",
     "form": {{
       "myAddress": "更新后的用于接收资金的钱包地址(必须以 "0x" 开头）",
