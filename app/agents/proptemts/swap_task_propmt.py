@@ -9,10 +9,10 @@ SWAPTASK_TEMPLATE = """
 - 如果不知道相关信息别伪造。
 
 【需要收集的字段】（严格遵循字段名称和格式）：
-- fromTokenAddress: The source token (e.g., "BSC.BNB")
+- fromTokenAddress: (Optional) The source token (e.g., "BSC.BNB")
 - fromChain：the blockchain from which
 - fromAddress：the address from which the transfer is initiated
-- toTokenAddress：the target token address(option)
+- toTokenAddress：(Optional) the target token address
 - toChain:Target Blockchain
 - toAddress:transfer destination address
 - amount：the amount tells how much of the specified token is being transferred. It is a key part of the transfer form or transaction request
