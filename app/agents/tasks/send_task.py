@@ -42,4 +42,12 @@ async def send_task(state: AgentState) -> AgentState:
     print("使用 time 模块获取的 UTC 时间戳:", timestamp_time)
     data["timestamp"] = state.attached_data.get("timestamp",timestamp_time)
     data["transactionResult"] = state.attached_data.get("transactionResult",{})
+    #如果存在结果
+    if data["transactionResult"]:
+        transactionResult = data["transactionResult"]
+        #如果不存在则需要进行更新
+        if not transactionResult.get("txHash"):
+            data["state"] = TaskState.SEND_TASK_READY_TO_BROADCAST
+
+
     return state.copy(update={"result": data})
