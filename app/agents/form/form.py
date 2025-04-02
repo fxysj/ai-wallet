@@ -61,12 +61,29 @@ class BuyForm:
         self.paymentMethod = paymentMethod
 
 
+class SelectedProject:
+    def __init__(self, name: str, introduce: str, logo: str, rootdataurl: str, id: int, type: int):
+        self.name = name
+        self.introduce = introduce
+        self.logo = logo
+        self.rootdataurl = rootdataurl
+        self.id = id
+        self.type = type
+
+
 class ResearchForm:
     def __init__(self, query: str, depth: int, mode: str, selectedProject: dict):
-        self.query = query # topic, e.g. search keyword, which can be project/institution/bames, tokens, or related items
-        self.depth = depth # depth, e.g. 1, 2, 3
-        self.mode = mode # mode, e.g. "fast", "deep"
-        self.selectedProject = selectedProject
+        self.query = query  # topic, e.g. search keyword, which can be project/institution/bames, tokens, or related items
+        self.depth = depth  # depth, e.g. 1, 2, 3
+        self.mode = mode  # mode, e.g. "fast", "deep"
+        self.selectedProject = SelectedProject(
+            name=selectedProject.get("name", ""),
+            introduce=selectedProject.get("introduce", ""),
+            logo=selectedProject.get("logo", ""),
+            rootdataurl=selectedProject.get("rootdataurl", ""),
+            id=selectedProject.get("id", 0),
+            type=selectedProject.get("type", 0)
+        )
 
 
 class AnalysisForm:
