@@ -22,7 +22,7 @@ async def swap_task(state: AgentState) -> AgentState:
         txtId = swapIdData.get("txId")
         if txtId:
             print("业务进行存档处理")
-            formData["description"] = "已经完成"
+            formData["description"] = "success"
             return state.copy(update={"result": formData})
     prompt = PromptTemplate(
         template=SWAPTASK_TEMPLATE,
