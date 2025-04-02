@@ -20,6 +20,15 @@ async def send_task(state: AgentState) -> AgentState:
     print("send_task")
     print("DEBUG - attached_data 类型:", type(state.attached_data))
     print("DEBUG - attached_data 内容:", state.attached_data)
+    #先进行判断 如果返回了txHash则不再走大模型处理
+    formData = state.attached_data
+    if formData["transactionResult"]:
+        transactionResult = formData["transactionResult"]
+        # 如果不存在则需要进行更新
+        if transactionResult.get("txHash"):
+            formData["description"] = "success"
+            return state.copy(update={"result": formData})
+
     prompt = PromptTemplate(
         template=PROMPT_TEMPLATE,
         input_variables=["current_data", "history", "input","langguage"],
