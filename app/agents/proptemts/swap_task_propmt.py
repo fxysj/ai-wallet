@@ -4,15 +4,14 @@ SWAPTASK_TEMPLATE = """
 【目标】
 - 更新已有数据（若用户提供有效新信息则覆盖，否则保留原数据）。
 - 检查当前数据中缺失的必填字段。
-- 如果所有字段完整，调用工具 `cross_chain_tool` 获取兑换路径。
 - 生成自然流畅的回复，指导用户补充信息，或者确认兑换路径。
 - 如果不知道相关信息别伪造。
 
 【需要收集的字段】（严格遵循字段名称和格式）：
-- fromTokenAddress: (Optional) The source token (e.g., "BSC.BNB")
+- fromTokenAddress: The source token (e.g., "BSC.BNB")
 - fromChain：the blockchain from which
 - fromAddress：the address from which the transfer is initiated
-- toTokenAddress：(Optional) the target token address
+- toTokenAddress： the target token address
 - toChain:Target Blockchain
 - toAddress:transfer destination address
 - amount：the amount tells how much of the specified token is being transferred. It is a key part of the transfer form or transaction request
@@ -23,7 +22,8 @@ SWAPTASK_TEMPLATE = """
 - 当前数据：{current_data}
 
 【校验额外说明】
--
+-fromTokenAddress:可选字段 可以为空 
+-toTokenAddress:可选字段 可以为空
 【任务要求】
 1. 根据用户输入更新数据字段，保留已有有效信息；
 2. 检查并列出所有缺失字段；
@@ -51,10 +51,10 @@ json
             'SWAP_TASK_READY_TO_SIGN' if 所有字段完整 else 'SWAP_TASK_NEED_MORE_INFO'
         }}",
         "form": {{
-            "fromTokenAddress": "更新后的值",
+            "fromTokenAddress": "更新后的值 可选参数",
             "fromChain": "更新后的值",
             "fromAddress": "更新后的值",
-            "toTokenAddress": "更新后的值",
+            "toTokenAddress": "更新后的值 可选参数",
             "toAddress": "更新后的值",
             "toChain": "更新后的值",
             "amount":"更新后的值",
