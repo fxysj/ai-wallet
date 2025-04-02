@@ -42,8 +42,6 @@ json
     ”timestamp“：”Python 返回的UTC的时间戳的格式 调用  timestamp_time = time.time() 返回",
     "form": {{
       "query": "更新后的搜索关键词（项目/机构名称、代币等）",
-      "depth": "更新后搜索深度（整数，如 1, 2, 3）",
-      “mode”："更新后的搜索模式（"fast" 或 "deep"）",
       "selectedProject":"更新后的项目信息",
     }},
     "missFields": [

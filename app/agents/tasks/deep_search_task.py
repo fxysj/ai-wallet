@@ -100,7 +100,9 @@ async def research_task(state: AgentState) -> AgentState:
     print("使用 time 模块获取的 UTC 时间戳:", timestamp_time)
     data["timestamp"] = state.attached_data.get("timestamp", timestamp_time)
     #获取对应的
-    
+    missField = data["missFields"]
+    if missField:
+        return state.copy(update={"result": data})
     #获取对应的深度搜索的结果响应
     searchData= searchResult(state.attached_data)
     #detailData
