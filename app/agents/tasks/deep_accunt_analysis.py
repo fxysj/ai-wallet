@@ -32,7 +32,7 @@ async def analysis_task(state: AgentState) -> AgentState:
     timestamp_time = time.time()
     print("使用 time 模块获取的 UTC 时间戳:", timestamp_time)
     data["timestamp"] = state.attached_data.get("timestamp", timestamp_time)
-    data["overview'"] = getMockData()["overview"]
+    data["overview"] = getMockData()["overview"]
     data["achievements"] = getMockData()["achievements"]
     data["details"] = getMockData()["details"]
     data["socialShareOptions"] = getMockData()["socialShareOptions"]
