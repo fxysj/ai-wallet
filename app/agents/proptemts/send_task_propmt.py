@@ -9,14 +9,14 @@ PROMPT_TEMPLATE = """
 - 返回完整的表单信息，并生成自然流畅的回复，指导用户补充信息。
 
 【需要收集的字段】（严格遵循字段名称和格式）：
-- chainIndex: 区块链索引（如 ethereum）
-- fromAddr: 源地址（必须以 "0x" 开头）
-- toAddr:  目标地址 (必须以 "0x" 开头）
-- txAmount: 转账数量（必须大于0）
+- chainId: 区块链索引(必须数字类型)
+- fromAddress: 源地址（必须以 "0x" 开头）
+- toAddress:  目标地址 (必须以 "0x" 开头）
+- amount: 转账数量（必须大于0）
 - slippage: slippage (代币符号（如 ETH）合理的区块链代币)
 - tokenAddress: 代币合约地址 (必须是合理的合约地址)
-
-
+- rawTx:交易信息
+- signedTx:签名信息
 【输入内容】
 - 当前对话历史：{history}
 - 用户最新输入：{input}
@@ -48,7 +48,7 @@ json
     }}",
     ”timestamp“：”Python 返回的UTC的时间戳的格式",
     "form": {{
-      "chainId": "更新后的区块链索引（如 ethereum）",
+      "chainId": "更新后的区块链索引(必须数字类型)",
       "fromAddress": "更新后的源地址（必须以 "0x" 开头）",
       "toAddress": "更新后的目标地址 (必须以 "0x" 开头）",
       "amount": "更新后的转账数量（必须大于0）",

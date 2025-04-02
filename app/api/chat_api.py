@@ -225,6 +225,7 @@ async def analyze_request(request: Request):
             message="ok",
             content=get_nested_description(result)
         )
+        print(get_nested_description(result))
         res = stream_text_agent_state_transfor(content=get_nested_description(result),
                                 data=response_data.to_dict()
                                 )

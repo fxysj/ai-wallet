@@ -24,19 +24,19 @@ async def send_task(state: AgentState) -> AgentState:
     #如果存在
     #大模型的InterRupt 可以通过监听AgentState 中的附加数据进行作为拦截器进行拦截
     #如果拦截到则不再处理
-    res = state.attached_data
-    if res:
-        stateFieldInfo = FieldChecker.get_field_info(res,"state")
-        isSignx = FieldChecker.get_field_info(res.get("form"),"signedTx") #是否签名
-        if isSignx:
-            #修改res中的state 修改为广播操作 返回即可
-            res["state"] = TaskState.SEND_TASK_BROADCASTED
-            return state.copy(update={"result": res})
-
-        #如果获取到填充完成需要返回给前端表单数据也不在走大模型流程
-        if stateFieldInfo and  stateFieldInfo==TaskState.SEND_TASK_READY_TO_SIGN:
-            print("#不再再次走大模型流程")
-            return state.copy(update={"result": state.attached_data})
+    # res = state.attached_data
+    # if res:
+    #     stateFieldInfo = FieldChecker.get_field_info(res,"state")
+    #     isSignx = FieldChecker.get_field_info(res.get("form"),"signedTx") #是否签名
+    #     if isSignx:
+    #         #修改res中的state 修改为广播操作 返回即可
+    #         res["state"] = TaskState.SEND_TASK_BROADCASTED
+    #         return state.copy(update={"result": res})
+    #
+    #     #如果获取到填充完成需要返回给前端表单数据也不在走大模型流程
+    #     if stateFieldInfo and  stateFieldInfo==TaskState.SEND_TASK_READY_TO_SIGN:
+    #         print("#不再再次走大模型流程")
+    #         return state.copy(update={"result": state.attached_data})
 
     # 如果当前的session没有用户提交的数据内容需要返回
     #不管有没有数据必须让其通过大模型进行处理和填充即可
@@ -71,10 +71,10 @@ async def send_task(state: AgentState) -> AgentState:
         input_variables=["current_data", "history", "input","langguage"],
     )
     llm = LLMFactory.getDefaultOPENAI()
+    print("111111111111")
     # 使用新版输出解析器
     #如果 返回的结果确定下来 chain = prompt | llm | JsonOutputParser(pydantic_model=FullTransactionResponse)
     chain = prompt | llm | JsonOutputParser()
-
     print(chain)
 
     # 组装最近的对话历史（取最新5条记录）
@@ -84,6 +84,7 @@ async def send_task(state: AgentState) -> AgentState:
 
     print(state.history)
     print(state.user_input)
+    print("=============用户传递的数据需要进行字符串的格式")
     print(str(state.attached_data))
     # 调用链处理用户最新输入
     chain_response =  chain.invoke({
@@ -126,8 +127,8 @@ async def send_task(state: AgentState) -> AgentState:
     # 使用 time 模块获取当前时间戳
     timestamp_time = time.time()
     print("使用 time 模块获取的 UTC 时间戳:", timestamp_time)
-    data["timestamp"] = timestamp_time
-    data["transactionResult"] = {}
+    data["timestamp"] = state.attached_data.get("timestamp",timestamp_time)
+    data["transactionResult"] = state.attached_data.get("transactionResult",{})
     #组织返回的对象返回
     # sendTaskData=SendTaskData(intent=state.detected_intent.value,
     #              state=data.get("state"),
