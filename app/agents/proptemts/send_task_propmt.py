@@ -13,7 +13,7 @@ PROMPT_TEMPLATE = """
 - fromAddress: 源地址（必须以 "0x" 开头）
 - toAddress:  目标地址 (必须以 "0x" 开头）
 - amount: 转账数量（必须大于0）
-- slippage: slippage (代币符号（如 ETH）合理的区块链代币)
+- slippage: 滑点 (float 类型 0.01-30)
 - tokenAddress: 代币合约地址 (必须是合理的合约地址)
 - rawTx:交易信息
 - signedTx:签名信息
