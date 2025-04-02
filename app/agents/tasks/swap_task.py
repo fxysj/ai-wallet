@@ -13,6 +13,17 @@ async def swap_task(state: AgentState) -> AgentState:
     print("swap_task")
     print("DEBUG - attached_data 类型:", type(state.attached_data))
     print("DEBUG - attached_data 内容:", state.attached_data)
+
+    print("信息========")
+    formData= state.attached_data
+    swapIdData = state.attached_data.get("swapId")
+    if swapIdData:
+        # 处理存档的逻辑
+        txtId = swapIdData.get("txId")
+        if txtId:
+            print("业务进行存档处理")
+            formData["description"] = "已经完成"
+            return state.copy(update={"result": formData})
     prompt = PromptTemplate(
         template=SWAPTASK_TEMPLATE,
         input_variables=["current_data", "history", "input", "langguage"],
@@ -31,10 +42,6 @@ async def swap_task(state: AgentState) -> AgentState:
     response_data = chain_response
     data = response_data.get("data")
     data["intent"] = state.detected_intent.value
-    swapIdData = data.get("swapId")
-    if swapIdData:
-        #处理存档的逻辑
-        txtId= swapIdData.get("txId")
-        if txtId:
-            print("业务进行存档处理")
+    print("data====")
+    print(data)
     return state.copy(update={"result": data})
