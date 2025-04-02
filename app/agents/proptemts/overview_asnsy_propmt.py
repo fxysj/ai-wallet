@@ -101,7 +101,7 @@ OVERVIEW_ASNYC_PROPMT= """
 }}
 
 输出结果
-```JSON
+```json
 {{
   "overview": {{
     "logo": "项目的logo URL",

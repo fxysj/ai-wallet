@@ -7,6 +7,7 @@ import requests
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 
+from app.agents.form.form import TaskState
 from app.agents.lib.llm.llm import LLMFactory
 from app.agents.proptemts.deepSearchTask_prompt import DEEPSEARCHTASK_PROMPT
 from app.agents.proptemts.overview_asnsy_propmt import OVERVIEW_ASNYC_PROPMT
@@ -37,7 +38,12 @@ def searchResult(attached_data):
     return send_post_request(url, payload, headers)
 
 def getDetailRowdata(attached_data):
-    selectedProject = attached_data.get('form', {}).get('selectedProject')
+    data = attached_data.get('form', {})
+    if not data:
+        return {}
+    selectedProject = data.get("selectedProject")
+    if not selectedProject:
+        return {}
     id = selectedProject.get('id')  # 项目id
     headers = {
         "apikey": "43qiBs947TKm0UNDbZ0gQz5ZTHaPpp8Y",
@@ -57,6 +63,8 @@ def getDetailRowdata(attached_data):
 
 #根据选择的获取详情信息
 def OverView(result):
+    if not result:
+        return result
     #这个是项目返回的数据 需要调用大模型进行生成
     llm = LLMFactory.getDefaultOPENAI()
     prompt = PromptTemplate(
@@ -76,7 +84,7 @@ def Details(attached_data):
 
 
 async def research_task(state: AgentState) -> AgentState:
-    print("send_task")
+    print("research_task")
     print("DEBUG - attached_data 类型:", type(state.attached_data))
     print("DEBUG - attached_data 内容:", state.attached_data)
     prompt = PromptTemplate(
@@ -92,7 +100,9 @@ async def research_task(state: AgentState) -> AgentState:
         "input": state.user_input,
         "langguage": state.langguage
     })
+    print("deep_sarch_data")
     response_data = chain_response
+    print("deep_sarch_data")
     data = response_data.get("data")
     data["intent"] = state.detected_intent.value
     # 使用 time 模块获取当前时间戳
@@ -109,7 +119,16 @@ async def research_task(state: AgentState) -> AgentState:
     detailData = getDetailRowdata(state.attached_data)
     data["promptedProject"]= searchData.get("data",[])
     res = OverView(detailData)
-    data["overview"] = res["overview"]
-    data["details"] = res["details"]
-    data["details"]["rootDataResult"] = detailData
+    if res:
+        data["overview"] = res["overview"]
+        data["details"] = res["details"]
+        data["details"]["rootDataResult"] = detailData
+        data["state"]= TaskState.RESEARCH_TASK_DISPLAY_RESEARCH
     return state.copy(update={"result": data})
+
+if __name__ == '__main__':
+    data = {'intent': 'deep_research', 'form': {'query': 'Official Trump', 'selectedProject': {'introduce': 'Official Trump is a meme coin issued on the Solana blockchain, introduced by the elected U.S. president Donald Trump through a social media post.', 'name': 'Official Trump', 'logo': 'https://public.rootdata.com/images/b13/1737172225426.jpg', 'active': True, 'rootdataurl': 'https://www.rootdata.com/Projects/detail/Official Trump?k=MTU5Mjc=', 'id': 15927, 'type': 1}}}
+    res = getDetailRowdata(data)
+    #print(res)
+    rest = OverView(res)
+    print(rest)

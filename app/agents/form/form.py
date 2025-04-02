@@ -13,8 +13,8 @@ class IntentType:
     RECEIVE = 'receive'
     SWAP = 'swap'
     BUY = 'buy'
-    DEEP_RESEARCH = 'deep research'
-    ACCOUNT_ANALYSIS = 'account analysis'
+    DEEP_RESEARCH = 'deep_research'
+    ACCOUNT_ANALYSIS = 'account_analysis'
     NEWSLETTER = 'newsletter'
     UNCLEAR = 'unclear'
 
