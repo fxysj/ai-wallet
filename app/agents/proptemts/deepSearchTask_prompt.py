@@ -8,7 +8,7 @@ DEEPSEARCHTASK_PROMPT = """
 - 返回完整的表单信息，并生成自然流畅的回复，指导用户补充信息。
 
 【需要收集的字段】（严格遵循字段名称和格式）：
-- query: 搜索关键词（项目/机构名称、代币等）
+- query: 搜索关键词
 
 【输入内容】
 - 当前对话历史：{history}
@@ -30,7 +30,7 @@ DEEPSEARCHTASK_PROMPT = """
 仅返回 JSON 数据，不要附加任何其他文本（注意：布尔值必须为 true 或 false，不使用引号）：
 当前语言:{langguage}
 
-json
+```json
 {{"data": {{
     "description": "系统生成的自然语言回复内容(需要根据当前的语言进行翻译 如果是英文则翻译为英文)",
     "state": "{{
@@ -38,7 +38,10 @@ json
     }}",
     ”timestamp“：”Python 返回的UTC的时间戳的格式 调用  timestamp_time = time.time() 返回",
     "form": {{
-      "query": "更新后的搜索关键词（项目/机构名称、代币等）"
+      "query": "更新后的搜索关键词（项目/机构名称、代币等）",
+      "selectedProject":"用户提供的值 (无需校验, 直接存储)",
+      "depth":"用户提供的值 (无需校验, 直接存储)",
+      "mode":"用户提供的值 (无需校验, 直接存储)"
     }},
     "missFields": [
     {{
@@ -47,5 +50,6 @@ json
     }}
 ]
 }}}}
+```
 在上面的json结果中 只要涉及到自然语言的 必须按照 {langguage} 进行翻译即可
 """

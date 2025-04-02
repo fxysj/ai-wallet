@@ -35,7 +35,7 @@ def newsLetter(attached_data):
     ]
 
 async def news_task(state: AgentState) -> AgentState:
-    print("send_task")
+    print("news_task")
     print("DEBUG - attached_data 类型:", type(state.attached_data))
     print("DEBUG - attached_data 内容:", state.attached_data)
     prompt = PromptTemplate(
@@ -51,6 +51,7 @@ async def news_task(state: AgentState) -> AgentState:
         "input": state.user_input,
         "langguage": state.langguage
     })
+    print(chain_response)
     response_data = chain_response
     data = response_data.get("data")
     data["intent"] = state.detected_intent.value

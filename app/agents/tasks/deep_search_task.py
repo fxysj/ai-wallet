@@ -100,7 +100,6 @@ async def research_task(state: AgentState) -> AgentState:
         "input": state.user_input,
         "langguage": state.langguage
     })
-    print("deep_sarch_data")
     response_data = chain_response
     print("deep_sarch_data")
     data = response_data.get("data")

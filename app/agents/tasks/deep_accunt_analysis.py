@@ -27,11 +27,16 @@ async def analysis_task(state: AgentState) -> AgentState:
     })
     response_data = chain_response
     data = response_data.get("data")
-    data["intent"] = state.detected_intent.value
     # 使用 time 模块获取当前时间戳
     timestamp_time = time.time()
     print("使用 time 模块获取的 UTC 时间戳:", timestamp_time)
     data["timestamp"] = state.attached_data.get("timestamp", timestamp_time)
+    data["intent"] = state.detected_intent.value
+    if data:
+        missField = data.get("form").get("missFields")
+        if missField:
+          return state.copy(update={"result": data})
+
     data["overview"] = getMockData()["overview"]
     data["achievements"] = getMockData()["achievements"]
     data["details"] = getMockData()["details"]

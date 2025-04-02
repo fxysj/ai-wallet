@@ -118,8 +118,8 @@ OVERVIEW_ASNYC_PROPMT= """
       "airdrop": "空投时间"
     }},
     "history": "项目历史",
-    "takeaways": "关键要点",
-    "conclusions": "总结",
+    "takeaways": "关键要点 字符串数组",
+    "conclusions": "总结 字符串数组",
     "ratings": {{
       "risk": "风险",
       "volatility": "波动性",
