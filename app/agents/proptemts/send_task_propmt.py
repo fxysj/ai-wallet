@@ -10,13 +10,13 @@ PROMPT_TEMPLATE = """
 
 【需要收集的字段】（严格遵循字段名称和格式）：
 - chainId: 区块链索引(必须数字类型)
-- fromAddress: 源地址（必须以 "0x" 开头）
-- toAddress:  目标地址 (必须以 "0x" 开头）
-- amount: 转账数量（必须大于0）
-- slippage: 滑点 (float 类型 0.01-30)
-- tokenAddress: 代币合约地址 (必须是合理的合约地址)
-- rawTx:交易信息
-- signedTx:签名信息
+- fromAddress: 源地址（必须以 "0x" 开头 必须填写）
+- toAddress:  目标地址 (必须以 "0x" 开头 必须填写）
+- amount: 转账数量（必须大于0 必须填写）
+- slippage: 滑点 (float 类型 0.01-30 必须填写)
+- tokenAddress: 代币合约地址 (必须是合理的合约地址 必须填写)
+- rawTx:交易信息(可选)
+- signedTx:签名信息(可选)
 【输入内容】
 - 当前对话历史：{history}
 - 用户最新输入：{input}
@@ -52,7 +52,7 @@ json
       "fromAddress": "更新后的源地址（必须以 "0x" 开头）",
       "toAddress": "更新后的目标地址 (必须以 "0x" 开头）",
       "amount": "更新后的转账数量（必须大于0）",
-      "slippage": "更新后的数字货币类型 (代币符号（如 ETH）合理的区块链代币)",
+      "slippage": "更新后的滑点值 (float 类型 0.01-30)",
       "tokenAddress": "更新后的代币合约地址 (必须是合理的合约地址)",
       “rawTx”,"可以不需要填充",
       "signedTx",:"可以不需要填充 当填充不为空 则需要更新 state:SEND_TASK_BROADCASTED"
