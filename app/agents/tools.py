@@ -1,5 +1,8 @@
 # 任务工具（如跨链查询等）
 # 生成可视化图表
+from functools import wraps
+
+import requests
 from langgraph.graph import StateGraph
 from app.agents.schemas import *
 from langchain.prompts import PromptTemplate
@@ -332,6 +335,103 @@ def get_user_id_from_authorization(request: Request) -> Dict[str, str]:
 
 def convert_to_openai_stream(result_dict, tool_name, tool_result, custom_data):
     pass
+
+
+# 定义装饰器
+def request_logger(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # 从参数中获取URL、请求头和请求体
+        url = kwargs.get('url')
+        payload = kwargs.get('payload')
+        headers = kwargs.get('headers')
+
+        # 打印请求信息
+        print("Sending POST request to URL:", url)
+        print("Request Headers:", headers)
+        print("Request Payload:", json.dumps(payload, indent=4))
+
+        # 构建curl命令字符串
+        curl_command = f'curl -X POST'
+        for key, value in headers.items():
+            curl_command += f' -H "{key}: {value}"'
+
+        curl_command += f' -d \'{json.dumps(payload)}\' {url}'
+
+        # 打印curl命令
+        print("Generated curl command:")
+        print(curl_command)
+
+        # 调用原始函数，获取响应
+        response = func(*args, **kwargs)
+
+        # 打印响应信息
+        print("Response Status Code:", response.status_code)
+        print("Response Body:", response.text)
+
+        # 返回响应的JSON数据
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {"error": "Request failed", "status_code": response.status_code, "response": response.text}
+
+    return wrapper
+
+# 定义实际发送POST请求的函数
+@request_logger
+def send_post_request_v2(url, payload, headers):
+    """
+    实际发送POST请求的函数，使用装饰器进行日志和请求的处理
+    """
+    """
+      发送 POST 请求，并打印请求的相关信息。
+
+      :param url: API的URL
+      :param payload: 请求体，通常为JSON格式的数据
+      :param headers: 请求头，通常包括Content-Type、Authorization等
+      :return: 返回API响应的JSON数据
+      """
+
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+    return response
+
+def send_post_request(url, payload, headers):
+    """
+    发送 POST 请求，并打印请求的相关信息。
+
+    :param url: API的URL
+    :param payload: 请求体，通常为JSON格式的数据
+    :param headers: 请求头，通常包括Content-Type、Authorization等
+    :return: 返回API响应的JSON数据
+    """
+    # 打印请求信息
+    print("Sending POST request to URL:", url)
+    print("Request Headers:", headers)
+    print("Request Payload:", json.dumps(payload, indent=4))
+
+    # 构建curl命令字符串
+    curl_command = f'curl -X POST'
+    for key, value in headers.items():
+        curl_command += f' -H "{key}: {value}"'
+
+    curl_command += f' -d \'{json.dumps(payload)}\' {url}'
+
+    # 打印curl命令
+    print("Generated curl command:")
+    print(curl_command)
+
+    # 发起POST请求
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+
+    # 打印响应信息
+    print("Response Status Code:", response.status_code)
+    print("Response Body:", response.text)
+
+    # 返回响应的JSON数据
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return {"error": "Request failed", "status_code": response.status_code, "response": response.text}
 
 
 if __name__ == '__main__':

@@ -257,7 +257,7 @@ class Project:
 
 class Overview:
     def __init__(self, logo: str, name: str, tldr: str, funFacts: str, sentimentIndicator: str, overallRating: str):
-        self.logo = logo
+        self.logo = logo #项目 logo 的 URL
         self.name = name
         self.tldr = tldr
         self.funFacts = funFacts
