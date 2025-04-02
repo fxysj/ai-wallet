@@ -15,14 +15,6 @@ async def buy_task(state: AgentState) -> AgentState:
     print("buy_task")
     print("DEBUG - attached_data 类型:", type(state.attached_data))
     print("DEBUG - attached_data 内容:", state.attached_data)
-    res = state.attached_data
-    if res:
-        stateFieldInfo = FieldChecker.get_field_info(res,"state")
-        #如果获取到填充完成需要返回给前端表单数据也不在走大模型流程
-        if stateFieldInfo and  stateFieldInfo==TaskState.BUY_TASK_EXECUTED:
-            print("#不再再次走大模型流程")
-            return state.copy(update={"result": state.attached_data})
-
     prompt = PromptTemplate(
         template=BUYTASK_TEMPLATE,
         input_variables=["current_data", "history", "input", "langguage"],
@@ -31,10 +23,6 @@ async def buy_task(state: AgentState) -> AgentState:
     # 使用新版输出解析器
     # 如果 返回的结果确定下来 chain = prompt | llm | JsonOutputParser(pydantic_model=FullTransactionResponse)
     chain = prompt | llm | JsonOutputParser()
-
-    print(state.history)
-    print(state.user_input)
-    print(str(state.attached_data))
     # 调用链处理用户最新输入
     chain_response = chain.invoke({
         "current_data": str(state.attached_data),
@@ -42,9 +30,6 @@ async def buy_task(state: AgentState) -> AgentState:
         "input": state.user_input,
         "langguage": state.langguage
     })
-    print(chain_response)
-    print(chain)
-
     response_data = chain_response
     data = response_data.get("data")
     data["intent"] = state.detected_intent.value
