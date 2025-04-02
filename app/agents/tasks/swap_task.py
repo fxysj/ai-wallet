@@ -31,10 +31,10 @@ async def swap_task(state: AgentState) -> AgentState:
 
     #进行对数据额外处理
     if not formData.get("form").get("fromTokenAddress"):
-        formData["form"]["fromTokenAddress"] ="_"
+        formData["form"]["fromTokenAddress"] ="fromTokenAddress"
 
     if not formData.get("form").get("toTokenAddress"):
-        formData["form"]["toTokenAddress"] ="_"
+        formData["form"]["toTokenAddress"] ="toTokenAddress"
 
 
     llm = LLMFactory.getDefaultOPENAI()

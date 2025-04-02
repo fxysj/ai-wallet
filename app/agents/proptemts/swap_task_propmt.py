@@ -51,10 +51,10 @@ json
             'SWAP_TASK_READY_TO_SIGN' if 所有字段完整 else 'SWAP_TASK_NEED_MORE_INFO'
         }}",
         "form": {{
-            "fromTokenAddress": "更新后的值 可选参数",
+            "fromTokenAddress": "更新后的值",
             "fromChain": "更新后的值",
             "fromAddress": "更新后的值",
-            "toTokenAddress": "更新后的值 可选参数",
+            "toTokenAddress": "更新后的值",
             "toAddress": "更新后的值",
             "toChain": "更新后的值",
             "amount":"更新后的值",
