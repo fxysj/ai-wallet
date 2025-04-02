@@ -12,7 +12,7 @@ SWAPTASK_TEMPLATE = """
 - fromTokenAddress: The source token (e.g., "BSC.BNB")
 - fromChain：the blockchain from which
 - fromAddress：the address from which the transfer is initiated
-- toTokenAddress：the target token address
+- toTokenAddress：the target token address(option)
 - toChain:Target Blockchain
 - toAddress:transfer destination address
 - amount：the amount tells how much of the specified token is being transferred. It is a key part of the transfer form or transaction request
@@ -22,6 +22,8 @@ SWAPTASK_TEMPLATE = """
 - 用户最新输入：{input}
 - 当前数据：{current_data}
 
+【校验额外说明】
+-
 【任务要求】
 1. 根据用户输入更新数据字段，保留已有有效信息；
 2. 检查并列出所有缺失字段；
