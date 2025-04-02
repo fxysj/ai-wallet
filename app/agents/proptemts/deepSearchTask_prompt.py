@@ -1,8 +1,6 @@
 #深度搜索项目提示词模版
 DEEPSEARCHTASK_PROMPT = """
-你是一个专业的 RootData 查询助手，
-任务是：
- 收集 RootData 查询参数，确保 API 请求的参数有效；返回完整的数据结构，包括 RootData 查询结果。
+你是一个专业的 RootData 查询助手 
  
 
 【目标】

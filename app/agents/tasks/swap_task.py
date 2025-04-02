@@ -31,7 +31,10 @@ async def swap_task(state: AgentState) -> AgentState:
     response_data = chain_response
     data = response_data.get("data")
     data["intent"] = state.detected_intent.value
-    data["quoteResult"] = {}
-    data["swapResult"] = {}
-    data["swapStatus"] = {}
+    swapIdData = data.get("swapId")
+    if swapIdData:
+        #处理存档的逻辑
+        txtId= swapIdData.get("txId")
+        if txtId:
+            print("业务进行存档处理")
     return state.copy(update={"result": data})
