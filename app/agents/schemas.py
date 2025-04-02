@@ -8,8 +8,8 @@ class Intention(str, Enum):
     receive = 'receive'
     swap = 'swap'
     buy = 'buy'
-    deep_research = 'deep research'
-    account_analysis = 'account analysis'
+    deep_research = 'deep_research'
+    account_analysis = 'account_analysis'
     newsletter = 'newsletter'
     unclear = 'unclear'
 
