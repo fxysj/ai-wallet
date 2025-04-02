@@ -1,4 +1,6 @@
 #深度账号交易分析
+import time
+
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 
@@ -22,4 +24,11 @@ async def analysis_task(state: AgentState) -> AgentState:
         "input": state.user_input,
         "langguage": state.langguage
     })
-    return state.copy(update={"task_result": "analysis_task 处理完成", "is_signed": True})
+    response_data = chain_response
+    data = response_data.get("data")
+    data["intent"] = state.detected_intent.value
+    # 使用 time 模块获取当前时间戳
+    timestamp_time = time.time()
+    print("使用 time 模块获取的 UTC 时间戳:", timestamp_time)
+    data["timestamp"] = state.attached_data.get("timestamp", timestamp_time)
+    return state.copy(update={"result": data})
