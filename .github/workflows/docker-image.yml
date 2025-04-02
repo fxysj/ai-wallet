@@ -2,7 +2,7 @@ name: Docker Build & Deploy
 
 on:
   push:
-    branches: [ feature/propmtUpdate ]
+    branches: [ main ]
 
 env:
   REGISTRY: registry.cn-hangzhou.aliyuncs.com
