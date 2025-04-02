@@ -43,7 +43,7 @@ async def send_task(state: AgentState) -> AgentState:
         "input": state.user_input,
         "langguage":state.langguage
     })
-
+    print(chain_response)
     response_data = chain_response
     data = response_data.get("data")
     data["intent"] = state.detected_intent.value

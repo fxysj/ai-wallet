@@ -9,9 +9,6 @@ AccountASNYC_PROPMT= """
 
 【需要收集的字段】（严格遵循字段名称和格式）：
 - account:  账号列表(list 不能为空)
-  - id:账号ID
-  - address：钱包地址
-  - chainId: 链ID
 【输入内容】
 - 当前对话历史：{history}
 - 用户最新输入：{input}

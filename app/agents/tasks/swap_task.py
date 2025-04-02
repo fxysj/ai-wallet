@@ -28,15 +28,6 @@ async def swap_task(state: AgentState) -> AgentState:
         template=SWAPTASK_TEMPLATE,
         input_variables=["current_data", "history", "input", "langguage"],
     )
-
-    #进行对数据额外处理
-    if not formData.get("form").get("fromTokenAddress"):
-        formData["form"]["fromTokenAddress"] ="fromTokenAddress"
-
-    if not formData.get("form").get("toTokenAddress"):
-        formData["form"]["toTokenAddress"] ="toTokenAddress"
-
-
     llm = LLMFactory.getDefaultOPENAI()
     # 使用新版输出解析器
     # 如果 返回的结果确定下来 chain = prompt | llm | JsonOutputParser(pydantic_model=FullTransactionResponse)
@@ -49,6 +40,7 @@ async def swap_task(state: AgentState) -> AgentState:
         "langguage": state.langguage
     })
     response_data = chain_response
+    print(response_data)
     data = response_data.get("data")
     data["intent"] = state.detected_intent.value
     print("data====")
