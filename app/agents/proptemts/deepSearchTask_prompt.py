@@ -10,8 +10,6 @@ DEEPSEARCHTASK_PROMPT = """
 
 【需要收集的字段】（严格遵循字段名称和格式）：
 - query: 搜索关键词（项目/机构名称、代币等）
-- depth: 搜索深度（整数，如 1, 2, 3）
-- mode: 搜索模式（"fast" 或 "deep"）
 - selectedProject:选择的项目信息 (可选)
 
 【输入内容】
