@@ -10,7 +10,6 @@ DEEPSEARCHTASK_PROMPT = """
 
 【需要收集的字段】（严格遵循字段名称和格式）：
 - query: 搜索关键词（项目/机构名称、代币等）
-- selectedProject:选择的项目信息 (可选)
 
 【输入内容】
 - 当前对话历史：{history}
@@ -41,8 +40,7 @@ json
     }}",
     ”timestamp“：”Python 返回的UTC的时间戳的格式 调用  timestamp_time = time.time() 返回",
     "form": {{
-      "query": "更新后的搜索关键词（项目/机构名称、代币等）",
-      "selectedProject":"更新后的项目信息",
+      "query": "更新后的搜索关键词（项目/机构名称、代币等）"
     }},
     "missFields": [
     {{
