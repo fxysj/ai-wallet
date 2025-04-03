@@ -136,7 +136,7 @@ async def testAccountTask():
 
 async def testIntentionTask():
     agent = AgentState(
-        user_input="分析一下我的地址",
+        user_input="Bridge",
         session_id="0x1212",
         detected_intent=Intention.send,  # 识别出用户的意图枚举
         history="",
@@ -145,6 +145,7 @@ async def testIntentionTask():
         langguage="en",
         isAsync=False,  # 是否需要分析 默认不需要
         attached_data={
+            "intent":"send",
             "state": TaskState.SEND_TASK_READY_TO_SIGN,
             "form": {
                 "account": [{
