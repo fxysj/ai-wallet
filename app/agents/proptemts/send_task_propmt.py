@@ -59,7 +59,6 @@ json
       "slippage": "更新后的滑点值 (float 类型 0.01-30)",
       "tokenAddress": "更新后的代币合约地址 (可选)",
       "rawTx": "可以不需要填充",
-      "test":"更新后的测试值",
       "signedTx": "可以不需要填充 当填充不为空 则需要更新 state:SEND_TASK_BROADCASTED"
     }},
     "missFields": [
