@@ -13,6 +13,7 @@ class StateStrategyFactory:
         "REQUEST_MORE_INFO":"app.agents.stateToolBindingFactory.ReadyToSignTransactionStrategy.REQUESTMOREINFOStrategy",
         "DISPLAY_QR_CODE":"app.agents.stateToolBindingFactory.ReadyToSignTransactionStrategy.DISPLAYQRCODEStrategy",
         "CONFIRM_SWAP":"app.agents.stateToolBindingFactory.ReadyToSignTransactionStrategy.CONFIRMSWAPStrategy",
+        "RESEARCH_TASK_DISPLAY_RESEARCH": "app.agents.stateToolBindingFactory.ReadyToSignTransactionStrategy.RESEARCHStrategy",
     }
 
     @classmethod

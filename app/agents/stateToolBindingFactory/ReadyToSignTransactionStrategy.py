@@ -37,3 +37,7 @@ class  CONFIRMSWAPStrategy(StateStrategy):
     """处理 CONFIRM_SWAP 状态的策略"""
     def get_prompt_next_action(self) -> dict:
         return CONFIG.get("CONFIRM_SWAP", {})
+
+class RESEARCHStrategy(StateStrategy):
+    def get_prompt_next_action(self) -> dict:
+        return CONFIG.get("RESEARCH_TASK_DISPLAY_RESEARCH", {})

@@ -38,5 +38,12 @@
       "CANCEL_SWAP",
       "MODIFY_SWAP"
     ]
+  },
+  "RESEARCH_TASK_DISPLAY_RESEARCH":{
+     "promptNextAction": [
+      "RESEARCH_SAVE",
+      "RESEARCH_SHARE",
+      "RESEARCH_BUY_TOKEN"
+    ]
   }
 }

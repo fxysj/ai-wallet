@@ -38,7 +38,7 @@ DEEPSEARCHTASK_PROMPT = """
     }}",
     ”timestamp“：”Python 返回的UTC的时间戳的格式 调用  timestamp_time = time.time() 返回",
     "form": {{
-      "query": "更新后的搜索关键词（项目/机构名称、代币等）",
+      "query": "更新后的搜索关键词",
       "selectedProject":"用户提供的值 (无需校验, 直接存储)",
       "depth":"用户提供的值 (无需校验, 直接存储)",
       "mode":"用户提供的值 (无需校验, 直接存储)"
