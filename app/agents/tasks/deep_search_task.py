@@ -126,6 +126,8 @@ async def research_task(state: AgentState) -> AgentState:
         key = "research:"+state.session_id
         print(key)
         redis_dict_manager.add(key,data)
+    if state.attached_data:
+        data["form"] = state.attached_data.get("form")
 
     return state.copy(update={"result": data})
 
