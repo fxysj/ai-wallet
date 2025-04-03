@@ -13,7 +13,7 @@ from app.agents.proptemts.deepSearchTask_prompt import DEEPSEARCHTASK_PROMPT
 from app.agents.proptemts.overview_asnsy_propmt import OVERVIEW_ASNYC_PROPMT
 from app.agents.schemas import AgentState
 from app.agents.tools import send_post_request
-
+from app.agents.lib.redisManger.redisManager import redis_dict_manager
 
 #获取rawData数据s
 
@@ -123,6 +123,10 @@ async def research_task(state: AgentState) -> AgentState:
         data["details"] = res["details"]
         data["details"]["rootDataResult"] = detailData
         data["state"]= TaskState.RESEARCH_TASK_DISPLAY_RESEARCH
+        key = "research:"+state.session_id
+        print(key)
+        redis_dict_manager.add(key,data)
+
     return state.copy(update={"result": data})
 
 if __name__ == '__main__':

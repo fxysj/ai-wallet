@@ -6,7 +6,6 @@ DEEPSEARCHTASK_PROMPT = """
 【目标】
 - 更新已有数据（若用户提供有效新信息则覆盖，否则保留原数据）。
 - 返回完整的表单信息，并生成自然流畅的回复，指导用户补充信息。
-
 【需要收集的字段】（严格遵循字段名称和格式）：
 - query: 搜索关键词
 
@@ -38,10 +37,7 @@ DEEPSEARCHTASK_PROMPT = """
     }}",
     ”timestamp“：”Python 返回的UTC的时间戳的格式 调用  timestamp_time = time.time() 返回",
     "form": {{
-      "query": "更新后的搜索关键词",
-      "selectedProject":"用户提供的值 (无需校验, 直接存储)",
-      "depth":"用户提供的值 (无需校验, 直接存储)",
-      "mode":"用户提供的值 (无需校验, 直接存储)"
+      "query": "更新后的搜索关键词"
     }},
     "missFields": [
     {{

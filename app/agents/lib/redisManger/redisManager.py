@@ -21,6 +21,7 @@ class RedisDictManager:
         :param value: 值 (dict)
         """
         redis_key = self.namespace + key
+        print("redis_key"+redis_key)
         if self.redis_client.exists(redis_key):
             print(f"键 {key} 已存在，若要更新请使用 update 方法。")
         else:

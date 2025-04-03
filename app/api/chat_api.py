@@ -107,6 +107,24 @@ display_and_save_graph(app=app,filename="graph.png",output_dir="graphs")
 async def test(request:Request):
     return BaseResponse.success(request.headers.values())
 
+@router.post("/research/result")
+async def getResarchResult(request:Request):
+        request_data = await request.json()
+        id = request_data.get("id")
+        session_id = request_data.get("session_id")
+        if id:
+            session_id = id
+        key = "research:" + session_id
+        res = redis_dict_manager.get(key)
+        data = {}
+        if not res:
+            return data
+        return res
+
+
+
+
+
 # API端点
 @router.post("/chat",summary="大模型统一入口")
 async def analyze_request(request: Request):
