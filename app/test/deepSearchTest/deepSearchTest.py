@@ -161,10 +161,10 @@ async def testIntentionTask():
 async def main():
     # await testSendTask()  # 正确使用 await 调用
     # await testSwapTask()
-    # await testNewsTask()
+     await testNewsTask()
     #await testDeepSearchTask()
     #await testAccountTask()
-    await testIntentionTask()
+    #await testIntentionTask()
     #
 
 

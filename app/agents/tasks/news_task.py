@@ -11,28 +11,42 @@ from app.agents.schemas import AgentState
 
 def newsLetter(attached_data):
     return [
-        {
-            "title": "Ethereum's Shanghai Upgrade Brings Major Improvements",
-            "summary": "Ethereum's Shanghai upgrade has successfully launched, improving scalability and reducing gas fees.",
-            "url": "https://example.com/ethereum-shanghai-upgrade",
-            "source": "Blockchain News Daily",
-            "published": "2025-04-01"
-        },
-        {
-            "title": "Bitcoin Hits New All-Time High Amid Institutional Adoption",
-            "summary": "Bitcoin has reached a new all-time high, driven by increasing institutional investment and growing mainstream acceptance.",
-            "url": "https://example.com/bitcoin-all-time-high",
-            "source": "Crypto Times",
-            "published": "2025-03-28"
-        },
-        {
-            "title": "DeFi Security: Latest Trends and Risks in 2025",
-            "summary": "A new report highlights the latest security threats in DeFi, including smart contract vulnerabilities and phishing attacks.",
-            "url": "https://example.com/defi-security-trends",
-            "source": "DeFi Insights",
-            "published": "2025-03-25"
-        }
-    ]
+    {
+        "title": "Mastercard Develops Crypto Payment Network",
+        "summary": "Mastercard is building a blockchain-based network to facilitate digital asset transactions among consumers, merchants, and financial institutions, aiming to replicate its card network's scale in the crypto space.",
+        "url": "https://www.businessinsider.com/mastercard-building-venmo-crypto-blockchain-digital-assets-2025-3",
+        "source": "Business Insider",
+        "published": "2025-03-31"
+    },
+    {
+        "title": "French State Bank Bpifrance to Invest in Cryptocurrencies",
+        "summary": "Bpifrance plans to allocate up to €25 million to purchase lesser-known cryptocurrencies, supporting French crypto enterprises and demonstrating France's commitment to becoming a leader in crypto technologies.",
+        "url": "https://www.reuters.com/business/finance/french-state-bank-bpifrance-builds-fund-buy-cryptocurrencies-2025-03-27/",
+        "source": "Reuters",
+        "published": "2025-03-27"
+    },
+    {
+        "title": "FDIC Removes Barrier for Banks' Crypto Activities",
+        "summary": "The FDIC has rescinded a prior requirement for banks to obtain approval before engaging in crypto-related activities, facilitating greater integration of cryptocurrencies into traditional financial institutions.",
+        "url": "https://www.barrons.com/articles/crypto-banks-fdic-d04d06cc",
+        "source": "Barron's",
+        "published": "2025-03-28"
+    },
+    {
+        "title": "Wyoming Tests State-Backed Stablecoin",
+        "summary": "Wyoming has initiated testing of its state-backed stablecoin, WYST, on multiple blockchains, marking a significant step as one of the first U.S. state governments to launch a stablecoin.",
+        "url": "https://www.axios.com/2025/03/27/stablecoin-wyoming-blockchains-fidelity-paypal",
+        "source": "Axios",
+        "published": "2025-03-27"
+    },
+    {
+        "title": "Axis Bank and J.P. Morgan Enable 24/7 Dollar Payments",
+        "summary": "India's Axis Bank, in partnership with J.P. Morgan, has introduced real-time U.S. dollar payments for commercial clients, enhancing cross-border payment efficiency.",
+        "url": "https://www.reuters.com/business/finance/indias-axis-bank-jp-morgan-roll-out-anytime-dollar-payments-clients-2025-03-27/",
+        "source": "Reuters",
+        "published": "2025-03-27"
+    }
+]
 
 async def news_task(state: AgentState) -> AgentState:
     print("news_task")
