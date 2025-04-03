@@ -4,7 +4,7 @@ from langchain_core.prompts import PromptTemplate
 
 from app.agents.lib.llm.llm import LLMFactory
 from app.agents.proptemts.swap_task_propmt import SWAPTASK_TEMPLATE
-from app.agents.schemas import AgentState
+from app.agents.schemas import AgentState, Intention
 from app.agents.form.form import *
 from app.utuls.FieldCheckerUtil import FieldChecker
 
@@ -24,6 +24,7 @@ async def swap_task(state: AgentState) -> AgentState:
             print("业务进行存档处理")
             formData["description"] = "success"
             formData["state"] = TaskState.SWAP_TASK_BROADCASTED
+            formData["intent"] = Intention.swap.value
             return state.copy(update={"result": formData})
     prompt = PromptTemplate(
         template=SWAPTASK_TEMPLATE,

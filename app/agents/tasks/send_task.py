@@ -28,6 +28,8 @@ async def send_task(state: AgentState) -> AgentState:
             transactionResult = formData.get("transactionResult")
             if transactionResult.get("txHash"):
                 formData["description"] = "success"
+                formData["state"] = TaskState.SEND_TASK_BROADCASTED
+                formData["intent"] = Intention.send.value
                 return state.copy(update={"result": formData})
 
     prompt = PromptTemplate(
