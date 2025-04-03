@@ -116,7 +116,7 @@ class SystemResponse:
             "success": self.success,
             "promptedAction": self.promptNextAction,
             "data": self.data,
-            "content": self.content,
+            #"content": self.content,
             "message":self.message,
             "confidence":self.confidence,
             "alternatives":self.alternatives,

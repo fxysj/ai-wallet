@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  python-app:
+    image: registry.cn-hangzhou.aliyuncs.com/sinrpc/ai-wallet:latest  # 使用推送到阿里云的镜像
+    working_dir: /tikeAgent
+    volumes:
+      - .env:/tikeAgent/.env
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/tikeAgent
+      - ENV_FILE=/tikeAgent/.env
+    networks:
+      - tike-agent-net
+
+networks:
+  tike-agent-net:
+    driver: bridge
+
+volumes:
+  redis_data:
+    external: true  # 如果您有外部卷的话，确保它可以被清除
