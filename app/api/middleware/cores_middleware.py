@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.middleware.request_logger import RequestLoggingMiddleware
+
 
 def setup_cors_middleware(app: FastAPI):
     # 定义允许的跨域来源列表

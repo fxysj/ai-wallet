@@ -9,11 +9,9 @@ from app.db.database import async_session_factory
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """中间件：异步记录请求和响应到 MySQL"""
-
     async def dispatch(self, request: Request, call_next):
         start_time = time.time()
         session: AsyncSession = async_session_factory()
-
         # 解析请求数据
         try:
             body = await request.body()
