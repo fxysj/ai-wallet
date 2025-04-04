@@ -123,8 +123,9 @@ async def research_task(state: AgentState) -> AgentState:
         data["details"] = res["details"]
         data["details"]["rootDataResult"] = detailData
         data["state"]= TaskState.RESEARCH_TASK_DISPLAY_RESEARCH
-        key = "research:"+state.session_id
+        key = "research:" + state.session_id + "projectId:" + str(state.attached_data.get("form").get("selectedProject").get("id"))
         print(key)
+        #redis_dict_manager.delete(key)
         redis_dict_manager.add(key,data)
     if state.attached_data:
         data["form"] = state.attached_data.get("form")

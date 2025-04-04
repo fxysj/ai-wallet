@@ -5,6 +5,7 @@ import uuid
 from langchain_core.messages import HumanMessage
 from langchain_core.tracers import LangChainTracer
 from langsmith import Client
+from openai import project
 
 from  app.agents.lib.llm.llm import  LLMFactory
 from app.agents.tasks.analysis_task import parse_complex_intent
@@ -109,16 +110,27 @@ async def test(request:Request):
 
 @router.post("/research/result")
 async def getResarchResult(request:Request):
+        projectId = ""
         request_data = await request.json()
+        user_input_object = Session.get_last_user_message(request_data)
         id = request_data.get("id")
         session_id = request_data.get("session_id")
         if id:
             session_id = id
-        key = "research:" + session_id
+
+        data = user_input_object.data
+        print(data)
+        if data:
+            if data.get("form"):
+                selectedProject = data.get("form").get("selectedProject")
+                if selectedProject:
+                    projectId = selectedProject.get("id")
+
+        key = "research:" + session_id + "projectId:"+ str(projectId)
+        print(key)
         res = redis_dict_manager.get(key)
-        data = {}
         if not res:
-            return data
+            return {}
         return res
 
 
