@@ -73,5 +73,9 @@ async def news_task(state: AgentState) -> AgentState:
     timestamp_time = time.time()
     print("使用 time 模块获取的 UTC 时间戳:", timestamp_time)
     data["timestamp"] = state.attached_data.get("timestamp", timestamp_time)
+    # 获取对应的
+    missField = data["missFields"]
+    if missField:
+        return state.copy(update={"result": data})
     data["newsletter"] = newsLetter(state.attached_data)
     return state.copy(update={"result": data})
