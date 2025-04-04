@@ -96,10 +96,19 @@ async def async_OverView(detailData):
     return await loop.run_in_executor(None, OverView, detailData)
 
 
-async def process_research_data(state: AgentState, data):
+async def process_research_data(state: AgentState, data,progress_key):
     """后台任务：获取详情和大模型结果，然后存入 Redis"""
+    # 初始化 Redis 数据（包含进度和业务数据）
+    redis_dict_manager.add(progress_key, {"progress": 10, "message": "Task started", "data": data})
+
+    # 进度 40%：开始获取项目信息
+    redis_dict_manager.add(progress_key, {"progress": 40, "message": "Fetching project details...", "data": data})
     # 获取详细数据（异步）
     detailData = await async_getDetailRowdata(state.attached_data)
+
+
+    # 进度 70%：调用大模型生成概述
+    redis_dict_manager.add(progress_key, {"progress": 70, "message": "Generating project overview...", "data": data})
 
     # 调用大模型获取项目概述（异步）
     res = await async_OverView(detailData)
@@ -109,13 +118,11 @@ async def process_research_data(state: AgentState, data):
         data["details"] = res["details"]
         data["details"]["rootDataResult"] = detailData
         data["state"] = TaskState.RESEARCH_TASK_DISPLAY_RESEARCH
+        # 进度 90%：数据整合完成
+        redis_dict_manager.add(progress_key, {"progress": 90, "message": "Finalizing data...", "data": data})
 
-        key = f"research:{state.session_id}projectId:{state.attached_data.get('form', {}).get('selectedProject', {}).get('id')}"
-        print(f"存入 Redis: {key}")
-
-        # 存入 Redis
-        redis_dict_manager.add(key, data)
-
+ # 进度 100%：任务完成
+    redis_dict_manager.add(progress_key, {"progress": 100, "message": "Task completed", "data": data})
 
 async def research_task(state: AgentState) -> AgentState:
     print("research_task")
@@ -153,7 +160,9 @@ async def research_task(state: AgentState) -> AgentState:
     data["details"] = {}
     data["state"] = ""
     # **后台运行 `process_research_data()`**
-    asyncio.create_task(process_research_data(state, data))
+    # 生成 Redis 进度 Key
+    progress_key = f"research:{state.session_id}:projectId:{state.attached_data.get('form', {}).get('selectedProject', {}).get('id')}"
+    asyncio.create_task(process_research_data(state, data,progress_key))
     #detailData
     # detailData = getDetailRowdata(state.attached_data)
     # res = OverView(detailData)

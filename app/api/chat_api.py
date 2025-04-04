@@ -126,11 +126,11 @@ async def getResarchResult(request:Request):
                 if selectedProject:
                     projectId = selectedProject.get("id")
 
-        key = "research:" + session_id + "projectId:"+ str(projectId)
-        print(key)
+        key = f"research:{session_id}:projectId:{data.get('form', {}).get('selectedProject', {}).get('id')}"
+        defultData = {"progress": 0, "message": "deepSearchProjectData...", "data": {}}
         res = redis_dict_manager.get(key)
         if not res:
-            return {}
+            return defultData
         return res
 
 
