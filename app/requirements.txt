@@ -13,3 +13,8 @@ PyJWT==2.10.1
 python-dotenv==1.1.0
 redis==5.2.1
 uvicorn==0.34.0
+# 异步数据库 ORM（MySQL）
+sqlalchemy[asyncio]==2.0.29
+aiomysql==0.2.0
+# 日志管理
+loguru==0.7.2

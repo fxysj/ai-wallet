@@ -11,3 +11,10 @@ docker-compose logs -f python-app
 #如果应用仍然出现问题，你可以进入容器进行调试：
 
 docker exec -it python-app /bin/bash
+
+
+docker run --name mysql-container -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=ai_wallet_db -p 3306:3306 -v /Users/sin/ai/ai-wallet/mysql/data:/var/lib/mysql -d mysql:8.0
+
+docker build -f base_dockerfile -t registry.cn-hangzhou.aliyuncs.com/sinrpc/mypython:latest .
+
+docker push registry.cn-hangzhou.aliyuncs.com/sinrpc/mypython:latest
