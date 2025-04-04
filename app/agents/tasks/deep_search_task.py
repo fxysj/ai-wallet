@@ -1,4 +1,5 @@
 #深度搜索分析
+import asyncio
 import json
 import time
 from math import trunc
@@ -83,6 +84,39 @@ def Details(attached_data):
     return {}
 
 
+async def async_getDetailRowdata(attached_data):
+    """异步获取项目信息"""
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, getDetailRowdata, attached_data)
+
+
+async def async_OverView(detailData):
+    """异步调用大模型生成概述"""
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, OverView, detailData)
+
+
+async def process_research_data(state: AgentState, data):
+    """后台任务：获取详情和大模型结果，然后存入 Redis"""
+    # 获取详细数据（异步）
+    detailData = await async_getDetailRowdata(state.attached_data)
+
+    # 调用大模型获取项目概述（异步）
+    res = await async_OverView(detailData)
+
+    if res:
+        data["overview"] = res["overview"]
+        data["details"] = res["details"]
+        data["details"]["rootDataResult"] = detailData
+        data["state"] = TaskState.RESEARCH_TASK_DISPLAY_RESEARCH
+
+        key = f"research:{state.session_id}projectId:{state.attached_data.get('form', {}).get('selectedProject', {}).get('id')}"
+        print(f"存入 Redis: {key}")
+
+        # 存入 Redis
+        redis_dict_manager.add(key, data)
+
+
 async def research_task(state: AgentState) -> AgentState:
     print("research_task")
     print("DEBUG - attached_data 类型:", type(state.attached_data))
@@ -114,19 +148,21 @@ async def research_task(state: AgentState) -> AgentState:
         return state.copy(update={"result": data})
     #获取对应的深度搜索的结果响应
     searchData= searchResult(state.attached_data)
+    data["promptedProject"] = searchData.get("data", [])
+    # **后台运行 `process_research_data()`**
+    asyncio.create_task(process_research_data(state, data))
     #detailData
-    detailData = getDetailRowdata(state.attached_data)
-    data["promptedProject"]= searchData.get("data",[])
-    res = OverView(detailData)
-    if res:
-        data["overview"] = res["overview"]
-        data["details"] = res["details"]
-        data["details"]["rootDataResult"] = detailData
-        data["state"]= TaskState.RESEARCH_TASK_DISPLAY_RESEARCH
-        key = "research:" + state.session_id + "projectId:" + str(state.attached_data.get("form").get("selectedProject").get("id"))
-        print(key)
-        #redis_dict_manager.delete(key)
-        redis_dict_manager.add(key,data)
+    # detailData = getDetailRowdata(state.attached_data)
+    # res = OverView(detailData)
+    # if res:
+    #     data["overview"] = res["overview"]
+    #     data["details"] = res["details"]
+    #     data["details"]["rootDataResult"] = detailData
+    #     data["state"]= TaskState.RESEARCH_TASK_DISPLAY_RESEARCH
+    #     key = "research:" + state.session_id + "projectId:" + str(state.attached_data.get("form").get("selectedProject").get("id"))
+    #     print(key)
+    #     #redis_dict_manager.delete(key)
+    #     redis_dict_manager.add(key,data)
     if state.attached_data:
         data["form"] = state.attached_data.get("form")
     else:

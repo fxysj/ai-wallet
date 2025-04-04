@@ -24,6 +24,7 @@ class RedisDictManager:
         print("redis_key"+redis_key)
         if self.redis_client.exists(redis_key):
             print(f"键 {key} 已存在，若要更新请使用 update 方法。")
+            self.update(key,value)
         else:
             self.redis_client.set(redis_key, json.dumps(value))
 
