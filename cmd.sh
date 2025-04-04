@@ -18,3 +18,7 @@ docker run --name mysql-container -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=
 docker build -f base_dockerfile -t registry.cn-hangzhou.aliyuncs.com/sinrpc/mypython:latest .
 
 docker push registry.cn-hangzhou.aliyuncs.com/sinrpc/mypython:latest
+
+docker rmi registry.cn-hangzhou.aliyuncs.com/sinrpc/ai-wallet:latest
+
+docker-compose down
