@@ -22,3 +22,10 @@ docker push registry.cn-hangzhou.aliyuncs.com/sinrpc/mypython:latest
 docker rmi registry.cn-hangzhou.aliyuncs.com/sinrpc/ai-wallet:latest
 
 docker-compose down
+
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'I5xlwT@2025';
+FLUSH PRIVILEGES;
+
+CREATE USER 'ai-wallet'@'%' IDENTIFIED BY 'I5xlwT@2025';
+GRANT ALL PRIVILEGES ON *.* TO 'ai-wallet'@'%' WITH GRANT OPTION;
+

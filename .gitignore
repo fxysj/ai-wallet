@@ -11,3 +11,5 @@ out/
 .idea/tasks.xml
 .idea/dictionaries
 .idea/libraries
+.env
+.env.exmplae
