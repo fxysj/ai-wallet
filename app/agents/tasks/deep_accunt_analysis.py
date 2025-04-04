@@ -26,6 +26,8 @@ async def analysis_task(state: AgentState) -> AgentState:
         "langguage": state.langguage
     })
     response_data = chain_response
+    print("response_data")
+    print(response_data)
     data = response_data.get("data")
     # 使用 time 模块获取当前时间戳
     timestamp_time = time.time()
