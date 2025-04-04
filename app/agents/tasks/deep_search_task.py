@@ -149,6 +149,9 @@ async def research_task(state: AgentState) -> AgentState:
     #获取对应的深度搜索的结果响应
     searchData= searchResult(state.attached_data)
     data["promptedProject"] = searchData.get("data", [])
+    data["overview"] = {}
+    data["details"] = {}
+    data["state"] = ""
     # **后台运行 `process_research_data()`**
     asyncio.create_task(process_research_data(state, data))
     #detailData
