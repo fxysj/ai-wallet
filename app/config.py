@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     # 其他缓队列的配置
 
     class Config:
-        env_file = ".env.exmplase"  # 指定环境变量文件
+        env_file = ".env.exmplae"  # 指定环境变量文件
 
 
 # 初始化配置
