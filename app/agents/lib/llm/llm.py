@@ -4,6 +4,7 @@ from app.config import settings
 class LLMFactory():
     @staticmethod
     def getOpenAI(open_key,url)-> ChatOpenAI:
+        print(url)
         # llm = ChatOpenAI(
         #     model="gpt-4o",
         #     temperature=0.3,
@@ -19,6 +20,8 @@ class LLMFactory():
         return llm
     @staticmethod
     def getDefaultOPENAI()->ChatOpenAI:
+        print("OPENAI_BASE_URL:")
+        print(settings.OPENAI_API_BASE_URL)
         llm = ChatOpenAI(
             model="gpt-4o",
             temperature=0,

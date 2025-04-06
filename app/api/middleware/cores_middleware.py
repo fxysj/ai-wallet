@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.middleware.request_logger import RequestLoggingMiddleware
 
 
 def setup_cors_middleware(app: FastAPI):
