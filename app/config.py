@@ -35,6 +35,8 @@ class Settings(BaseSettings):
 
     ISLangGuageAynsNIS:bool =Field(default=False, env="ISLangGuageAynsNIS")
 
+    modelname:str=Field(default="",env="modelname")
+
     # 其他缓队列的配置
 
     class Config:
