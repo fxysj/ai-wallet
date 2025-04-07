@@ -155,6 +155,8 @@ async def research_task(state: AgentState) -> AgentState:
         return state.copy(update={"result": data})
     #获取对应的深度搜索的结果响应
     searchData= searchResult(state.attached_data)
+    print("searchData")
+    print(searchData)
     data["promptedProject"] = searchData.get("data", [])
     data["overview"] = {}
     data["details"] = {}
