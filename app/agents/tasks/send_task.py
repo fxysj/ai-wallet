@@ -36,6 +36,8 @@ async def send_task(state: AgentState) -> AgentState:
         template=PROMPT_TEMPLATE,
         input_variables=["current_data", "history", "input","langguage"],
     )
+    print("=========PROMPT_TEMPLATE==================")
+    print(PROMPT_TEMPLATE)
     llm = LLMFactory.getDefaultOPENAI()
     chain = prompt | llm | JsonOutputParser()
     # 调用链处理用户最新输入
