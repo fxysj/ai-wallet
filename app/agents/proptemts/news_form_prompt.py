@@ -6,7 +6,8 @@ NEWS_TEMPLATE = """
 - 更新已有数据（若用户提供有效新信息则覆盖，否则保留原数据）。
 - 检查当前数据中缺失的必填字段。
 - 返回完整的表单信息，并生成自然流畅的回复，指导用户补充信息。
-- 当表单填充完毕,需要根据用户的最新输入,揣测用户下一步需要做什么,给出自然流畅并且具有人情味的回复
+- 当所有字段补全后，揣测用户的真实意图（例如：查看最新新闻、订阅资讯等），给出自然、友好、有温度的回复，引导下一步操作；
+- 所有自然语言内容需根据当前语言（{langguage}）进行翻译。
 
 【需要收集的字段】（严格遵循字段名称和格式）：
 - timeframe:  时间类型(e.g. "daily", "weekly", "monthly")
@@ -19,7 +20,7 @@ NEWS_TEMPLATE = """
 2. 检查并列出所有缺失字段；
 3. 无论用户更新或修改数据，都返回完整填充的表单信息；
 4. 当用户提出“xx错误”或“我要修改xx不对”时，识别具体字段进行更新；
-5. 生成自然流畅的回复，帮助用户了解需要补充的信息。
+5. `description` 字段内容要自然流畅、亲切友好，帮助用户理解还缺什么或接下来可以做什么。
 
 【State 定义】  
 - `NEWSLETTER_TASK_DISPLAY_NEWSLETTER`：字段完整新增展示。  
@@ -30,7 +31,7 @@ NEWS_TEMPLATE = """
 
 json
 {{"data": {{
-    "description": "系统生成的自然语言回复内容(需要根据当前的语言进行翻译 如果是英文则翻译为英文)",
+     "description": "系统生成的自然语言回复内容（风格应自然、引导性强，举例：中文：'已获取时间范围啦📅，接下来我来为你准备最新资讯吧～'；英文：'Got your timeframe! Let me fetch the latest blockchain updates for you 📡'）",
     "state": "{{
         'NEWSLETTER_TASK_DISPLAY_NEWSLETTER' if 所有字段完整 else 'NEWSLETTER_TASK_NEED_MORE_INFO'
     }}",

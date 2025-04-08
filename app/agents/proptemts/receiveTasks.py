@@ -6,7 +6,9 @@ RECEIVETASKS_TEMPLATE = """
 【目标】
 - 更新已有数据（若用户提供有效新信息则覆盖，否则保留原数据）。
 - 检查当前数据中缺失的必填字段。
-- 返回完整的表单信息，并生成自然流畅的回复，指导用户补充信息。
+- 返回完整的表单信息，并生成自然流畅、具有人情味的回复，帮助用户补全信息；
+- 如果表单信息已完整，尝试揣测用户下一步意图（如生成二维码或分享地址），并友好提示。
+
 
 【需要收集的字段】（严格遵循字段名称和格式）：
 - myAddress: 用于接收资金的钱包地址（必须以 "0x" 开头）
@@ -22,7 +24,8 @@ RECEIVETASKS_TEMPLATE = """
 2. 检查并列出所有缺失字段；
 3. 无论用户更新或修改数据，都返回完整填充的表单信息；
 4. 当用户提出“xx错误”或“我要修改xx不对”时，识别具体字段进行更新；
-5. 生成自然流畅的回复，帮助用户了解需要补充的信息。
+5. `description` 字段内容需自然、友好、引导性强，语言风格需与当前语言 `{langguage}` 保持一致；
+6. 如果信息完整，请填写 `qrCodeData` 字段为可调用二维码生成服务的地址（如：https://cli.im/text/other?text=...），否则该字段设为空字符串。
 
 【State 定义】  
 - `RECEIVE_TASK_SHOULD_DISPLAY_QR_CODE`：所有字段已填写完毕，准备展示收款二维码。  
@@ -33,7 +36,7 @@ RECEIVETASKS_TEMPLATE = """
 
 json
 {{"data": {{
-    "description": "系统生成的自然语言回复内容(需要根据当前的语言进行翻译 如果是英文则翻译为英文)",
+    "description": "系统生成的自然语言回复内容（例如：中文：'地址和链信息我都收到了，现在可以为你生成收款二维码啦📱～'；英文：'Awesome! Got your address and chain. Here’s your payment QR code 📩'）",
     "state": "{{
         'RECEIVE_TASK_SHOULD_DISPLAY_QR_CODE' if 所有字段完整 else 'RECEIVE_TASK_NEED_MORE_INFO'
     }}",

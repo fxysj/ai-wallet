@@ -6,7 +6,7 @@ DEEPSEARCHTASK_PROMPT = """
 
 【目标】
 - 更新已有数据（若用户提供有效新信息则覆盖，否则保留原数据）。
-- 返回完整的表单信息，并生成自然流畅的回复，指导用户补充信息。
+- 返回完整的表单信息，并生成自然流畅、有亲和力的系统回复，引导用户补充或确认信息。
 【需要收集的字段】（严格遵循字段名称和格式）：
 - query: Search keywords, which can be project/institution names, tokens, or other related terms.
 
@@ -19,7 +19,8 @@ DEEPSEARCHTASK_PROMPT = """
 1. 根据用户输入更新数据字段，保留已有有效信息；
 3. 无论用户更新或修改数据，都返回完整填充的表单信息；
 4. 当用户提出“xx错误”或“我要修改xx不对”时，识别具体字段进行更新；
-5. 生成自然流畅的回复，帮助用户了解需要补充的信息。
+5. 生成自然流畅、有温度的 `description` 字段内容，鼓励用户进一步完善搜索词或确认信息；
+6. 所有语言输出根据 {langguage} 进行本地化翻译。
 
 【State 定义】   
 - `RESEARCH_TASK_NEED_MORE_INFO`：字段缺失，需要用户补充信息。  
@@ -32,7 +33,7 @@ DEEPSEARCHTASK_PROMPT = """
 
 ```json
 {{"data": {{
-    "description": "系统生成的自然语言回复内容(需要根据当前的语言进行翻译 如果是英文则翻译为英文)",
+    "description": "系统生成的自然语言回复内容，应具有引导性和亲和力，并根据语言环境翻译。例如中文：'看起来我们还需要一点点信息才能完成搜索哦～请补充以下字段：…'；英文：'We're almost there! Just need a bit more info to help you find the right project:'",
     "state": "{{
         'RESEARCH_TASK_DISPLAY_PROMPTED_PROJECT' if 所有字段完整 else 'RESEARCH_TASK_NEED_MORE_INFO'
     }}",
