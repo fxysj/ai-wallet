@@ -35,9 +35,16 @@ async def analysis_task(state: AgentState) -> AgentState:
     data["timestamp"] = state.attached_data.get("timestamp", timestamp_time)
     data["intent"] = state.detected_intent.value
     if data:
-        missField = data.get("form").get("missFields")
-        if missField:
-          return state.copy(update={"result": data})
+        form = data.get("form")
+        if not form:
+          missField = data.get("missFields")
+          # 这里进行分析
+          if missField:
+            return state.copy(update={"result": data})
+        else:
+          #否则的话要进行清空
+          data["missFields"] = []
+          data["description"] = "Congratulations, all the information is complete! Deep analysis is about to begin!"
 
     data["overview"] = getMockData()["overview"]
     data["achievements"] = getMockData()["achievements"]
