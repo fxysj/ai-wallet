@@ -39,7 +39,7 @@ BUYTASK_TEMPLATE = """
 json
 {{
     "data": {{
-        "description": "系统生成的自然语言回复内容，风格自然友好。例如中文：'我们快完成啦～只差一点信息就可以发起购买，请补充以下内容：…'；英文：'Almost done! Just need a few more details to proceed with the purchase:'",
+        "description": "系统生成的自然语言回复内容，风格自然友好。例如中文：'我们快完成啦～只差一点信息就可以发起购买，请补充以下内容：…'；英文：'Almost done! Just need a few more details to proceed with the purchase:' 如果所有字段都已经填写完整，系统会返回个性化回复：'恭喜你，所有信息已经完善，我们可以开始进行购买啦！'",
         "state": "{{
             'BUY_TASK_EXECUTED' if 所有字段完整 else 'BUY_TASK_NEED_MORE_INFO'
         }}",

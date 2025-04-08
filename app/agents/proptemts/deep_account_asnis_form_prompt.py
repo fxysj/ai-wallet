@@ -31,7 +31,7 @@ AccountASNYC_PROPMT= """
 
 json
 {{"data": {{
-    "description": "系统生成的自然语言回复内容，基于当前数据情况给予用户友好引导，需根据 {langguage} 翻译。例如：'我们已经获取到了一部分信息，但还差一点就能完成深度分析啦！请再补充以下内容：…'",
+   "description": "系统生成的自然语言回复内容，基于当前数据情况给予用户友好引导，需根据 {langguage} 翻译。例如：'我们已经获取到了一部分信息，但还差一点就能完成深度分析啦！请再补充以下内容：…' ；如果所有字段都完整，回复内容将更加个性化：'恭喜你，所有信息都已完善！深度分析即将开始。我们会为你提供详细的分析结果。'",
     "state": "{{
         'ANALYSIS_TASK_DISPLAY_ANALYSIS' if 所有字段完整 else 'ANALYSIS_TASK_NEED_MORE_INFO'
     }}",

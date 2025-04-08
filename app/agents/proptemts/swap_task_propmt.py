@@ -48,7 +48,7 @@ SWAPTASK_TEMPLATE = """
 json
 {{
     "data": {{
-        "description": "基于当前状态生成自然语言提示。例如：'兑换流程已接近完成，我们只差 xxx 信息就可以继续啦～'；务必根据语言类型 {langguage} 翻译输出",
+         "description": "基于当前状态生成自然语言提示。例如：'兑换流程已接近完成，我们只差 xxx 信息就可以继续啦～'；务必根据语言类型 {langguage} 翻译输出。例如，中文：'我们快完成啦～只差一点信息就可以继续兑换啦！'; 英文：'We’re almost there! Just need a bit more information to proceed with the swap!' 如果所有字段都已经填写完整，系统会生成个性化的确认信息：'太棒了，信息已经完整，我们准备开始兑换啦！'，或者'我已经迫不及待了，让我们开始吧！'",
         "state": "{{
             'SWAP_TASK_READY_TO_SIGN' if 所有字段完整 else 'SWAP_TASK_NEED_MORE_INFO'
         }}",

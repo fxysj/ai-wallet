@@ -33,7 +33,7 @@ DEEPSEARCHTASK_PROMPT = """
 
 ```json
 {{"data": {{
-    "description": "系统生成的自然语言回复内容，应具有引导性和亲和力，并根据语言环境翻译。例如中文：'看起来我们还需要一点点信息才能完成搜索哦～请补充以下字段：…'；英文：'We're almost there! Just need a bit more info to help you find the right project:'",
+    "description": "系统生成的自然语言回复内容，应具有引导性和亲和力，并根据语言环境翻译。例如中文：'我们快完成啦～只差一点信息就能帮你找到相关项目啦！请补充以下内容：…'；英文：'Almost there! Just a few more details and we’ll help you find the right project!' 如果所有字段都已经填写完整，系统会生成个性化的确认信息：'太棒了，信息已经完整，我们开始搜索相关项目吧！'",
     "state": "{{
         'RESEARCH_TASK_DISPLAY_PROMPTED_PROJECT' if 所有字段完整 else 'RESEARCH_TASK_NEED_MORE_INFO'
     }}",
