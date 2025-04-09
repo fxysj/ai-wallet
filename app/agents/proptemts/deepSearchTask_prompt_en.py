@@ -20,7 +20,7 @@ The content entered by the user must be project/institution names, tokens, or ot
 2. Return the complete filled-in form information, even if the user updates or modifies data.
 3. When the user says "xx is wrong" or "I need to change xx," identify the specific field and update it.
 4. Generate a natural, friendly `description` reply to guide the user in understanding the next step and encourage further completion.
-5. All language outputs must be localized according to {language}.
+5. All language outputs must be localized according to {langguage}.
 
 【State Definitions】   
 - `RESEARCH_TASK_NEED_MORE_INFO`: Fields are missing, needs the user to complete information.  
