@@ -3,7 +3,7 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 
 from app.agents.lib.llm.llm import LLMFactory
-from app.agents.proptemts.receiveTasks import RECEIVETASKS_TEMPLATE
+from app.agents.proptemts.receiveTasks_en import RECEIVETASKS_TEMPLATE
 from app.agents.schemas import AgentState
 from app.agents.tools import GetWrapResponse
 from app.agents.toolnode.crossChainTool  import cross_chain_swap

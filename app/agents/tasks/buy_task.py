@@ -6,7 +6,7 @@ from langchain_core.prompts import PromptTemplate
 
 from app.agents.form.form import TaskState
 from app.agents.lib.llm.llm import LLMFactory
-from app.agents.proptemts.buy_prompt import BUYTASK_TEMPLATE
+from app.agents.proptemts.buy_prompt_en import BUYTASK_TEMPLATE
 from app.agents.schemas import AgentState
 from app.utuls.FieldCheckerUtil import FieldChecker
 

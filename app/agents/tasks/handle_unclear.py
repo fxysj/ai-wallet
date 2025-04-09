@@ -8,7 +8,7 @@ from app.agents.lib.llm.llm import LLMFactory
 from app.agents.tools import GetWrapResponse
 from app.config import settings
 from app.agents.lib.redisManger.redisManager import redis_dict_manager
-from app.agents.proptemts.unclear_propmt import  UnClearTemplate
+from app.agents.proptemts.unclear_propmt_en import  UnClearTemplate
 
 async def unclear_task(state: AgentState) -> AgentState:
     system_message = UnClearTemplate

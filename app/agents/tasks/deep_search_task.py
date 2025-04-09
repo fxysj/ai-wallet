@@ -10,7 +10,7 @@ from langchain_core.prompts import PromptTemplate
 
 from app.agents.form.form import TaskState
 from app.agents.lib.llm.llm import LLMFactory
-from app.agents.proptemts.deepSearchTask_prompt import DEEPSEARCHTASK_PROMPT
+from app.agents.proptemts.deepSearchTask_prompt_en import DEEPSEARCHTASK_PROMPT
 from app.agents.proptemts.overview_asnsy_propmt import OVERVIEW_ASNYC_PROPMT
 from app.agents.schemas import AgentState
 from app.agents.tools import send_post_request

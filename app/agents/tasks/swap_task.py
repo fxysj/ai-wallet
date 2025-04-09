@@ -3,7 +3,7 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 
 from app.agents.lib.llm.llm import LLMFactory
-from app.agents.proptemts.swap_task_propmt import SWAPTASK_TEMPLATE
+from app.agents.proptemts.swap_task_propmt_en import SWAPTASK_TEMPLATE
 from app.agents.schemas import AgentState, Intention
 from app.agents.form.form import *
 from app.utuls.FieldCheckerUtil import FieldChecker

@@ -1,7 +1,7 @@
 from langchain_core.output_parsers import JsonOutputParser
 from pydantic import BaseModel
 
-from app.agents.proptemts.userLangguageAnaysic import UserLangguageAnasicTemplate
+from app.agents.proptemts.userLangguageAnaysic_en import UserLangguageAnasicTemplate
 from app.agents.schemas import AgentState
 #用来分析用户的当前的langGuage语言类型 要在返回的时候进行跟进是否大模型进行语言的翻译
 from app.agents.lib.llm.llm import LLMFactory

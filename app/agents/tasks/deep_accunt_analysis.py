@@ -6,7 +6,7 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 
 from app.agents.lib.llm.llm import LLMFactory
-from app.agents.proptemts.deep_account_asnis_form_prompt import AccountASNYC_PROPMT
+from app.agents.proptemts.deep_account_asnis_form_prompt_en import AccountASNYC_PROPMT
 from app.agents.schemas import AgentState
 async def analysis_task(state: AgentState) -> AgentState:
     print("analysis_task")

@@ -5,7 +5,7 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 
 from app.agents.lib.llm.llm import LLMFactory
-from app.agents.proptemts.news_form_prompt import NEWS_TEMPLATE
+from app.agents.proptemts.news_form_prompt_en import NEWS_TEMPLATE
 from app.agents.schemas import AgentState
 
 

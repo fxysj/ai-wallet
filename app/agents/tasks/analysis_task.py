@@ -2,7 +2,7 @@
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 
-from app.agents.proptemts.intent_prompt_chat import INTENT_PROMPT_TEMPLATE
+from app.agents.proptemts.intent_prompt_chat_en import INTENT_PROMPT_TEMPLATE
 from app.agents.schemas import AgentState, Intention
 from app.agents.lib.llm.llm import LLMFactory
 from app.config import settings

@@ -9,7 +9,7 @@ from typing import Optional, Dict, Any
 
 from app.agents.lib.llm.llm import LLMFactory
 from app.agents.form.form import *
-from app.agents.proptemts.send_task_propmt import PROMPT_TEMPLATE
+from app.agents.proptemts.send_task_propmt_en import PROMPT_TEMPLATE
 from app.agents.tools import *
 
 from app.utuls.FieldCheckerUtil import FieldChecker
