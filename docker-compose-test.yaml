@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  python-app:
+    build:
+      context: .              # 当前目录包含 Dockerfile
+      dockerfile: Dockerfile  # 默认可以省略
+    working_dir: /tikeAgent
+    volumes:
+      - .env:/tikeAgent/.env
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/tikeAgent
+      - ENV_FILE=/tikeAgent/.env
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    networks:
+      - tike-agent-net
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6380:6379"
+    volumes:
+      - ./redis/data:/data
+    networks:
+      - tike-agent-net
+
+networks:
+  tike-agent-net:
+    driver: bridge

@@ -99,7 +99,6 @@ workflow.set_entry_point("user_langguage")
 
 # 添加追踪器
 app = workflow.compile()
-
 #保存对应的流图片
 display_and_save_graph(app=app,filename="graph.png",output_dir="graphs")
 # ------------------------------------------------------------------------------

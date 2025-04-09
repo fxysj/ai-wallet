@@ -31,3 +31,5 @@ GRANT ALL PRIVILEGES ON *.* TO 'ai-wallet'@'%' WITH GRANT OPTION;
 
 OPENAI_API_KEY=sk-I5XLWtJAWOXAEQjJOuSb6FXQsWNuInkuNxin4jVwVM4rPCmy
 OPENAI_API_BASE_URL=https://www.dmxapi.cn/v1
+
+docker-compose -f docker-compose-test.yaml up --build
