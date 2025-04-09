@@ -1,6 +1,7 @@
 import logging
 import time
 import uuid
+from json import JSONDecodeError
 
 from langchain_core.messages import HumanMessage
 from langchain_core.tracers import LangChainTracer
@@ -315,3 +316,13 @@ async def analyze_request(request: Request):
         )
         return response_data
         # return StreamingResponse(stream_response(response_data), media_type="application/json")
+    except JSONDecodeError as e:
+        response_data = SystemResponse.errorWrap(
+            data=result.get("result", {}),
+            message="Please try again!",
+            prompt_next_action=prom_action,
+        )
+        res = stream_text_agent_state_transfor("Please try again!", response_data.to_dict())
+        response = StreamingResponse(res)
+        response.headers["x-vercel-ai-data-stream"] = "v1"
+        return response
