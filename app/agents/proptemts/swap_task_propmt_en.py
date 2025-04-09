@@ -48,7 +48,7 @@ Current language: {language}
 json
 {{
     "data": {{
-         "description": "Generate a natural language prompt based on the current state. For example: 'The swap process is almost complete; we just need xxx information to proceed~'; Ensure translation based on language type {language}. For example, in Chinese: '我们快完成啦～只差一点信息就可以继续兑换啦！'; In English: 'We’re almost there! Just need a bit more information to proceed with the swap!' If all fields are complete, the system will generate a personalized confirmation message: 'Great, everything is complete, we are ready to begin the swap!' or 'I can’t wait, let’s get started!'",
+         "description": "Generate a natural language prompt based on the current state. For example: 'The swap process is almost complete; we just need xxx information to proceed~'; Ensure translation based on language type {{language}}. For example, in Chinese: '我们快完成啦～只差一点信息就可以继续兑换啦！'; In English: 'We’re almost there! Just need a bit more information to proceed with the swap!' If all fields are complete, the system will generate a personalized confirmation message: 'Great, everything is complete, we are ready to begin the swap!' or 'I can’t wait, let’s get started!'",
         "state": "{{
             'SWAP_TASK_READY_TO_SIGN' if all fields are complete else 'SWAP_TASK_NEED_MORE_INFO'
         }}",
