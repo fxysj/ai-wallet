@@ -436,37 +436,38 @@ def send_post_request(url, payload, headers):
 
 if __name__ == '__main__':
     # Example usage:
+    print(generate_random_address())
     # jwt_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDQzNjczMzAsImlhdCI6MTc0MTc3NTMzMCwiRXZtQWRkcmVzcyI6IjB4ZUI3YWI2ZmI4NjJiMzQ5YzhmMDM5MTI0YTBmM0U1RWU5MzMzMGZjOCIsIlNvbGFuYUFkZHJlc3MiOiI2Z21YWGVvb2VETEN0UXEyMzRlTVB5RzY4V2dtSE11ODY0Nzl5S2Rlb1UxUiIsIlRyb25BZGRyZXNzIjoiVENjWEw1Qnh6V1VNdndKcnljcUVqNFVvNE13dU1qeDlzcyIsImlkIjoxMH0.MDhDh1ezDe5IEwdduDABLzRtBzxrxcY8GP__ihKpxR0"
-    result_dict = {
-        "data": {
-            "description": "This is a description.",
-            "indent":"send",
-            "state":"ACTION",
-            "form": {
-                "chaindex":"111"
-            },
-            "missField":[],
-            "DxTranctionDetail":{},
-        }
-    }
-
-    tool_name = "get_current_weather"
-    tool_result = {
-        "temperature": "22°C",
-        "location": "London"
-    }
-
-    custom_data = {
-        "role":"system",
-        "content":"",
-        "Success": "true",
-        "message":"ok",
-        "propmentAction":[],
-    }
-
-    for data in convert_to_openai_stream(result_dict, tool_name=tool_name, tool_result=tool_result,
-                                               custom_data=custom_data):
-        print(data)
+    # result_dict = {
+    #     "data": {
+    #         "description": "This is a description.",
+    #         "indent":"send",
+    #         "state":"ACTION",
+    #         "form": {
+    #             "chaindex":"111"
+    #         },
+    #         "missField":[],
+    #         "DxTranctionDetail":{},
+    #     }
+    # }
+    #
+    # tool_name = "get_current_weather"
+    # tool_result = {
+    #     "temperature": "22°C",
+    #     "location": "London"
+    # }
+    #
+    # custom_data = {
+    #     "role":"system",
+    #     "content":"",
+    #     "Success": "true",
+    #     "message":"ok",
+    #     "propmentAction":[],
+    # }
+    #
+    # for data in convert_to_openai_stream(result_dict, tool_name=tool_name, tool_result=tool_result,
+    #                                            custom_data=custom_data):
+    #     print(data)
 
 
 
