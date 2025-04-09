@@ -67,7 +67,7 @@ json
         "missFields": [
             {{
                 "name": "Missing field name",
-                "description": "Field description (Translate according to current {language})"
+                "description": "Field description (Translate according to current {{language}})"
             }}
         ]
     }}
