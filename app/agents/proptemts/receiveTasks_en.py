@@ -30,7 +30,7 @@ You are a professional blockchain transfer assistant tasked with helping users c
 
 【Return Format】
 Only return JSON data, without additional text (note that boolean values must be true or false without quotes):
-Current language: {language}
+Current language: {langguage}
 
 json
 {{"data": {{
@@ -46,9 +46,9 @@ json
     "missFields": [
     {{
         "name": "Missing field name",
-        "description": "Field description (translate based on current {language})"
+        "description": "Field description (translate based on current {langguage})"
     }}
 ]
 }}}}
-In the above JSON result, any natural language content must be translated according to {language}.
+In the above JSON result, any natural language content must be translated according to {langguage}.
 """

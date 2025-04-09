@@ -29,7 +29,7 @@ The content entered by the user must be project/institution names, tokens, or ot
 
 【Return Format】
 Only return the JSON data without any additional text (note: boolean values must be true or false, not in quotes):
-Current language: {language}
+Current language: {langguage}
 
 ```json
 {{
@@ -50,5 +50,5 @@ Current language: {language}
         ]
     }}
 }}
-In the JSON result above, any parts involving natural language must be translated according to {language}. 
+In the JSON result above, any parts involving natural language must be translated according to {langguage}. 
 """

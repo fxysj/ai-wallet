@@ -8,7 +8,7 @@ user:{input}
 
 【Return Format】
 Only return JSON data, without any additional text (note that boolean values must be true or false without quotes):
-Current language: {language}
+Current language: {langguage}
 
 json
 {{
@@ -19,5 +19,5 @@ json
         "missFields": [],
     }}
 }}
-In the above JSON result, any natural language content must be translated according to {language}.
+In the above JSON result, any natural language content must be translated according to {langguage}.
 """

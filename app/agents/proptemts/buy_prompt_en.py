@@ -35,7 +35,7 @@ You are a professional blockchain purchase transaction assistant. Your task is t
 
 【Return Format】
 Only return the JSON data without any additional text (note: boolean values must be true or false, not in quotes):  
-Current language: {language}  
+Current language: {langguage}  
 
 json
 {{
@@ -59,5 +59,5 @@ json
         ]
     }}
 }}
-In the JSON result above, any parts involving natural language must be translated according to {language}.
+In the JSON result above, any parts involving natural language must be translated according to {langguage}.
 """

@@ -27,7 +27,7 @@ You are a professional blockchain account deep analysis assistant. Your task is 
 
 【Return Format】
 Only return the JSON data without any additional text (note: boolean values must be true or false, not in quotes):
-Current language: {language}
+Current language: {langguage}
 
 json
 {{
@@ -52,5 +52,5 @@ json
         "socialShareOptions": {{}}
     }}
 }}
-In the JSON result above, any parts involving natural language must be translated according to {language}.
+In the JSON result above, any parts involving natural language must be translated according to {langguage}.
 """

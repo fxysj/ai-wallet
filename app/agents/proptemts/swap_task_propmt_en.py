@@ -43,12 +43,12 @@ You are a professional blockchain swap assistant, tasked with helping users comp
 
 【Return Format】
 Only return JSON data, without any additional text (note that boolean values must be true or false without quotes):  
-Current language: {language}  
+Current language: {langguage}  
 
 json
 {{
     "data": {{
-         "description": "Generate a natural language prompt based on the current state. For example: 'The swap process is almost complete; we just need xxx information to proceed~'; Ensure translation based on language type {{language}}. For example, in Chinese: '我们快完成啦～只差一点信息就可以继续兑换啦！'; In English: 'We’re almost there! Just need a bit more information to proceed with the swap!' If all fields are complete, the system will generate a personalized confirmation message: 'Great, everything is complete, we are ready to begin the swap!' or 'I can’t wait, let’s get started!'",
+         "description": "Generate a natural language prompt based on the current state. For example: 'The swap process is almost complete; we just need xxx information to proceed~'; Ensure translation based on language type {langguage}. For example, in Chinese: '我们快完成啦～只差一点信息就可以继续兑换啦！'; In English: 'We’re almost there! Just need a bit more information to proceed with the swap!' If all fields are complete, the system will generate a personalized confirmation message: 'Great, everything is complete, we are ready to begin the swap!' or 'I can’t wait, let’s get started!'",
         "state": "{{
             'SWAP_TASK_READY_TO_SIGN' if all fields are complete else 'SWAP_TASK_NEED_MORE_INFO'
         }}",
@@ -67,10 +67,10 @@ json
         "missFields": [
             {{
                 "name": "Missing field name",
-                "description": "Field description (Translate according to current {{language}})"
+                "description": "Field description (Translate according to current {langguage})"
             }}
         ]
     }}
 }}
-In the above JSON result, any natural language content must be translated according to {language}.
+In the above JSON result, any natural language content must be translated according to {langguage}.
 """
