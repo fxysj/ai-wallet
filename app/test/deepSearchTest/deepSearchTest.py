@@ -1,6 +1,10 @@
 # 深度搜索提示词大模型测试
 # 对sendTask大模型进行测试
+from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.prompts import PromptTemplate
+
 from app.agents.form.form import TaskState
+from app.agents.lib.llm.llm import LLMFactory
 from app.agents.schemas import AgentState, Intention
 from app.agents.tasks.send_task import send_task
 from app.agents.tasks.swap_task import swap_task
@@ -8,6 +12,7 @@ from app.agents.tasks.news_task import news_task
 from app.agents.tasks.deep_search_task import research_task
 from app.agents.tasks.deep_accunt_analysis import analysis_task
 from app.agents.tasks.analysis_task import parse_complex_intent
+from app.agents.proptemts.intent_prompt_chat_mutil import  INTENT_PROMPT_TEMPLATE_MUTil
 async def testDeepSearchTask():
     agent = AgentState(
         user_input="我的地址是0x1221",
@@ -133,6 +138,31 @@ async def testAccountTask():
     res = await analysis_task(agent)
     print(res.result)
 
+async  def testMutil():
+    # 设置 LangChain 模板
+    intent_prompt = PromptTemplate(input_variables=["message_history", "latest_message", "attached_data"],
+                                   template=INTENT_PROMPT_TEMPLATE_MUTil)
+    llm =LLMFactory.getDefaultOPENAI()
+    chain = intent_prompt | llm | JsonOutputParser()
+    # 运行 LangChain 来进行意图分类
+    # 示例输入
+    message_history = [
+        "我想购买加密货币。",
+        "我想用法币买点ETH",
+        "ETH当前的汇率如何？"
+        "my token is 0x121",
+        "i want you anaslyc my project",
+    ]
+    latest_message = "我想要深度搜索"
+    attached_data = {}
+    response = await chain.ainvoke({
+        "message_history": str(message_history),
+        "latest_message": latest_message,
+        "attached_data": attached_data
+    })
+    print(response)
+
+
 
 async def testIntentionTask():
     agent = AgentState(
@@ -161,11 +191,12 @@ async def testIntentionTask():
 async def main():
     # await testSendTask()  # 正确使用 await 调用
     # await testSwapTask()
-     await testNewsTask()
+    # await testNewsTask()
     #await testDeepSearchTask()
     #await testAccountTask()
     #await testIntentionTask()
     #
+    await testMutil()
 
 
 import asyncio
