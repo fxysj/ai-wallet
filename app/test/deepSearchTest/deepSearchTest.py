@@ -142,13 +142,13 @@ async def testAccountTask():
 #测试多轮对话task任务
 async def testMutilTask():
     agent = AgentState(
-        user_input="项目 不是这个吧",
+        user_input="ETH",
         session_id="0x1212",
         detected_intent=Intention.send,  # 识别出用户的意图枚举
         history="",
         messages=[],  # 传递的历史信息是一个数组的字典形式
         result={},  # 传递内部数据
-        langguage="en",
+        langguage="英语",
         isAsync=False,  # 是否需要分析 默认不需要
         attached_data={
             "state": TaskState.SEND_TASK_READY_TO_SIGN,
