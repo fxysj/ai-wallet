@@ -163,20 +163,20 @@ async def research_task(state: AgentState) -> AgentState:
     data["state"] = ""
     # **后台运行 `process_research_data()`**
     # 生成 Redis 进度 Key
-    progress_key = f"research:{state.session_id}:projectId:{state.attached_data.get('form', {}).get('selectedProject', {}).get('id')}"
-    asyncio.create_task(process_research_data(state, data,progress_key))
+    # progress_key = f"research:{state.session_id}:projectId:{state.attached_data.get('form', {}).get('selectedProject', {}).get('id')}"
+    # asyncio.create_task(process_research_data(state, data,progress_key))
     #detailData
-    # detailData = getDetailRowdata(state.attached_data)
-    # res = OverView(detailData)
-    # if res:
-    #     data["overview"] = res["overview"]
-    #     data["details"] = res["details"]
-    #     data["details"]["rootDataResult"] = detailData
-    #     data["state"]= TaskState.RESEARCH_TASK_DISPLAY_RESEARCH
-    #     key = "research:" + state.session_id + "projectId:" + str(state.attached_data.get("form").get("selectedProject").get("id"))
-    #     print(key)
-    #     #redis_dict_manager.delete(key)
-    #     redis_dict_manager.add(key,data)
+    detailData = getDetailRowdata(state.attached_data)
+    res = OverView(detailData)
+    if res:
+        data["overview"] = res["overview"]
+        data["details"] = res["details"]
+        data["details"]["rootDataResult"] = detailData
+        data["state"]= TaskState.RESEARCH_TASK_DISPLAY_RESEARCH
+        key = "research:" + state.session_id + "projectId:" + str(state.attached_data.get("form").get("selectedProject").get("id"))
+        print(key)
+        #redis_dict_manager.delete(key)
+        redis_dict_manager.add(key,data)
     if state.attached_data:
         data["form"] = state.attached_data.get("form")
     else:
