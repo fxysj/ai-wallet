@@ -46,14 +46,5 @@ async def mutil_intent_asnyc_task(state: AgentState) -> AgentState:
     print(message)      # 返回的结果如下：
     data = {
           "description":"\n".join(message),
-          "state":"",
-          "intent":chain_response.get("intent"),
-          "form":state.attached_data,
-          "missFields":[],
-          "timestamp":"1744258518.8706527"
     }
-    attach_data = state.attached_data
-    attach_data["intent"] = chain_response.get("intent")
-    print(data)
-    print(attach_data)
-    return state.copy(update={"attached_data": attach_data,"result":data,"isEnd":isEnd})
+    return state.copy(update={"result":data,"isEnd":isEnd})
