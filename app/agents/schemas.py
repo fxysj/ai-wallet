@@ -80,8 +80,9 @@ class AgentState(BaseModel):
     history: str = ""#历史信息
     messages: List[Dict] #传递的历史信息是一个数组的字典形式
     result: Any = None #传递内部数据
-    langguage:str="中文"#默认语言是中文的方式
+    langguage:str="英文"#默认语言是中文的方式
     isAsync:bool=False #是否需要分析 默认不需要
+    isEnd:bool=False #是否结束节点
 
 
 class ResearchTopicSchema(BaseModel):

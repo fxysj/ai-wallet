@@ -2,6 +2,7 @@
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 
+
 from app.agents.lib.llm.llm import LLMFactory
 from app.agents.proptemts.intent_prompt_chat_mutil import INTENT_PROMPT_TEMPLATE_MUTil
 from app.agents.schemas import AgentState
@@ -29,12 +30,16 @@ async def mutil_intent_asnyc_task(state: AgentState) -> AgentState:
     #print(chain_response)
     sys_message = chain_response.get("system_message")
     message = []
-    message.append(sys_message)
     multi_round_guidance = chain_response.get("multi_round_guidance")
     print(multi_round_guidance)
+    isEnd = False
     if multi_round_guidance:
+      isEnd = True
       for value in multi_round_guidance:
           message.append(value)
+    else:
+        message.append(sys_message)
+
 
 
 
@@ -51,4 +56,4 @@ async def mutil_intent_asnyc_task(state: AgentState) -> AgentState:
     attach_data["intent"] = chain_response.get("intent")
     print(data)
     print(attach_data)
-    return state.copy(update={"attached_data": attach_data,"result":data})
+    return state.copy(update={"attached_data": attach_data,"result":data,"isEnd":isEnd})

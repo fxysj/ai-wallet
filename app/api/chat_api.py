@@ -24,8 +24,10 @@ from ..agents.tasks.handle_unclear import unclear_task
 from ..agents.tasks.news_task import news_task
 from ..agents.tasks.receive_task import receive_task
 from ..agents.tasks.route import route_task
+from ..agents.tasks.route import mutilisEnd
 from ..agents.tasks.send_task import send_task
 from ..agents.tasks.swap_task import swap_task
+from ..agents.tasks.mutil_intent import mutil_intent_asnyc_task
 from fastapi import APIRouter
 from langgraph.graph import END
 from app.agents.tools import *
@@ -72,7 +74,15 @@ workflow.add_node("handle_research", research_task) #深度搜索智能体
 workflow.add_node("handle_analysis", analysis_task) #账号深度分析智能体
 workflow.add_node("handle_news", news_task) #新闻投资资讯智能体
 workflow.add_node("handle_unclear",unclear_task) #没有完成的智能体
-workflow.add_edge("user_langguage","intent_parser") #设置边 用户行为
+workflow.add_node("hand_muti_intent",mutil_intent_asnyc_task) #设置多轮对话意图分析智能体
+workflow.add_edge("user_langguage","hand_muti_intent") #设置边 用户行为
+#workflow.add_edge("hand_muti_intent","intent_parser") #设置将对轮对话的边李转到分析意图本身处理
+workflow.add_conditional_edges(
+    "hand_muti_intent",
+    mutilisEnd,
+    {"end":END,"intent_parser":"intent_parser"}
+)
+
 #条件边
 workflow.add_conditional_edges(
     "intent_parser",
