@@ -6,6 +6,7 @@ INTENT_PROMPT_TEMPLATE_MUTil = """
 分析用户最新请求的意图：
 最新消息内容：{latest_message}
 附加数据（用户提交的表单信息）：{attached_data}
+当前语言:{language}
 
 ────────────────────────────
 【角色定位】
@@ -116,8 +117,8 @@ INTENT_PROMPT_TEMPLATE_MUTil = """
 ```
 {{
   "intent": "识别出用户的意图的值",
-  "system_message": "根据用户提供的上下文和输入的内容进行系统性回复",
-  "multi_round_guidance": "如果识别不出用户的意图则生成引导的语句 数组方式返回",
+  "system_message": "根据用户提供的上下文和输入的内容进行系统性回复 需要根据{language}进行自动翻译",
+  "multi_round_guidance": "如果识别不出用户的意图则生成引导的语句 数组方式返回 需要根据{language}进行自动翻译",
   "context": {{
     "message_history": "{message_history}",
     "latest_message": "{latest_message}",

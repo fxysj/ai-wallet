@@ -13,6 +13,7 @@ from app.agents.tasks.deep_search_task import research_task
 from app.agents.tasks.deep_accunt_analysis import analysis_task
 from app.agents.tasks.analysis_task import parse_complex_intent
 from app.agents.proptemts.intent_prompt_chat_mutil import  INTENT_PROMPT_TEMPLATE_MUTil
+from app.agents.tasks.mutil_intent import mutil_intent_asnyc_task
 async def testDeepSearchTask():
     agent = AgentState(
         user_input="我的地址是0x1221",
@@ -138,6 +139,33 @@ async def testAccountTask():
     res = await analysis_task(agent)
     print(res.result)
 
+#测试多轮对话task任务
+async def testMutilTask():
+    agent = AgentState(
+        user_input="项目 不是这个吧",
+        session_id="0x1212",
+        detected_intent=Intention.send,  # 识别出用户的意图枚举
+        history="",
+        messages=[],  # 传递的历史信息是一个数组的字典形式
+        result={},  # 传递内部数据
+        langguage="en",
+        isAsync=False,  # 是否需要分析 默认不需要
+        attached_data={
+            "state": TaskState.SEND_TASK_READY_TO_SIGN,
+            "form": {
+                "account": [{
+                    "id": "0x112",
+                    "chainId": 52,
+                    "address": "0x1212",
+                }]
+            }
+        })
+    res = await mutil_intent_asnyc_task(agent)
+    print(res)
+
+
+
+
 async  def testMutil():
     # 设置 LangChain 模板
     intent_prompt = PromptTemplate(input_variables=["message_history", "latest_message", "attached_data"],
@@ -196,7 +224,8 @@ async def main():
     #await testAccountTask()
     #await testIntentionTask()
     #
-    await testMutil()
+    #await testMutil()
+    await testMutilTask()
 
 
 import asyncio
