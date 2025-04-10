@@ -66,8 +66,7 @@ json
         "name": "Missing field name",
         "description": "Field description (translate based on current {langguage})"
     }}
-],
-    "transactionResult": {{}}
+]
 }}}}
 In the above JSON result, any natural language content must be translated according to {langguage}.
 """
