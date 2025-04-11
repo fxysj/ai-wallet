@@ -13,7 +13,6 @@ async def swap_task(state: AgentState) -> AgentState:
     print("swap_task")
     print("DEBUG - attached_data 类型:", type(state.attached_data))
     print("DEBUG - attached_data 内容:", state.attached_data)
-
     print("信息========")
     formData= state.attached_data
     swapIdData = state.attached_data.get("swapId")
@@ -28,19 +27,24 @@ async def swap_task(state: AgentState) -> AgentState:
             return state.copy(update={"result": formData})
     prompt = PromptTemplate(
         template=SWAPTASK_TEMPLATE,
-        input_variables=["current_data", "history", "input", "langguage"],
+        input_variables=["current_data", "history", "input", "langguage", "chain_data"],
     )
     llm = LLMFactory.getDefaultOPENAI()
     # 使用新版输出解析器
     # 如果 返回的结果确定下来 chain = prompt | llm | JsonOutputParser(pydantic_model=FullTransactionResponse)
     chain = prompt | llm | JsonOutputParser()
-    # 调用链处理用户最新输入
-    chain_response = chain.invoke({
+    
+    # Prepare prompt variables and add chain_data
+    prompt_variables = {
         "current_data": str(formData),
         "history": state.history,
         "input": state.user_input,
-        "langguage": state.langguage
-    })
+        "langguage": state.langguage,
+        "chain_data": state.chain_data
+    }
+    
+    # 调用链处理用户最新输入
+    chain_response = chain.invoke(prompt_variables)
     response_data = chain_response
     print(response_data)
     data = response_data.get("data")

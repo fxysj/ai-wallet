@@ -10,6 +10,7 @@ from openai import project
 
 from  app.agents.lib.llm.llm import  LLMFactory
 from app.agents.tasks.analysis_task import parse_complex_intent
+from app.agents.utils import chain_data_util
 from ..agents.lib.aiNodeJsSDk.tools.AgentStateResponseWrape import stream_text_agent_state, generate_chat_responses, \
     stream_text_agent_state_transfor
 from ..agents.lib.redisManger.redisManager import RedisDictManager
@@ -182,6 +183,7 @@ async def analyze_request(request: Request):
 
         # 组装最近的对话历史（取最新5条记录）
         history = Session.get_recent_history(request_data,10)
+        chain_data = chain_data_util.DEFAULT_CHAIN_DATA
 
 
 
@@ -190,6 +192,7 @@ async def analyze_request(request: Request):
             attached_data=user_attached_data,#用户保存的数据信息
             session_id=session_id,#会话信息
             history=history, #历史上下文信息
+            chain_data=chain_data,#链数据
             messages=messages,#历史信息
             langguage=settings.LanGuage,#语言配置
             isAsync=settings.ISLangGuageAynsNIS,#是否进行配置
