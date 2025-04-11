@@ -90,6 +90,7 @@ class SystemResponse:
         :return: SystemResponse - 仅包含错误消息的错误响应对象
         """
         return SystemResponse(
+            role="system",
             success=False,
             content="ok",  # 默认错误提示
             message=message,

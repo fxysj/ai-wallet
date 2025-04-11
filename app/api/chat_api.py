@@ -10,6 +10,7 @@ from openai import project
 
 from  app.agents.lib.llm.llm import  LLMFactory
 from app.agents.tasks.analysis_task import parse_complex_intent
+from .exceptions.exceptions import BusinessException
 from ..agents.lib.aiNodeJsSDk.tools.AgentStateResponseWrape import stream_text_agent_state, generate_chat_responses, \
     stream_text_agent_state_transfor
 from ..agents.lib.redisManger.redisManager import RedisDictManager
@@ -107,6 +108,18 @@ display_and_save_graph(app=app,filename="graph.png",output_dir="graphs")
 @router.get("/test",summary="测试接口")
 async def test(request:Request):
     return BaseResponse.success(request.headers.values())
+
+#测试业务异常
+@router.get("/ex")
+def test_error():
+    raise BusinessException(code=1001,msg="测试业务异常")
+
+
+@router.get("/parser")
+def test_parser():
+    from langchain_core.tracers import OutputParserException
+    raise OutputParserException("这是一个输出解析错误")
+
 
 @router.post("/research/result")
 async def getResarchResult(request:Request):
