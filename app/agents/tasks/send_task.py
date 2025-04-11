@@ -26,7 +26,7 @@ async def send_task(state: AgentState) -> AgentState:
         formData  = state.attached_data
         if formData.get("transactionResult"):
             transactionResult = formData.get("transactionResult")
-            if transactionResult.get("txHash"):
+            if transactionResult:
                 formData["description"] = "success"
                 formData["state"] = TaskState.SEND_TASK_BROADCASTED
                 formData["intent"] = Intention.send.value
