@@ -117,7 +117,7 @@ def test_error():
 
 @router.get("/parser")
 def test_parser():
-    from langchain_core.tracers import OutputParserException
+    from langchain_core.exceptions import OutputParserException
     raise OutputParserException("这是一个输出解析错误")
 
 
