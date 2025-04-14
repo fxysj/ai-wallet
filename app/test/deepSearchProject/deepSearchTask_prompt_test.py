@@ -51,7 +51,7 @@ curl -X POST \
 - name → title
 - introduce → detail
 - logo → logo
-- id → 可用作 slug 或唯一标识
+- id → id
 
 🌍【当前语言】：{langguage}
 🗣【当前输入】：{input}  
