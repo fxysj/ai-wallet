@@ -25,9 +25,9 @@ DEEPSEARCHTASK_PROMPT_TEST = """
     - 6：NFT 项目
     - 7：Layer 2 解决方案
     - 8：稳定币
-  - detail：简要描述，约 512 字符以内，语言为 {language}，风格自然易懂，具引导性。
+  - detail：简要描述，约 512 字符以内，语言为 {langguage}，风格自然易懂，具引导性。
 
-- description：基于搜索结果生成自然语言回复，引导用户确认/补充信息，语言为 {language}；
+- description：基于搜索结果生成自然语言回复，引导用户确认/补充信息，语言为 {langguage}；
 - state：任务当前状态：
   - RESEARCH_TASK_NEED_MORE_INFO：关键词缺失或模糊，建议用户补充；
   - RESEARCH_TASK_DISPLAY_PROMPTED_PROJECT：已展示推荐结果；
@@ -93,7 +93,7 @@ curl -X POST \
 ```json
 {{
   "data": {{
-    "description": "未找到匹配项目，请补充更精确关键词，如项目名称或钱包地址（使用 {language}）",
+    "description": "未找到匹配项目，请补充更精确关键词，如项目名称或钱包地址（使用 {langguage}）",
     "timestamp": {{timestamp}},
     "state": "RESEARCH_TASK_NEED_MORE_INFO",
     "form": {{
@@ -103,7 +103,7 @@ curl -X POST \
     "missFields": [
       {{
         "name": "query",
-        "description": "请输入你想查找的项目名称、代币或地址（使用 {language}）"
+        "description": "请输入你想查找的项目名称、代币或地址（使用 {langguage}）"
       }}
     ]
   }}
