@@ -13,3 +13,5 @@ out/
 .idea/libraries
 .env
 .env.exmplae
+.redis/
+.mysql/
