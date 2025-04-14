@@ -13,7 +13,9 @@ DEEPSEARCHTASK_PROMPT_TEST = """
 📘【字段定义】
 - form.query：用户查询的关键词（如“Ethereum”、“0xabc...”、“AAVE”等）；
 - typeList：搜索结果列表，每项结构如下：
-  - id：唯一标识，格式为 type{{type}}_{{slug}}，如 type2_ethereum；
+  - id：唯一标识，生成规则如下：
+    - 若来自 RootData，格式为 `{{id}}`；
+    - 否则格式为 `type{{type}}_{{slug}}`，如 type5_aave-v3；
   - title：项目或地址名称；
   - logo：图标 URL；
   - type：实体类型：
@@ -37,7 +39,6 @@ DEEPSEARCHTASK_PROMPT_TEST = """
 
 🔁【外部接口补全规则】
 当搜索结果中包含 type = 2（区块链项目）或 type = 3（Meme Token）时，需调用如下接口获取更权威信息进行补充：
-
 ```
 curl -X POST \
   -H "apikey: UvO5c6tLGHZ3a5ipkPZsXDbOUYRiKUgQ" \
@@ -46,12 +47,12 @@ curl -X POST \
   -d '{{"query": {input}}}' \
   https://api.rootdata.com/open/ser_inv
 ```
-
-提取字段如下用于补全：
-- name → title
-- introduce → detail
-- logo → logo
-- id → id
+⚙️替换说明：
+若调用 RootData 补全成功，需将对应 typeList 中的字段替换为格式：
+id: {{RootData 返回的 id}}
+title:{{RootData 返回的 name}}
+logo:{{RootData 返回的 logo}}
+detail:{{RootData 返回的 introduce}}
 
 🌍【当前语言】：{langguage}
 🗣【当前输入】：{input}  
