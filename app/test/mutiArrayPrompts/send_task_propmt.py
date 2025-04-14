@@ -24,30 +24,41 @@ PROMPT_TEMPLATE_MITI_ARRAY = """
 - 若有 `signedTx`：设置为 `SEND_TASK_BROADCASTED`。
 - 若用户取消：设置为 `SEND_TASK_CANCELLED`。
 
-【支持的链ID与合约地址映射】
-- `1` -> Ethereum (ETH)
-- `56` -> Binance Smart Chain (BSC)
-- `137` -> Polygon (MATIC)
-- `42161` -> Arbitrum
-
 【输入】
 - 历史对话：{history}
 - 用户当前输入：{input}
 - 当前表单数据：{current_data}
 - 用户语言：{langguage}
 
+
+【语言处理】
+根据用户语言（langguage），动态输出：
+- `description`: 提示语言应贴心、温暖、友好。
+- `missFields.description`: 各字段说明应为对应语言（如中文、英文等）。
+- 当前支持的语言包括：中文（zh）、英文（en）。若无法识别语言，默认为英文。
+语言输出示例：
+- langguage = "zh" → 回复内容使用中文，字段说明使用中文。
+- langguage = "en" → 回复内容使用英文，字段说明使用英文。
+【支持的链ID与合约地址映射】
+- `1` -> Ethereum (ETH)
+- `56` -> Binance Smart Chain (BSC)
+- `137` -> Polygon (MATIC)
+- `42161` -> Arbitrum
+
+
+
 【输出格式】
 ```json
 {{
   "data": {{
-    "description": "自然语言生成，贴心、有温度，引导用户继续或确认。",
+    "description": "根据语言返回：贴心、有温度的自然语言回复，引导用户继续或确认",
     "state": "SEND_TASK_NEED_MORE_INFO | SEND_TASK_READY_TO_SIGN | SEND_TASK_BROADCASTED",
     "timestamp": "UTC 时间戳，如 2025-04-14T12:00:00Z",
     "forms": [...更新后的所有转账表单...],
     "missFields": [
       {{
         "name": "字段名",
-        "description": "字段含义（根据语言翻译）",
+        "description": "字段含义（根据语言本地化）",
         "index": 表单下标，从 0 开始
       }}
     ],
