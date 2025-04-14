@@ -1,10 +1,6 @@
 #深度搜索分析
 import asyncio
-import json
 import time
-from math import trunc
-
-import requests
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 
@@ -17,6 +13,44 @@ from app.agents.tools import send_post_request
 from app.agents.lib.redisManger.redisManager import redis_dict_manager
 
 #获取rawData数据s
+
+def handle_type_based_data(type_item, attached_data):
+    """
+    根据项目类型处理不同逻辑
+    """
+    type_value = type_item.get("type")
+
+    if type_value in [2, 3]:
+        # 走 getDetailRowdata 查询
+        detail_data = getDetailRowdata(attached_data)
+        res = OverView(detail_data)
+        if res:
+            return {
+                "overview": res.get("overview", {}),
+                "details": {
+                    **res.get("details", {}),
+                    "rootDataResult": detail_data
+                },
+                "state": TaskState.RESEARCH_TASK_DISPLAY_RESEARCH
+            }
+
+    elif type_value == 4:
+        # 调用其他API处理（示例逻辑）
+        # 你可以定义自己的函数 fetch_type4_data()
+        return {
+            "overview": {"note": "暂不支持的类型，需接入新的接口"},
+            "details": {},
+            "state": "TYPE4_PENDING"
+        }
+
+    else:
+        # 默认：不支持的类型，清空数据结构
+        return {
+            "overview": {},
+            "details": {},
+            "state": ""
+        }
+
 
 # 封装后的searchResult函数
 def searchResult(attached_data):
@@ -153,36 +187,18 @@ async def research_task(state: AgentState) -> AgentState:
     missField = data["missFields"]
     if missField:
         return state.copy(update={"result": data})
-    #获取对应的深度搜索的结果响应
-    searchData= searchResult(state.attached_data)
-    print("searchData")
-    print(searchData)
-    data["promptedProject"] = searchData.get("data", [])
-    data["overview"] = {}
-    data["details"] = {}
-    data["state"] = ""
-    # **后台运行 `process_research_data()`**
-    # 生成 Redis 进度 Key
-    # progress_key = f"research:{state.session_id}:projectId:{state.attached_data.get('form', {}).get('selectedProject', {}).get('id')}"
-    # asyncio.create_task(process_research_data(state, data,progress_key))
-    #detailData
-    detailData = getDetailRowdata(state.attached_data)
-    res = OverView(detailData)
-    if res:
-        data["overview"] = res["overview"]
-        data["details"] = res["details"]
-        data["details"]["rootDataResult"] = detailData
-        data["state"]= TaskState.RESEARCH_TASK_DISPLAY_RESEARCH
-        key = "research:" + state.session_id + "projectId:" + str(state.attached_data.get("form").get("selectedProject").get("id"))
-        print(key)
-        #redis_dict_manager.delete(key)
-        redis_dict_manager.add(key,data)
-    if state.attached_data:
-        data["form"] = state.attached_data.get("form")
-    else:
-        data["form"] = {}
 
+    typeList = state.attached_data.get("typeList")
+    typeSelected = typeList[0]
+
+
+    handled_result = handle_type_based_data(typeSelected, state.attached_data)
+    data["overview"] = handled_result.get("overview")
+    data["details"] = handled_result.get("details")
+    data["state"] = handled_result.get("state")
     return state.copy(update={"result": data})
+
+
 
 if __name__ == '__main__':
     data = {'intent': 'deep_research', 'form': {'query': 'Official Trump', 'selectedProject': {'introduce': 'Official Trump is a meme coin issued on the Solana blockchain, introduced by the elected U.S. president Donald Trump through a social media post.', 'name': 'Official Trump', 'logo': 'https://public.rootdata.com/images/b13/1737172225426.jpg', 'active': True, 'rootdataurl': 'https://www.rootdata.com/Projects/detail/Official Trump?k=MTU5Mjc=', 'id': 15927, 'type': 1}}}
