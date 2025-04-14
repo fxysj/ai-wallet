@@ -13,6 +13,10 @@ from app.agents.tools import send_post_request
 from app.agents.lib.redisManger.redisManager import redis_dict_manager
 
 #获取rawData数据s
+#根据详情信息返回OverView数据
+def wrap_del_with_detail(detail_data):
+    return {}
+
 
 def handle_type_based_data(type_item, attached_data):
     """
@@ -23,14 +27,10 @@ def handle_type_based_data(type_item, attached_data):
     if type_value in [2, 3]:
         # 走 getDetailRowdata 查询
         detail_data = getDetailRowdata(attached_data)
-        res = OverView(detail_data)
-        if res:
+        if detail_data:
             return {
-                "overview": res.get("overview", {}),
-                "details": {
-                    **res.get("details", {}),
-                    "rootDataResult": detail_data
-                },
+                "overview": wrap_del_with_detail(detail_data),
+                "details": detail_data,
                 "state": TaskState.RESEARCH_TASK_DISPLAY_RESEARCH
             }
 
@@ -73,10 +73,10 @@ def searchResult(attached_data):
     return send_post_request(url, payload, headers)
 
 def getDetailRowdata(attached_data):
-    data = attached_data.get('form', {})
+    data = attached_data.get('typeList', {})
     if not data:
         return {}
-    selectedProject = data.get("selectedProject")
+    selectedProject = data[0]
     if not selectedProject:
         return {}
     id = selectedProject.get('id')  # 项目id
