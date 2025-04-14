@@ -58,8 +58,8 @@ def test_case_6_fully_filled_ready_search():
     run_deep_search_test("我找的是 Aave 协议，不是 Token，快点开始吧！")
 
 if __name__ == '__main__':
-    test_case_1_basic_search()
-    # test_case_2_modify_input()
+    #test_case_1_basic_search()
+    test_case_2_modify_input()
     # test_case_3_missing_fields()
     # test_case_4_wrong_type_fix()
     # test_case_5_english_environment()
