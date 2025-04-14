@@ -17,6 +17,18 @@ from app.agents.lib.redisManger.redisManager import redis_dict_manager
 def wrap_del_with_detail(detail_data):
     return {}
 
+#账号深度分析
+def account_deep_asynic(attached_data):
+    pass
+
+#其他类型API工具分析
+def api_extra_asnyc(attached_data):
+    pass
+
+#默认返回处理函数
+def default_deal_with(attached_data):
+    pass
+
 
 def handle_type_based_data(type_item, attached_data):
     """
@@ -37,19 +49,13 @@ def handle_type_based_data(type_item, attached_data):
     elif type_value == 4:
         # 调用其他API处理（示例逻辑）
         # 你可以定义自己的函数 fetch_type4_data()
-        return {
-            "overview": {"note": "暂不支持的类型，需接入新的接口"},
-            "details": {},
-            "state": "TYPE4_PENDING"
-        }
+        return api_extra_asnyc(attached_data)
+    elif type_value == 1:
+        return account_deep_asynic(attached_data)
 
     else:
         # 默认：不支持的类型，清空数据结构
-        return {
-            "overview": {},
-            "details": {},
-            "state": ""
-        }
+        return default_deal_with(attached_data)
 
 
 # 封装后的searchResult函数
@@ -73,13 +79,14 @@ def searchResult(attached_data):
     return send_post_request(url, payload, headers)
 
 def getDetailRowdata(attached_data):
-    data = attached_data.get('typeList', {})
-    if not data:
+    data = attached_data.get('typeList', [])
+    if not data or not isinstance(data, list):
         return {}
-    selectedProject = data[0]
-    if not selectedProject:
+
+    selected_project = data[0] if len(data) > 0 else None
+    if not selected_project or not selected_project.get("id"):
         return {}
-    id = selectedProject.get('id')  # 项目id
+    id = selected_project.get('id')  # 项目id
     headers = {
         "apikey": "UvO5c6tLGHZ3a5ipkPZsXDbOUYRiKUgQ",
         "language": "en",
@@ -188,21 +195,38 @@ async def research_task(state: AgentState) -> AgentState:
     if missField:
         return state.copy(update={"result": data})
 
-    typeList = state.attached_data.get("typeList")
-    typeSelected = typeList[0]
+    type_list = state.attached_data.get("typeList", [])
+    type_selected = type_list[0] if type_list else {}
 
 
-    handled_result = handle_type_based_data(typeSelected, state.attached_data)
-    data["overview"] = handled_result.get("overview")
-    data["details"] = handled_result.get("details")
-    data["state"] = handled_result.get("state")
+    handled_result = handle_type_based_data(type_selected, state.attached_data)
+    data.update({
+        "overview": handled_result.get("overview"),
+        "details": handled_result.get("details"),
+        "state": handled_result.get("state"),
+    })
     return state.copy(update={"result": data})
 
 
 
 if __name__ == '__main__':
-    data = {'intent': 'deep_research', 'form': {'query': 'Official Trump', 'selectedProject': {'introduce': 'Official Trump is a meme coin issued on the Solana blockchain, introduced by the elected U.S. president Donald Trump through a social media post.', 'name': 'Official Trump', 'logo': 'https://public.rootdata.com/images/b13/1737172225426.jpg', 'active': True, 'rootdataurl': 'https://www.rootdata.com/Projects/detail/Official Trump?k=MTU5Mjc=', 'id': 15927, 'type': 1}}}
-    res = getDetailRowdata(data)
-    #print(res)
-    rest = OverView(res)
-    print(rest)
+    test_data = {
+        'intent': 'deep_research',
+        'form': {
+            'query': 'Official Trump',
+            'selectedProject': {
+                'introduce': 'Official Trump is a meme coin issued on the Solana blockchain.',
+                'name': 'Official Trump',
+                'logo': 'https://public.rootdata.com/images/b13/1737172225426.jpg',
+                'active': True,
+                'rootdataurl': 'https://www.rootdata.com/Projects/detail/Official Trump?k=MTU5Mjc=',
+                'id': 15927,
+                'type': 1
+            }
+        },
+        'typeList': [{'id': 15927, 'type': 1}]
+    }
+    result = getDetailRowdata(test_data)
+    print("详细数据：", result)
+    overview_result = OverView(result)
+    print("大模型概述：", overview_result)
