@@ -95,4 +95,157 @@ json
     "missFields": [],
   }}
 }}
+
+✅ 案例 1：缺少字段（SEND_TASK_NEED_MORE_INFO）
+用户输入：
+我想转 0.5 ETH 给 0xabc
+对应json输出:
+{{  
+  "data": {{
+    "description": "好的～我已经记录了这笔转账，请问您是想从哪个地址转出呢？还需要知道您用的是哪条链哦 😊",
+    "state": "SEND_TASK_NEED_MORE_INFO",
+    "timestamp": "2025-04-14T12:00:00Z",
+    "forms": [
+      {{
+        "toAddress": "0xabc",
+        "amount": 0.5
+      }}
+    ],
+    "missFields": [
+      {{
+        "name": "chainId",
+        "description": "链 ID（您使用的链，例如 Ethereum 的 ID 是 1）",
+        "index": 0
+      }},
+      {{
+        "name": "fromAddress",
+        "description": "转出地址",
+        "index": 0
+      }},
+      {{
+        "name": "slippage",
+        "description": "滑点容忍值",
+        "index": 0
+      }}
+    ],
+    "transactionResult": {{}}
+  }}
+}}
+
+####
+✅ 案例 2：信息齐全（SEND_TASK_READY_TO_SIGN）
+用户输入：
+给 0xabc 转 0.5ETH，用 1 链，从 0xaaa 出，滑点设为 0.01
+对应的json
+{{  
+  "data": {{
+    "description": "所有信息都齐啦！准备签名，请确认信息无误 😎",
+    "state": "SEND_TASK_READY_TO_SIGN",
+    "timestamp": "2025-04-14T12:00:00Z",
+    "forms": [
+      {{
+        "chainId": 1,
+        "fromAddress": "0xaaa",
+        "toAddress": "0xabc",
+        "amount": 0.5,
+        "slippage": 0.01
+      }}
+    ],
+    "missFields": [],
+    "transactionResult": {{}}
+  }}
+}}
+####✅ 案例 3：已签名（SEND_TASK_BROADCASTED）
+用户输入：
+我已经签名好了，提交吧
+{{  
+  "data": {{
+    "description": "签名已收到，正在为您广播交易 🚀",
+    "state": "SEND_TASK_BROADCASTED",
+    "timestamp": "2025-04-14T12:00:00Z",
+    "forms": [
+      {{
+        "chainId": 1,
+        "fromAddress": "0xaaa",
+        "toAddress": "0xabc",
+        "amount": 0.5,
+        "slippage": 0.01,
+        "signedTx": "0xabc123signedtx"
+      }}
+    ],
+    "missFields": [],
+    "transactionResult": {{
+      "txHash": "0xabc123signedtx"
+    }}
+  }}
+}}
+###✅ 案例 4：用户取消（SEND_TASK_CANCELLED）
+用户输入：
+不用了，我不转了，取消吧
+对应输出json:
+{{  
+  "data": {{
+    "description": "没问题，转账已取消。如果之后还需要，随时叫我～ 💡",
+    "state": "SEND_TASK_CANCELLED",
+    "timestamp": "2025-04-14T12:00:00Z",
+    "forms": [],
+    "missFields": [],
+    "transactionResult": {{}}
+  }}
+}}
+####✅ 案例 5：部分表单缺字段（多笔转账，有的完整有的不完整）
+用户输入：
+转三笔：给 0xabc 转 1 ETH；0xdef 转 2 ETH（链是 1，从 0xaaa 出）；0xghi 转 0.1 ETH（链是 1，从 0xaaa 出，滑点 0.01）
+对应json输出:
+{{  
+  "data": {{
+    "description": "收到了您的三笔转账信息，其中两笔还缺少部分内容，麻烦再补充一下哈～",
+    "state": "SEND_TASK_NEED_MORE_INFO",
+    "timestamp": "2025-04-14T12:00:00Z",
+    "forms": [
+      {{
+        "toAddress": "0xabc",
+        "amount": 1
+      }},
+      {{
+        "chainId": 1,
+        "fromAddress": "0xaaa",
+        "toAddress": "0xdef",
+        "amount": 2
+      }},
+      {{
+        "chainId": 1,
+        "fromAddress": "0xaaa",
+        "toAddress": "0xghi",
+        "amount": 0.1,
+        "slippage": 0.01
+      }}
+    ],
+    "missFields": [
+      {{
+        "name": "chainId",
+        "description": "链 ID",
+        "index": 0
+      }},
+      {{
+        "name": "fromAddress",
+        "description": "转出地址",
+        "index": 0
+      }},
+      {{
+        "name": "slippage",
+        "description": "滑点容忍值",
+        "index": 0
+      }},
+      {{
+        "name": "slippage",
+        "description": "滑点容忍值",
+        "index": 1
+      }}
+    ],
+    "transactionResult": {{}}
+  }}
+}}
+####
+
 """
