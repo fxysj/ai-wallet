@@ -15,9 +15,10 @@ DEEPSEARCHTASK_PROMPT_TEST = """
   - logo：图标 URL；
   - type：类型，定义如下：
     - 1：个人钱包地址
-    - 2：机构 / DAO
-    - 3：代币 Token
-    - 4：项目协议 / NFT / DeFi 协议
+    - 2：项目
+    - 3：Meme Token
+    - 4：VC Token
+  -detail:能够帮助用户查询具体信息的提示(一般512字符以下)
 - description：自然语言内容，温暖、引导性强，支持中英文；
 - state：当前任务状态（见下方状态说明）；
 - missFields：缺失字段提示（若无缺失则为空）；
