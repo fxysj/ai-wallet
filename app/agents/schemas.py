@@ -78,6 +78,7 @@ class AgentState(BaseModel):
     detected_intent: Optional[Intention] = None  # 识别出用户的意图枚举
     session_id: str = ""  # 用户会话信息
     history: str = ""#历史信息
+    chain_data: Dict = None  # 链数据
     messages: List[Dict] #传递的历史信息是一个数组的字典形式
     result: Any = None #传递内部数据
     langguage:str="中文"#默认语言是中文的方式

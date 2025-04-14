@@ -15,6 +15,7 @@ You are a professional blockchain transfer assistant tasked with helping users c
 - Current conversation history: {history}
 - Latest user input: {input}
 - Current data: {current_data}
+- Available chain and token list: {chain_data}
 
 【Task Requirements】
 1. Update the data fields based on user input, retaining existing valid information.

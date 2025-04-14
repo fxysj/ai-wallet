@@ -1,17 +1,15 @@
 import time
+import json
+from typing import Optional, Dict, Any
 
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 
 from app.agents.schemas import AgentState
-import json
-from typing import Optional, Dict, Any
-
 from app.agents.lib.llm.llm import LLMFactory
 from app.agents.form.form import *
 from app.agents.proptemts.send_task_propmt_en import PROMPT_TEMPLATE
 from app.agents.tools import *
-
 from app.utuls.FieldCheckerUtil import FieldChecker
 
 
@@ -34,7 +32,7 @@ async def send_task(state: AgentState) -> AgentState:
 
     prompt = PromptTemplate(
         template=PROMPT_TEMPLATE,
-        input_variables=["current_data", "history", "input","langguage"],
+        input_variables=["current_data", "history", "input", "langguage", "chain_data"],
     )
     print("=========PROMPT_TEMPLATE==================")
     print(PROMPT_TEMPLATE)
@@ -45,8 +43,10 @@ async def send_task(state: AgentState) -> AgentState:
         "current_data": str(state.attached_data),
         "history": state.history,
         "input": state.user_input,
-        "langguage":state.langguage
+        "langguage": state.langguage,
+        "chain_data": state.chain_data
     })
+    
     print(chain_response)
     response_data = chain_response
     data = response_data.get("data")
@@ -62,6 +62,5 @@ async def send_task(state: AgentState) -> AgentState:
         #如果不存在则需要进行更新
         if not transactionResult.get("txHash"):
             data["state"] = TaskState.SEND_TASK_READY_TO_BROADCAST
-
 
     return state.copy(update={"result": data})

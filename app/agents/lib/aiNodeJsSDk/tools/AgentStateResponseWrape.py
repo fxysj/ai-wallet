@@ -118,6 +118,8 @@ def stream_text_agent_state_transfor(content: str, data: dict):
     if isinstance(annotations, list):
         formatted_annotations = json.dumps(annotations, ensure_ascii=False)
         yield f'8:{formatted_annotations}\n'  # 输出 annotations 部分
+    
+    yield f'd:{{"finishReason":"stop", "usage":{{"promptTokens":100, "completionTokens":100}}}}\n'
 
 if __name__ == '__main__':
     # 示例数据：content 是一个字符串，data 是一个字典或数组
