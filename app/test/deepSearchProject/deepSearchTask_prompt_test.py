@@ -53,7 +53,7 @@ curl -X POST \
 - logo → logo
 - id → 可用作 slug 或唯一标识
 
-🌍【当前语言】：{language}  
+🌍【当前语言】：{langguage}
 🗣【当前输入】：{input}  
 📜【对话历史】：{history}  
 📦【已有数据】：{current_data}
