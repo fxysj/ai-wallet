@@ -35,7 +35,7 @@ def run_deep_search_test(input_text, current_data=None, history=None, langguage=
 
 
 def test_case_1_basic_search():
-    run_deep_search_test("act")
+    run_deep_search_test("BNB Chain")
 
 
 def test_case_2_modify_input():
