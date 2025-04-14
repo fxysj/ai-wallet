@@ -62,7 +62,7 @@ curl -X POST \
 ```json
 {{
   "data": {{
-    "description": "请确认以下项目是否为你要查找的目标，如需更准确匹配，请补充关键词（使用 {language}）",
+    "description": "请确认以下项目是否为你要查找的目标，如需更准确匹配，请补充关键词（使用 {langguage}）",
     "timestamp": {{timestamp}},
     "state": "RESEARCH_TASK_DISPLAY_PROMPTED_PROJECT",
     "form": {{
