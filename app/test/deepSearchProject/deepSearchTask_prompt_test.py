@@ -19,31 +19,31 @@ DEEPSEARCHTASK_PROMPT_TEST = """
 
 【结构化 JSON 输出格式】
 ```json
-{
-  "data": {
+{{
+  "data": {{
     "description": "使用 {langguage} 语言生成，引导用户补充关键词或确认搜索结果",
     "timestamp": {{timestamp}},
     "state": "RESEARCH_TASK_DISPLAY_PROMPTED_PROJECT | RESEARCH_TASK_NEED_MORE_INFO | RESEARCH_TASK_DISPLAY_RESEARCH",
-    "form": {
+    "form": {{
       "query": "用户提供的关键词，标准化格式"
-    },
+    }},
     "typeList": [
-      {
+      {{
         "id": "type4_aave-v3",      // 格式: type{{type}}_{{slug}}
         "title": "项目或代币名",
         "logo": "图标 URL",
         "type": 4,
         "detail": "可帮助用户判断的简要介绍（512 字以内）"
-      }
+      }}
     ],
     "missFields": [
-      {
+      {{
         "name": "query",
         "description": "请输入你想查找的项目名称、代币或地址（使用 {langguage} 语言）"
-      }
+      }}
     ]
-  }
-}
+  }}
+}}
 ```
 
 【注意事项】
