@@ -132,7 +132,7 @@ def wrapListInfo(typelist):
                 continue
 
             # 调用 searchRowData，并取第一条结果
-            search_result = searchRowData(title)
+            search_result = searchRowData(title).get("data")
             if isinstance(search_result, list) and len(search_result) > 0:
                 first_data = search_result[0]
 
