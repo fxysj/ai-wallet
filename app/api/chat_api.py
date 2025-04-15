@@ -207,12 +207,7 @@ async def analyze_request(request: Request):
 
         result = await app.ainvoke(initial_state)
         print("DEBUG - result 类型:", type(result))
-
-        print(user_input_object)
-        # 更新对话历史
-        print("=====用户提交的数据==========")
-        print(user_input_object.data)
-
+        print("result:",result)
         # 确保 session 已初始化，防止为 None 的错误
         if session is None:
             session = {}
@@ -231,8 +226,6 @@ async def analyze_request(request: Request):
         #dict_manager.update(session_id,session)
         #下面最好使用异步的方式进行构建
         redis_dict_manager.update(session_id,session)
-
-        print(result)
 
         state = FieldChecker.get_field_info(
             data=result.get("result", {}),  # 如果 result["result"] 不存在，返回空字典 {}
