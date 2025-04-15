@@ -365,27 +365,27 @@ async def research_task(state: AgentState) -> AgentState:
 
 
 
-if __name__ == '__main__':
-    test_data = {
-        'intent': 'deep_research',
-        'form': {
-            'query': 'Official Trump',
-            'selectedProject': {
-                'introduce': 'Official Trump is a meme coin issued on the Solana blockchain.',
-                'name': 'Official Trump',
-                'logo': 'https://public.rootdata.com/images/b13/1737172225426.jpg',
-                'active': True,
-                'rootdataurl': 'https://www.rootdata.com/Projects/detail/Official Trump?k=MTU5Mjc=',
-                'id': 15927,
-                'type': 1
-            }
-        },
-        'typeList': [{'id': 15927, 'type': 1}]
-    }
-    result = getDetailRowdata(test_data)
-    print("详细数据：", result)
-    overview_result = OverView(result)
-    print("大模型概述：", overview_result)
+# if __name__ == '__main__':
+#     test_data = {
+#         'intent': 'deep_research',
+#         'form': {
+#             'query': 'Official Trump',
+#             'selectedProject': {
+#                 'introduce': 'Official Trump is a meme coin issued on the Solana blockchain.',
+#                 'name': 'Official Trump',
+#                 'logo': 'https://public.rootdata.com/images/b13/1737172225426.jpg',
+#                 'active': True,
+#                 'rootdataurl': 'https://www.rootdata.com/Projects/detail/Official Trump?k=MTU5Mjc=',
+#                 'id': 15927,
+#                 'type': 1
+#             }
+#         },
+#         'typeList': [{'id': 15927, 'type': 1}]
+#     }
+#     result = getDetailRowdata(test_data)
+#     print("详细数据：", result)
+#     overview_result = OverView(result)
+#     print("大模型概述：", overview_result)
 
 if __name__ == '__main__':
     # result = SymbolAPISearch("SHIB")
