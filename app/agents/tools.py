@@ -434,9 +434,34 @@ def send_post_request(url, payload, headers):
         return {"error": "Request failed", "status_code": response.status_code, "response": response.text}
 
 
+
+def send_get_request(url, headers=None, timeout=10):
+    """
+    发送 GET 请求并打印 URL 和 headers，返回 JSON 响应
+
+    :param url: str 请求地址
+    :param headers: dict 可选的请求头
+    :param timeout: int 请求超时时间（秒）
+    :return: dict 响应的 JSON 数据或错误信息
+    """
+    print(f"[GET] URL: {url}")
+    print(f"[GET] Headers: {headers}")
+
+    try:
+        response = requests.get(url, headers=headers, timeout=timeout)
+        response.raise_for_status()  # 抛出 HTTP 错误（如 4xx, 5xx）
+
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        return {"error": str(e)}
+    except ValueError:
+        return {"error": "响应不是有效的 JSON"}
+
+
 if __name__ == '__main__':
     # Example usage:
-    print(generate_random_address())
+    url = "https://api.gopluslabs.io/api/v1/token_security/56?contract_addresses=0xba2ae424d960c26247dd6c32edc70b295c744c43"
+    send_get_request(url)
     # jwt_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDQzNjczMzAsImlhdCI6MTc0MTc3NTMzMCwiRXZtQWRkcmVzcyI6IjB4ZUI3YWI2ZmI4NjJiMzQ5YzhmMDM5MTI0YTBmM0U1RWU5MzMzMGZjOCIsIlNvbGFuYUFkZHJlc3MiOiI2Z21YWGVvb2VETEN0UXEyMzRlTVB5RzY4V2dtSE11ODY0Nzl5S2Rlb1UxUiIsIlRyb25BZGRyZXNzIjoiVENjWEw1Qnh6V1VNdndKcnljcUVqNFVvNE13dU1qeDlzcyIsImlkIjoxMH0.MDhDh1ezDe5IEwdduDABLzRtBzxrxcY8GP__ihKpxR0"
     # result_dict = {
     #     "data": {

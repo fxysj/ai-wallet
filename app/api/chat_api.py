@@ -268,7 +268,7 @@ async def analyze_request(request: Request):
                                 data=response_data.to_dict()
                                 )
 
-        response =  StreamingResponse(res)
+        response =  StreamingResponse(res,media_type="text/event-stream")
         response.headers["x-vercel-ai-data-stream"] = "v1"
         #return response_data
         return response
@@ -309,7 +309,7 @@ async def analyze_request(request: Request):
             prompt_next_action=prom_action,
         )
         res = stream_text_agent_state_transfor("请稍后重试",response_data.to_dict())
-        response = StreamingResponse(res)
+        response = StreamingResponse(res,media_type="text/event-stream")
         response.headers["x-vercel-ai-data-stream"] = "v1"
         return  response
         #return response_data
@@ -331,6 +331,6 @@ async def analyze_request(request: Request):
             prompt_next_action=prom_action,
         )
         res = stream_text_agent_state_transfor("Please try again!", response_data.to_dict())
-        response = StreamingResponse(res)
+        response = StreamingResponse(res,media_type="text/event-stream")
         response.headers["x-vercel-ai-data-stream"] = "v1"
         return response
