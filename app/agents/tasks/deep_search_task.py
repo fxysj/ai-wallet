@@ -332,6 +332,7 @@ async def research_task(state: AgentState) -> AgentState:
         selectedType = state.attached_data.get("selectedType", {})
         handled_result = handle_type_based_data(selectedType, state.attached_data)
         data.update({
+            "description":"I have confirmed the information to be queried. Kindly assist in retrieving the relevant data",
             "overview": handled_result.get("overview", {}),
             "details": handled_result.get("details", {}),
             "state": handled_result.get("state", ""),
