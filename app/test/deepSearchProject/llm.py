@@ -25,7 +25,7 @@ def run_deep_search_test(input_text, current_data=None, history=None, langguage=
         "current_data": current_data,
         "history": history,
         "input": input_text,
-        "langguage": langguage
+        "language": langguage
     })
 
     print("=============== RESULT ===================")

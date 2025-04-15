@@ -1,0 +1,1 @@
+curl -X POST -H "apikey: UvO5c6tLGHZ3a5ipkPZsXDbOUYRiKUgQ" -H "language: en" -H "Content-Type: application/json" -d '{"query": "ETH" }' https://api.rootdata.com/open/ser_inv
