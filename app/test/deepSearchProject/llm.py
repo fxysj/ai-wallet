@@ -135,7 +135,7 @@ def test_case_1_basic_search():
 
 
 def test_case_2_modify_input():
-    run_deep_search_test("我要查的是 SHIB")
+    run_deep_search_test("我要查的是 BIT")
 
 
 def test_case_3_missing_fields():
