@@ -5,8 +5,8 @@ DEEPSEARCHTASK_PROMPT_TEST = """
 你的目标是根据用户输入的内容，自动完成如下任务：
 1. 调用 search 工具查询区块链相关信息（项目、地址、代币、机构等）；
 2. 结构化整理搜索结果，填充到标准表单 typeList 中；
-3. 对于类型为 2 或 3 的项目，需使用 RootData API 补充权威信息；
-4. 对于类型为 4（VC Token）的项目，根据关键词匹配 chain_id 表并补充对应 contract_addresses；
+3. 对于类型为 2 或 4 的项目，需使用 RootData API 补充权威信息；
+4. 对于类型为 3（Meme Token）的项目，根据关键词匹配 chain_id 表并补充对应 contract_addresses 并且需要根据用户提供的输入分析出 symbol:代币的名称；
 5. 根据搜索结果生成自然语言引导性回复（description），鼓励用户补充关键词或确认信息；
 6. 输出统一 JSON 结构供系统后续处理，需符合严格格式。
 
@@ -30,6 +30,7 @@ DEEPSEARCHTASK_PROMPT_TEST = """
   - detail：简要描述，约 512 字符以内，语言为 {langguage}，风格自然易懂，具引导性。
   - chain_id: The chain_id of the blockchain
   - contract_addresses:The contract address of tokens.
+  - symbol: The name of the token
 
 - description：基于搜索结果生成自然语言回复，引导用户确认/补充信息，语言为 {langguage}；
 - state：任务当前状态：
@@ -72,7 +73,7 @@ tron	Tron
 1514	Story
 
 🔁【外部接口补全规则】
-当搜索结果中包含 type = 2（区块链项目）或 type = 3（Meme Token）时，需调用如下接口获取更权威信息进行补充：
+当搜索结果中包含 type = 2（区块链项目）或 type = 4（VC Token）时，需调用如下接口获取更权威信息进行补充：
 ```
 curl -X POST \
   -H "apikey: UvO5c6tLGHZ3a5ipkPZsXDbOUYRiKUgQ" \
@@ -88,10 +89,11 @@ title:{{RootData 返回的 name}}
 logo:{{RootData 返回的 logo}}
 detail:{{RootData 返回的 introduce}}
 
-🧩【VC Token 特别补全规则（type = 4）】
-当搜索结果中包含类型为 4 的 VC Token 时，需进行以下补全：
+🧩【Meme Token 特别补全规则（type = 3）】
+当搜索结果中包含类型为 3 的 Meme Token 时，需进行以下补全：
 1. 根据用户输入关键词，从 chain_id 对应表中匹配所属链，并填充字段 `chain_id`；
-2. 查询该 VC Token 的主合约地址，填入 `contract_addresses`；
+2. 查询该 Meme Token 的主合约地址，填入 `contract_addresses`；
+3. 查询出对应代币的名称, 填入 `symbol`;
 3. 不调用 RootData；
 4. 输出格式需与其他类型一致。
 
