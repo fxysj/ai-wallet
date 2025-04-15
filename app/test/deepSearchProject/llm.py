@@ -1,5 +1,6 @@
 import unittest
 from app.agents.lib.llm.llm import LLMFactory
+from app.agents.tools import send_post_request
 from app.test.deepSearchProject.deepSearchTask_prompt_test import DEEPSEARCHTASK_PROMPT_TEST
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
@@ -31,7 +32,102 @@ def run_deep_search_test(input_text, current_data=None, history=None, langguage=
     print("=============== RESULT ===================")
     print(result)
     print("==========================================")
+    data = result.get("data")
+    data["typeList"] = wrapListInfo(data.get("typeList"))
+    result["data"] = data
+
+    print("============ RESULTWrap ====================")
+    print(result)
     return result
+
+# {
+# 	'data': {
+# 		'description': '请确认以下项目是否为您要查找的目标，如需更准确匹配，请补充关键词。',
+# 		'timestamp': 1713140339.0,
+# 		'state': 'RESEARCH_TASK_DISPLAY_PROMPTED_PROJECT',
+# 		'form': {
+# 			'query': 'BSC'
+# 		},
+# 		'typeList': [{
+# 			'id': 'type2_bnb-smart-chain',
+# 			'title': 'BNB 智能链（原称 BSC）',
+# 			'logo': 'https://api.rootdata.com/uploads/public/b15/1666341829033.jpg',
+# 			'type': 2,
+# 			'detail': 'BNB 智能链（BNB Smart Chain，原称 BSC）是由币安于 2020 年推出的区块链网络，旨在提供高性能的去中心化应用程序（DApp）平台。该链支持智能合约功能，并与以太坊虚拟机（EVM）兼容，方便开发者将项目从以太坊迁移至 BNB 智能链。BNB 智能链采用权威权益证明（PoSA）共识机制，出块时间约为 3 秒，验证者通过质押 BNB 参与网络共识并获得交易手续费作为奖励。 ([academy.binance.com](https://academy.binance.com/zh-CN/articles/an-introduction-to-bnb-smart-chain-bsc?utm_source=openai))',
+# 			'chain_id': 56,
+# 			'contract_addresses': []
+# 		}],
+# 		'missFields': []
+# 	}
+# }
+
+
+# 'typeList': [{
+#     'id': 'type2_bnb-smart-chain',
+#     'title': 'BNB 智能链（原称 BSC）',
+#     'logo': 'https://api.rootdata.com/uploads/public/b15/1666341829033.jpg',
+#     'type': 2,
+#     'detail': 'BNB 智能链（BNB Smart Chain，原称 BSC）是由币安于 2020 年推出的区块链网络，旨在提供高性能的去中心化应用程序（DApp）平台。该链支持智能合约功能，并与以太坊虚拟机（EVM）兼容，方便开发者将项目从以太坊迁移至 BNB 智能链。BNB 智能链采用权威权益证明（PoSA）共识机制，出块时间约为 3 秒，验证者通过质押 BNB 参与网络共识并获得交易手续费作为奖励。 ([academy.binance.com](https://academy.binance.com/zh-CN/articles/an-introduction-to-bnb-smart-chain-bsc?utm_source=openai))',
+#     'chain_id': 56,
+#     'contract_addresses': []
+# }],
+
+def searchRowData(query):
+    # 从attached_data中获取selectedProject
+    #selected_project = attached_data.get('form', {}).get('selectedProject')
+    # 设置API的url和headers
+    url = ""
+    headers = {
+        "apikey": "UvO5c6tLGHZ3a5ipkPZsXDbOUYRiKUgQ",
+        "language": "en",
+        "Content-Type": "application/json"
+    }
+    # 没有selectedProject，调用ser_inv API
+    url = "https://api.rootdata.com/open/ser_inv"
+    payload = {
+            "query": query
+        }
+    # 使用工具函数发起请求
+    return send_post_request(url, payload, headers)
+
+#需要根据返回的typelist进行优化处理
+def wrapListInfo(typelist):
+    new_list = []
+
+    for item in typelist:
+        item_type = item.get("type")
+        if item_type in [2, 4]:
+            title = item.get("title")
+            if not title:
+                new_list.append(item)
+                continue
+
+            # 调用 searchRowData，并取第一条结果
+            search_result = searchRowData(title)
+            if isinstance(search_result, list) and len(search_result) > 0:
+                first_data = search_result[0]
+
+                # 创建新项，保留原有字段，只替换指定字段
+                updated_item = item.copy()
+                updated_item.update({
+                    "id": first_data.get("id"),
+                    "title": first_data.get("name"),
+                    "logo": first_data.get("logo"),
+                    "detail": first_data.get("introduce")  # 用 introduce 替换 detail
+                })
+
+                new_list.append(updated_item)
+            else:
+                # 如果返回不合法，就保留原始
+                new_list.append(item)
+        else:
+            new_list.append(item)
+
+    return new_list
+
+
+
+
 
 
 def test_case_1_basic_search():
