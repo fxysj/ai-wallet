@@ -19,7 +19,7 @@ def wrap_del_with_detail(detail_data):
     return detail_data
 
 #账号深度分析
-def account_deep_asynic(attached_data,type_value):
+def account_deep_asynic(selectedType,type_value):
     return {
         "overview": {},
         "details": {},
@@ -70,14 +70,34 @@ def SymbolAPISearch(symbol):
     return send_get_request(url, headers=headers)
 
 
-
-
-#其他类型API工具分析
-def api_extra_asnyc(attached_data,type_value):
+#需要进行根据 goPlusResult  symbolResult 按照目的对象VO进行整合
+#VOOverView
+def uniongoPlusResultAndsymbolResultOverView(goPlusResult, symbolResult):
     pass
 
+#需要进行根据 goPlusResult  symbolResult 按照目的对象VO进行整合
+#VODetails
+def uniongoPlusResultAndsymbolResultDetails(goPlusResult, symbolResult):
+    pass
+
+#其他类型API工具分析
+def api_extra_asnyc(selectedType,type_value):
+    chain_id = selectedType.get("chain_id")
+    contract_addresses = selectedType.get("contract_addresses")
+    symbol= selectedType.get("symbol")
+    #goPlusResult
+    goPlusResult = GoPlusAPISearch(chain_id, contract_addresses)
+    #symbolResult
+    symbolResult = SymbolAPISearch(symbol)
+    response = {}
+    response["overview"] = uniongoPlusResultAndsymbolResultOverView(goPlusResult,symbolResult)
+    response["details"] =uniongoPlusResultAndsymbolResultDetails(goPlusResult,symbolResult)
+    response["type"] = type_value
+    response["state"] =  TaskState.RESEARCH_TASK_DISPLAY_RESEARCH,
+    return response
+
 #默认返回处理函数
-def default_deal_with(attached_data,type_value):
+def default_deal_with(selectedType,type_value):
     return {
         "overview": {},
         "details": {},
@@ -107,7 +127,7 @@ def handle_type_based_data(type_item, attached_data):
 
     if type_value in [2, 4]:
         # 走 getDetailRowdata 查询
-        detail_data = getDetailRowdata(attached_data)
+        detail_data = getDetailRowdata(type_item)
         if detail_data:
             return {
                 "overview": wrap_del_with_detail(detail_data),
@@ -119,13 +139,13 @@ def handle_type_based_data(type_item, attached_data):
     elif type_value == 3:
         # 调用其他API处理（示例逻辑）
         # 你可以定义自己的函数 fetch_type4_data()
-        return api_extra_asnyc(attached_data,type_value)
+        return api_extra_asnyc(type_item,type_value)
     elif type_value == 1:
-        return account_deep_asynic(attached_data,type_value)
+        return account_deep_asynic(type_item,type_value)
 
     else:
         # 默认：不支持的类型，清空数据结构
-        return default_deal_with(attached_data,type_value)
+        return default_deal_with(type_item,type_value)
 
 
 # 封装后的searchResult函数
@@ -148,15 +168,10 @@ def searchResult(attached_data):
     # 使用工具函数发起请求
     return send_post_request(url, payload, headers)
 
-def getDetailRowdata(attached_data):
-    data = attached_data.get('selectedType',{})
-    if not data:
+def getDetailRowdata(selectedType):
+    if not selectedType or not selectedType.get("id"):
         return {}
-
-    selected_project = data
-    if not selected_project or not selected_project.get("id"):
-        return {}
-    id = selected_project.get('id')  # 项目id
+    id = selectedType.get('id')  # 项目id
     headers = {
         "apikey": "UvO5c6tLGHZ3a5ipkPZsXDbOUYRiKUgQ",
         "language": "en",
