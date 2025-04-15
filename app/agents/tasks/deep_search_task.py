@@ -6,11 +6,12 @@ from langchain_core.prompts import PromptTemplate
 
 from app.agents.form.form import TaskState
 from app.agents.lib.llm.llm import LLMFactory
-from app.agents.proptemts.deepSearchTask_prompt_en import DEEPSEARCHTASK_PROMPT
 from app.agents.proptemts.overview_asnsy_propmt import OVERVIEW_ASNYC_PROPMT
 from app.agents.schemas import AgentState
 from app.agents.tools import send_post_request, send_get_request
 from app.agents.lib.redisManger.redisManager import redis_dict_manager
+from app.test.deepSearchProject.deepSearchTask_prompt_test import DEEPSEARCHTASK_PROMPT_TEST
+
 
 #获取rawData数据s
 #根据详情信息返回OverView数据
@@ -104,7 +105,7 @@ def handle_type_based_data(type_item, attached_data):
     #如果不为空则进行根据type整合数据
     type_value = type_item.get("type")
 
-    if type_value in [2, 3]:
+    if type_value in [2, 4]:
         # 走 getDetailRowdata 查询
         detail_data = getDetailRowdata(attached_data)
         if detail_data:
@@ -115,7 +116,7 @@ def handle_type_based_data(type_item, attached_data):
                 "type":type_value
             }
 
-    elif type_value == 4:
+    elif type_value == 3:
         # 调用其他API处理（示例逻辑）
         # 你可以定义自己的函数 fetch_type4_data()
         return api_extra_asnyc(attached_data,type_value)
@@ -267,7 +268,7 @@ def wrapListInfo(typelist):
                 continue
 
             # 调用 searchRowData，并取第一条结果
-            search_result = searchRowData(title)
+            search_result = searchRowData(title).get("data")
             if isinstance(search_result, list) and len(search_result) > 0:
                 first_data = search_result[0]
 
@@ -293,72 +294,70 @@ async def research_task(state: AgentState) -> AgentState:
     print("research_task")
     print("DEBUG - attached_data 类型:", type(state.attached_data))
     print("DEBUG - attached_data 内容:", state.attached_data)
+
+    def call_llm_chain(state: AgentState):
+        prompt = PromptTemplate(
+            template=DEEPSEARCHTASK_PROMPT_TEST,
+            input_variables=["current_data", "history", "input", "langguage"],
+        )
+        llm = LLMFactory.getDefaultDeepSearchOPENAI()
+        chain = prompt | llm | JsonOutputParser()
+        return chain.invoke({
+            "current_data": str(state.attached_data),
+            "history": state.history,
+            "input": state.user_input,
+            "language": state.langguage
+        })
+
+    def update_result_with_handling(data: dict, state: AgentState) -> AgentState:
+        data["intent"] = state.detected_intent.value
+        timestamp_time = time.time()
+        print("使用 time 模块获取的 UTC 时间戳:", timestamp_time)
+        data["timestamp"] = state.attached_data.get("timestamp", timestamp_time)
+        selectedType = state.attached_data.get("selectedType", {})
+        handled_result = handle_type_based_data(selectedType, state.attached_data)
+        data.update({
+            "overview": handled_result.get("overview", {}),
+            "details": handled_result.get("details", {}),
+            "state": handled_result.get("state", ""),
+        })
+        return state.copy(update={"result": data})
+
+    # 情况一：attached_data 存在
     if state.attached_data:
-        if not state.attached_data.get("selectedType"):
-            prompt = PromptTemplate(
-                template=DEEPSEARCHTASK_PROMPT,
-                input_variables=["current_data", "history", "input", "langguage"],
-            )
-            llm = LLMFactory.getDefaultOPENAI()
-            chain = prompt | llm | JsonOutputParser()
-            # 调用链处理用户最新输入
-            chain_response = chain.invoke({
-                "current_data": str(state.attached_data),
-                "history": state.history,
-                "input": state.user_input,
-                "langguage": state.langguage
-            })
-            response_data = chain_response
-            print("deep_sarch_data")
-            data = response_data.get("data")
-            data["intent"] = state.detected_intent.value
-            # 使用 time 模块获取当前时间戳
-            timestamp_time = time.time()
-            print("使用 time 模块获取的 UTC 时间戳:", timestamp_time)
-            data["timestamp"] = state.attached_data.get("timestamp", timestamp_time)
-            # 获取对应的
-            missField = data["missFields"]
-            if missField:
+        selected_type = state.attached_data.get("selectedType")
+        data = state.attached_data.get("data") if selected_type else None
+
+        if not selected_type:
+            print("未选择 selectedType，调用 LLM...")
+            response_data = call_llm_chain(state)
+            print("deep_search_data")
+            data = response_data.get("data", {})
+            if data.get("missFields"):
+                data["intent"] = state.detected_intent.value
+                timestamp_time = time.time()
+                data["timestamp"] = state.attached_data.get("timestamp", timestamp_time)
                 return state.copy(update={"result": data})
 
-            # 这里需要对请求LLM返回的数据进行拦截处理
+            # 对 LLM 返回的数据进行处理
             data["typeList"] = wrapListInfo(data.get("typeList"))
-            # 根据前段传递的选择的类型
-            selectedType = state.attached_data.get("selectedType", {})
-            # 数据如下:
-            # {
-            #     'id': 'type2_bnb-smart-chain',
-            #     'title': 'BNB 智能链（原称 BSC）',
-            #     'logo': 'https://api.rootdata.com/uploads/public/b15/1666341829033.jpg',
-            #     'type': 2,
-            #     'detail': 'BNB 智能链（BNB Smart Chain，原称 BSC）是由币安于 2020 年推出的区块链网络，旨在提供高性能的去中心化应用程序（DApp）平台。该链支持智能合约功能，并与以太坊虚拟机（EVM）兼容，方便开发者将项目从以太坊迁移至 BNB 智能链。BNB 智能链采用权威权益证明（PoSA）共识机制，出块时间约为 3 秒，验证者通过质押 BNB 参与网络共识并获得交易手续费作为奖励。 ([academy.binance.com](https://academy.binance.com/zh-CN/articles/an-introduction-to-bnb-smart-chain-bsc?utm_source=openai))',
-            #     'chain_id': 56,
-            #     'contract_addresses': []
-            # }
+        return update_result_with_handling(data, state)
 
-            handled_result = handle_type_based_data(selectedType, state.attached_data)
-            data.update({
-                "overview": handled_result.get("overview", {}),
-                "details": handled_result.get("details", {}),
-                "state": handled_result.get("state", ""),
-            })
-            return state.copy(update={"result": data})
+    # 情况二：attached_data 不存在，同样调用 LLM
+    print("attached_data 不存在，调用 LLM...")
+    response_data = call_llm_chain(state)
+    print("deep_search_data")
+    data = response_data.get("data", {})
+    if data.get("missFields"):
+        data["intent"] = state.detected_intent.value
+        timestamp_time = time.time()
+        data["timestamp"] = time.time()
+        return state.copy(update={"result": data})
 
-        else:
-            data = state.attached_data.get("data")
-            data["intent"] = state.detected_intent.value
-            # 使用 time 模块获取当前时间戳
-            timestamp_time = time.time()
-            print("使用 time 模块获取的 UTC 时间戳:", timestamp_time)
-            data["timestamp"] = state.attached_data.get("timestamp", timestamp_time)
-            selectedType = state.attached_data.get("selectedType", {})
-            handled_result = handle_type_based_data(selectedType, state.attached_data)
-            data.update({
-                "overview": handled_result.get("overview", {}),
-                "details": handled_result.get("details", {}),
-                "state": handled_result.get("state", ""),
-            })
-            return state.copy(update={"result": data})
+    data["typeList"] = wrapListInfo(data.get("typeList"))
+    return update_result_with_handling(data, state)
+
+
 
 
 
