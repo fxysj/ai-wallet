@@ -341,7 +341,7 @@ async def research_task(state: AgentState) -> AgentState:
     # 情况一：attached_data 存在
     if state.attached_data:
         selected_type = state.attached_data.get("selectedType")
-        data = state.attached_data.get("data") if selected_type else None
+        data = state.attached_data if selected_type else None
 
         if not selected_type:
             print("未选择 selectedType，调用 LLM...")
