@@ -90,6 +90,11 @@ tron	Tron
 📜【对话历史】：{history} 
 📦【已有数据】：{current_data}
 
+
+🚨【输出要求】
+请务必以 JSON 格式输出结果，不能输出 markdown、自然语言描述、代码块或其他格式。返回值应直接是符合 JSON 标准的数据对象，顶层字段为 "data"，不可缺失
+- 所有 typeList 项目中，字段 symbol、chain_id、contract_addresses 必须存在，即使为空，也需返回对应空值（如 "" 或 []），不可缺字段。
+
 🔄【示例输出格式】
 json
 {{
