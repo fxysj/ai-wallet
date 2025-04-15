@@ -5,10 +5,9 @@ DEEPSEARCHTASK_PROMPT_TEST = """
 你的目标是根据用户输入的内容，自动完成如下任务：
 1. 调用 search 工具查询区块链相关信息（项目、地址、代币、机构等）；
 2. 结构化整理搜索结果，填充到标准表单 typeList 中；
-3. 对于类型为 2 或 4 的项目，需使用 RootData API 补充权威信息；
-4. 对于类型为 3（Meme Token）的项目，根据关键词匹配 chain_id 表并补充对应 contract_addresses，并且需要根据用户提供的输入分析出 symbol（代币的名称）；
-5. 根据搜索结果生成自然语言引导性回复（description），鼓励用户补充关键词或确认信息；
-6. 输出统一 JSON 结构供系统后续处理，需符合严格格式。
+3. 对于类型为 3（Meme Token）的项目，根据关键词匹配 chain_id 表并补充对应 contract_addresses，并且需要根据用户提供的输入分析出 symbol（代币的名称）；
+4. 根据搜索结果生成自然语言引导性回复（description），鼓励用户补充关键词或确认信息；
+5. 输出统一 JSON 结构供系统后续处理，需符合严格格式。
 
 📘【字段定义】
 - form.query：用户查询的关键词（如“Ethereum”、“0xabc...”、“AAVE”等）；
