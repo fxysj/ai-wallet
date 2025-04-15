@@ -78,16 +78,6 @@ tron	Tron
 - 不允许将 chain_id 留空。
 
 🔁【外部接口补全规则】
-当搜索结果中包含 type = 2（区块链项目）或 type = 4（VC Token）时，需调用如下接口获取更权威信息进行补充：
-```
-curl -X POST -H "apikey: UvO5c6tLGHZ3a5ipkPZsXDbOUYRiKUgQ" -H "language: en" -H "Content-Type: application/json" -d '{{"query": "{input}" }}' https://api.rootdata.com/open/ser_inv
-```
-⚙️替换说明：
-若调用 RootData 补全成功，需将对应 typeList 中的字段替换为格式：
-- id: {{RootData 返回的 id}}（必须使用，不得替换为其他格式）；
-- title: {{RootData 返回的 name}}；
-- logo: {{RootData 返回的 logo}}；
-- detail: {{RootData 返回的 introduce}}。
 
 🧩【Meme Token 特别补全规则（type = 3）】
 当搜索结果中包含类型为 3 的 Meme Token 时，需进行以下补全：
