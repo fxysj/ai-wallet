@@ -14,6 +14,7 @@ from app.agents.tasks.deep_accunt_analysis import analysis_task
 from app.agents.tasks.analysis_task import parse_complex_intent
 from app.agents.proptemts.intent_prompt_chat_mutil import  INTENT_PROMPT_TEMPLATE_MUTil
 from app.agents.tasks.mutil_intent import mutil_intent_asnyc_task
+from app.agents.tasks.handle_unclear import unclear_task
 async def testDeepSearchTask():
     agent = AgentState(
         user_input="我的地址是0x1221",
@@ -165,6 +166,31 @@ async def testMutilTask():
 
 
 
+async def testUnclear():
+    agent = AgentState(
+        user_input="大傻逼",
+        session_id="0x1212",
+        detected_intent=Intention.unclear,  # 识别出用户的意图枚举
+        history="",
+        messages=[],  # 传递的历史信息是一个数组的字典形式
+        result={},  # 传递内部数据
+        langguage="en",
+        isAsync=False,  # 是否需要分析 默认不需要
+        attached_data={
+            "state": TaskState.SEND_TASK_READY_TO_SIGN,
+            "form": {
+                "account": [{
+                    "id": "0x112",
+                    "chainId": 52,
+                    "address": "0x1212",
+                }]
+            }
+        }
+    )
+    res = await unclear_task(agent)
+    print(res.result)
+
+
 
 async  def testMutil():
     # 设置 LangChain 模板
@@ -225,7 +251,8 @@ async def main():
     #await testIntentionTask()
     #
     #await testMutil()
-    await testMutilTask()
+    #await testMutilTask()
+    await testUnclear()
 
 
 import asyncio
