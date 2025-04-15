@@ -71,7 +71,8 @@ def run_deep_search_test(input_text, current_data=None, history=None, langguage=
 #     'chain_id': 56,
 #     'contract_addresses': []
 # }],
-
+#根据关键词查询rowdata中的项目和VC信息
+#返回类型项目和VC列表信息
 def searchRowData(query):
     # 从attached_data中获取selectedProject
     #selected_project = attached_data.get('form', {}).get('selectedProject')
@@ -89,6 +90,34 @@ def searchRowData(query):
         }
     # 使用工具函数发起请求
     return send_post_request(url, payload, headers)
+
+#根据项目的具体的id查询出对应的详情信息
+
+def getDetailRowdata(attached_data):
+    data = attached_data.get('selectedType',{})
+    if not data:
+        return {}
+
+    selected_project = data
+    if not selected_project or not selected_project.get("id"):
+        return {}
+    id = selected_project.get('id')  # 项目id
+    headers = {
+        "apikey": "UvO5c6tLGHZ3a5ipkPZsXDbOUYRiKUgQ",
+        "language": "en",
+        "Content-Type": "application/json"
+    }
+    # 没有selectedProject，调用ser_inv API
+    url = "https://api.rootdata.com/open/get_item"
+    payload = {
+        "project_id": id,
+        "include_team": True,
+        "include_investors": True,
+    }
+    # 使用工具函数发起请求
+    result = send_post_request(url, payload, headers)
+    return result
+
 
 #需要根据返回的typelist进行优化处理
 def wrapListInfo(typelist):

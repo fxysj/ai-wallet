@@ -9,31 +9,99 @@ from app.agents.lib.llm.llm import LLMFactory
 from app.agents.proptemts.deepSearchTask_prompt_en import DEEPSEARCHTASK_PROMPT
 from app.agents.proptemts.overview_asnsy_propmt import OVERVIEW_ASNYC_PROPMT
 from app.agents.schemas import AgentState
-from app.agents.tools import send_post_request
+from app.agents.tools import send_post_request, send_get_request
 from app.agents.lib.redisManger.redisManager import redis_dict_manager
 
 #获取rawData数据s
 #根据详情信息返回OverView数据
 def wrap_del_with_detail(detail_data):
-    return {}
+    return detail_data
 
 #账号深度分析
-def account_deep_asynic(attached_data):
-    pass
+def account_deep_asynic(attached_data,type_value):
+    return {
+        "overview": {},
+        "details": {},
+        "state": TaskState.RESEARCH_TASK_DISPLAY_RESEARCH,
+        "type": "",
+    }
+
+#根据chain_id contract_addresses
+#合约地址 请求:
+#https://api.gopluslabs.io/api/v1/token_security/56?contract_addresses=0xba2ae424d960c26247dd6c32edc70b295c744c43&
+
+def GoPlusAPISearch(chain_id, contract_addresses):
+    """
+    调用 GoPlusLabs Token Security API 查询合约地址的安全性信息
+
+    :param chain_id: int 链ID（如56为BSC）
+    :param contract_addresses: List[str] 合约地址列表
+    :return: dict 请求返回的数据
+    """
+    if not contract_addresses:
+        return {"error": "contract_addresses 不能为空"}
+
+    # 合并地址列表为逗号分隔字符串
+    contract_param = ",".join(contract_addresses)
+
+    # 构造 URL
+    url = f"https://api.gopluslabs.io/api/v1/token_security/{chain_id}?contract_addresses={contract_param}"
+
+    # 发起 GET 请求（使用你封装的工具函数）
+    return send_get_request(url)
+
+#https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?symbol=SHIB
+#根据代币的名称查询
+#需要头部参数:X-CMC_PRO_API_KEY:[{"key":"X-CMC_PRO_API_KEY","value":"d2cf066b-ca89-4266-a580-e6733c044aa1","description":"","type":"text","uuid":"11faf309-a41e-4dbb-ba86-5ddc3aee9024","enabled":true}]
+def SymbolAPISearch(symbol):
+    """
+    根据代币名称（symbol）查询 CoinMarketCap 最新报价
+
+    :param symbol: str 代币名称（如 SHIB, BTC, ETH）
+    :return: dict 返回报价信息或错误信息
+    """
+    url = f"https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?symbol={symbol}"
+
+    headers = {
+        "X-CMC_PRO_API_KEY": "d2cf066b-ca89-4266-a580-e6733c044aa1"
+    }
+
+    return send_get_request(url, headers=headers)
+
+
+
 
 #其他类型API工具分析
-def api_extra_asnyc(attached_data):
+def api_extra_asnyc(attached_data,type_value):
     pass
 
 #默认返回处理函数
-def default_deal_with(attached_data):
-    pass
+def default_deal_with(attached_data,type_value):
+    return {
+        "overview": {},
+        "details": {},
+        "state": TaskState.RESEARCH_TASK_DISPLAY_RESEARCH,
+        "type": "",
+    }
+
+
+def EmptyResult():
+    return  {
+        "overview": {},
+        "details": {},
+        "state": TaskState.RESEARCH_TASK_DISPLAY_RESEARCH,
+        "type":"",
+    }
 
 
 def handle_type_based_data(type_item, attached_data):
     """
     根据项目类型处理不同逻辑
     """
+    #如果为空则默认返回空的结构
+    if not  type_item:
+        return EmptyResult()
+    #如果不为空则进行根据type整合数据
     type_value = type_item.get("type")
 
     if type_value in [2, 3]:
@@ -43,19 +111,20 @@ def handle_type_based_data(type_item, attached_data):
             return {
                 "overview": wrap_del_with_detail(detail_data),
                 "details": detail_data,
-                "state": TaskState.RESEARCH_TASK_DISPLAY_RESEARCH
+                "state": TaskState.RESEARCH_TASK_DISPLAY_RESEARCH,
+                "type":type_value
             }
 
     elif type_value == 4:
         # 调用其他API处理（示例逻辑）
         # 你可以定义自己的函数 fetch_type4_data()
-        return api_extra_asnyc(attached_data)
+        return api_extra_asnyc(attached_data,type_value)
     elif type_value == 1:
-        return account_deep_asynic(attached_data)
+        return account_deep_asynic(attached_data,type_value)
 
     else:
         # 默认：不支持的类型，清空数据结构
-        return default_deal_with(attached_data)
+        return default_deal_with(attached_data,type_value)
 
 
 # 封装后的searchResult函数
@@ -79,11 +148,11 @@ def searchResult(attached_data):
     return send_post_request(url, payload, headers)
 
 def getDetailRowdata(attached_data):
-    data = attached_data.get('typeList', [])
-    if not data or not isinstance(data, list):
+    data = attached_data.get('selectedType',{})
+    if not data:
         return {}
 
-    selected_project = data[0] if len(data) > 0 else None
+    selected_project = data
     if not selected_project or not selected_project.get("id"):
         return {}
     id = selected_project.get('id')  # 项目id
@@ -165,47 +234,135 @@ async def process_research_data(state: AgentState, data,progress_key):
  # 进度 100%：任务完成
     redis_dict_manager.add(progress_key, {"progress": 100, "message": "Task completed", "data": data})
 
+#返回类型项目和VC列表信息
+def searchRowData(query):
+    # 从attached_data中获取selectedProject
+    #selected_project = attached_data.get('form', {}).get('selectedProject')
+    # 设置API的url和headers
+    url = ""
+    headers = {
+        "apikey": "UvO5c6tLGHZ3a5ipkPZsXDbOUYRiKUgQ",
+        "language": "en",
+        "Content-Type": "application/json"
+    }
+    # 没有selectedProject，调用ser_inv API
+    url = "https://api.rootdata.com/open/ser_inv"
+    payload = {
+            "query": query
+        }
+    # 使用工具函数发起请求
+    return send_post_request(url, payload, headers)
+
+
+#需要根据返回的typelist进行优化处理
+def wrapListInfo(typelist):
+    new_list = []
+
+    for item in typelist:
+        item_type = item.get("type")
+        if item_type in [2, 4]:
+            title = item.get("title")
+            if not title:
+                new_list.append(item)
+                continue
+
+            # 调用 searchRowData，并取第一条结果
+            search_result = searchRowData(title)
+            if isinstance(search_result, list) and len(search_result) > 0:
+                first_data = search_result[0]
+
+                # 创建新项，保留原有字段，只替换指定字段
+                updated_item = item.copy()
+                updated_item.update({
+                    "id": first_data.get("id"),
+                    "title": first_data.get("name"),
+                    "logo": first_data.get("logo"),
+                    "detail": first_data.get("introduce")  # 用 introduce 替换 detail
+                })
+
+                new_list.append(updated_item)
+            else:
+                # 如果返回不合法，就保留原始
+                new_list.append(item)
+        else:
+            new_list.append(item)
+
+    return new_list
+
 async def research_task(state: AgentState) -> AgentState:
     print("research_task")
     print("DEBUG - attached_data 类型:", type(state.attached_data))
     print("DEBUG - attached_data 内容:", state.attached_data)
-    prompt = PromptTemplate(
-        template=DEEPSEARCHTASK_PROMPT,
-        input_variables=["current_data", "history", "input", "langguage"],
-    )
-    llm = LLMFactory.getDefaultOPENAI()
-    chain = prompt | llm | JsonOutputParser()
-    # 调用链处理用户最新输入
-    chain_response = chain.invoke({
-        "current_data": str(state.attached_data),
-        "history": state.history,
-        "input": state.user_input,
-        "langguage": state.langguage
-    })
-    response_data = chain_response
-    print("deep_sarch_data")
-    data = response_data.get("data")
-    data["intent"] = state.detected_intent.value
-    # 使用 time 模块获取当前时间戳
-    timestamp_time = time.time()
-    print("使用 time 模块获取的 UTC 时间戳:", timestamp_time)
-    data["timestamp"] = state.attached_data.get("timestamp", timestamp_time)
-    #获取对应的
-    missField = data["missFields"]
-    if missField:
-        return state.copy(update={"result": data})
+    if state.attached_data:
+        if not state.attached_data.get("selectedType"):
+            prompt = PromptTemplate(
+                template=DEEPSEARCHTASK_PROMPT,
+                input_variables=["current_data", "history", "input", "langguage"],
+            )
+            llm = LLMFactory.getDefaultOPENAI()
+            chain = prompt | llm | JsonOutputParser()
+            # 调用链处理用户最新输入
+            chain_response = chain.invoke({
+                "current_data": str(state.attached_data),
+                "history": state.history,
+                "input": state.user_input,
+                "langguage": state.langguage
+            })
+            response_data = chain_response
+            print("deep_sarch_data")
+            data = response_data.get("data")
+            data["intent"] = state.detected_intent.value
+            # 使用 time 模块获取当前时间戳
+            timestamp_time = time.time()
+            print("使用 time 模块获取的 UTC 时间戳:", timestamp_time)
+            data["timestamp"] = state.attached_data.get("timestamp", timestamp_time)
+            # 获取对应的
+            missField = data["missFields"]
+            if missField:
+                return state.copy(update={"result": data})
 
-    type_list = state.attached_data.get("typeList", [])
-    type_selected = type_list[0] if type_list else {}
+            # 这里需要对请求LLM返回的数据进行拦截处理
+            data["typeList"] = wrapListInfo(data.get("typeList"))
+            # 根据前段传递的选择的类型
+            selectedType = state.attached_data.get("selectedType", {})
+            # 数据如下:
+            # {
+            #     'id': 'type2_bnb-smart-chain',
+            #     'title': 'BNB 智能链（原称 BSC）',
+            #     'logo': 'https://api.rootdata.com/uploads/public/b15/1666341829033.jpg',
+            #     'type': 2,
+            #     'detail': 'BNB 智能链（BNB Smart Chain，原称 BSC）是由币安于 2020 年推出的区块链网络，旨在提供高性能的去中心化应用程序（DApp）平台。该链支持智能合约功能，并与以太坊虚拟机（EVM）兼容，方便开发者将项目从以太坊迁移至 BNB 智能链。BNB 智能链采用权威权益证明（PoSA）共识机制，出块时间约为 3 秒，验证者通过质押 BNB 参与网络共识并获得交易手续费作为奖励。 ([academy.binance.com](https://academy.binance.com/zh-CN/articles/an-introduction-to-bnb-smart-chain-bsc?utm_source=openai))',
+            #     'chain_id': 56,
+            #     'contract_addresses': []
+            # }
+
+            handled_result = handle_type_based_data(selectedType, state.attached_data)
+            data.update({
+                "overview": handled_result.get("overview", {}),
+                "details": handled_result.get("details", {}),
+                "state": handled_result.get("state", ""),
+            })
+            return state.copy(update={"result": data})
+
+        else:
+            data = state.attached_data.get("data")
+            data["intent"] = state.detected_intent.value
+            # 使用 time 模块获取当前时间戳
+            timestamp_time = time.time()
+            print("使用 time 模块获取的 UTC 时间戳:", timestamp_time)
+            data["timestamp"] = state.attached_data.get("timestamp", timestamp_time)
+            selectedType = state.attached_data.get("selectedType", {})
+            handled_result = handle_type_based_data(selectedType, state.attached_data)
+            data.update({
+                "overview": handled_result.get("overview", {}),
+                "details": handled_result.get("details", {}),
+                "state": handled_result.get("state", ""),
+            })
+            return state.copy(update={"result": data})
 
 
-    handled_result = handle_type_based_data(type_selected, state.attached_data)
-    data.update({
-        "overview": handled_result.get("overview"),
-        "details": handled_result.get("details"),
-        "state": handled_result.get("state"),
-    })
-    return state.copy(update={"result": data})
+
+
 
 
 
@@ -230,3 +387,15 @@ if __name__ == '__main__':
     print("详细数据：", result)
     overview_result = OverView(result)
     print("大模型概述：", overview_result)
+
+if __name__ == '__main__':
+    # result = SymbolAPISearch("SHIB")
+    # print(result)
+    # res=searchRowData("ETH")
+    res= getDetailRowdata({"selectedType": {
+        "id":15927
+    }})
+    print(res)
+    # print(res)
+    # res=GoPlusAPISearch(56,["0xba2ae424d960c26247dd6c32edc70b295c744c43"])
+    # print(res)
