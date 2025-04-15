@@ -14,8 +14,7 @@ DEEPSEARCHTASK_PROMPT_TEST = """
 - form.query：用户查询的关键词（如“Ethereum”、“0xabc...”、“AAVE”等）；
 - typeList：搜索结果列表，每项结构如下：
   - id：唯一标识，生成规则如下：
-    - 若来自 RootData 且类型为 2 或 4，必须直接使用 RootData 返回的 id，格式为 `{{id}}`；
-    - 否则格式为 `type{{type}}_{{slug}}`，如 type5_aave-v3；
+    - 格式为 `type{{type}}_{{slug}}`，如 type5_aave-v3；
   - title：项目或地址名称；
   - logo：图标 URL；
   - type：实体类型：
