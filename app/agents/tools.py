@@ -395,6 +395,9 @@ def send_post_request_v2(url, payload, headers):
     response = requests.post(url, headers=headers, data=json.dumps(payload))
     return response
 
+import requests
+from tenacity import retry, stop_after_attempt, wait_fixed
+@retry(stop=stop_after_attempt(3), wait=wait_fixed(1))  # 最多重试3次，每次间隔1秒
 def send_post_request(url, payload, headers):
     """
     发送 POST 请求，并打印请求的相关信息。
@@ -435,9 +438,13 @@ def send_post_request(url, payload, headers):
 
 
 
+import requests
+from tenacity import retry, stop_after_attempt, wait_fixed
+
+@retry(stop=stop_after_attempt(3), wait=wait_fixed(1))  # 最多重试3次，每次间隔1秒
 def send_get_request(url, headers=None, timeout=10):
     """
-    发送 GET 请求并打印 URL 和 headers，返回 JSON 响应
+    发送 GET 请求并打印 URL 和 headers，返回 JSON 响应（重试3次）
 
     :param url: str 请求地址
     :param headers: dict 可选的请求头
@@ -450,18 +457,57 @@ def send_get_request(url, headers=None, timeout=10):
     try:
         response = requests.get(url, headers=headers, timeout=timeout)
         response.raise_for_status()  # 抛出 HTTP 错误（如 4xx, 5xx）
-
         return response.json()
     except requests.exceptions.RequestException as e:
+        print(f"[ERROR] 请求异常：{e}")
         return {"error": str(e)}
     except ValueError:
+        print("[ERROR] 响应不是有效的 JSON")
         return {"error": "响应不是有效的 JSON"}
 
 
+import requests
+import time
+
+def send_get_request_orgian(url, headers=None, timeout=10, max_retries=3):
+    """
+    发送 GET 请求，最多重试 max_retries 次
+
+    :param url: str 请求地址
+    :param headers: dict 可选的请求头
+    :param timeout: int 请求超时时间（秒）
+    :param max_retries: int 最大重试次数
+    :return: dict 响应的 JSON 数据或错误信息
+    """
+    print(f"[GET] URL: {url}")
+    print(f"[GET] Headers: {headers}")
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            response = requests.get(url, headers=headers, timeout=timeout)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"[ERROR] 第 {attempt} 次请求失败：{e}")
+            if attempt == max_retries:
+                return {"error": str(e)}
+            time.sleep(1)  # 等待 1 秒后重试
+        except ValueError:
+            print(f"[ERROR] 第 {attempt} 次响应不是有效 JSON")
+            if attempt == max_retries:
+                return {"error": "响应不是有效的 JSON"}
+            time.sleep(1)
+
 if __name__ == '__main__':
     # Example usage:
-    url = "https://api.gopluslabs.io/api/v1/token_security/56?contract_addresses=0xba2ae424d960c26247dd6c32edc70b295c744c43"
-    send_get_request(url)
+    # url = "https://api.gopluslabs.io/api/v1/token_security/56?contract_addresses=0xba2ae424d960c26247dd6c32edc70b295c744c43"
+    # res =send_get_request(url)
+    # print(res)
+    url ="https://api.rootdata.com/open/ser_inv"
+    body = {"query":"Solana"}
+    header = {"apikey":"UvO5c6tLGHZ3a5ipkPZsXDbOUYRiKUgQ","language":"en"}
+    res = send_post_request(url, body,header)
+    print(res)
     # jwt_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDQzNjczMzAsImlhdCI6MTc0MTc3NTMzMCwiRXZtQWRkcmVzcyI6IjB4ZUI3YWI2ZmI4NjJiMzQ5YzhmMDM5MTI0YTBmM0U1RWU5MzMzMGZjOCIsIlNvbGFuYUFkZHJlc3MiOiI2Z21YWGVvb2VETEN0UXEyMzRlTVB5RzY4V2dtSE11ODY0Nzl5S2Rlb1UxUiIsIlRyb25BZGRyZXNzIjoiVENjWEw1Qnh6V1VNdndKcnljcUVqNFVvNE13dU1qeDlzcyIsImlkIjoxMH0.MDhDh1ezDe5IEwdduDABLzRtBzxrxcY8GP__ihKpxR0"
     # result_dict = {
     #     "data": {

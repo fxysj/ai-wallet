@@ -1,0 +1,6 @@
+这个错误表明在计算
+token 使用量时，OpenAI 的响应中没有返回
+token_usage 数据，导致 None + None 的错误。
+我们需要增强错误处理逻辑，确保即使没有 token 数据也能正常运行。
+以下是完全修正后的解决方案：
+muti_0416.py -- deepSeek

@@ -191,7 +191,8 @@ async def analyze_request(request: Request):
         history = Session.get_recent_history(request_data,10)
         chain_data = chain_data_util.DEFAULT_CHAIN_DATA
 
-
+        # 在调用 LangChain 完成后，记录思考信息
+        thinking_info = "模型正在进行思考..."  # 你可以在这里插入模型推理过程中的中间信息
 
         initial_state = AgentState(
             user_input=user_input_object.content,#用户输入信息
@@ -202,7 +203,8 @@ async def analyze_request(request: Request):
             messages=messages,#历史信息
             langguage=settings.LanGuage,#语言配置
             isAsync=settings.ISLangGuageAynsNIS,#是否进行配置
-            detected_intent=Intention.unclear#默认不知道
+            detected_intent=Intention.unclear,#默认不知道
+            thinking_info=thinking_info
         )
 
         result = await app.ainvoke(initial_state)

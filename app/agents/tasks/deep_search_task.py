@@ -1,6 +1,8 @@
 #深度搜索分析
 import asyncio
 import time
+from decimal import Decimal, getcontext
+
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 
@@ -49,7 +51,10 @@ def GoPlusAPISearch(chain_id, contract_addresses):
     url = f"https://api.gopluslabs.io/api/v1/token_security/{chain_id}?contract_addresses={contract_param}"
 
     # 发起 GET 请求（使用你封装的工具函数）
-    return send_get_request(url)
+    res =  send_get_request(url)
+    if not res.get("error"):
+        return res.get("result").get(contract_addresses[0])
+    return {}
 
 #https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?symbol=SHIB
 #根据代币的名称查询
@@ -67,18 +72,265 @@ def SymbolAPISearch(symbol):
         "X-CMC_PRO_API_KEY": "d2cf066b-ca89-4266-a580-e6733c044aa1"
     }
 
-    return send_get_request(url, headers=headers)
+    res = send_get_request(url, headers=headers)
+    if not res.get("error"):
+        return res.get("data").get(symbol)
+    return {}
+
+#验证数据完整性
+def validate_data(goPlusResult, symbolResult):
+    required_goPlus_keys = ["chain", "creator_address", "creator_percent"]
+    required_symbol_keys = ["name", "symbol", "price_usd"]
+
+    for key in required_goPlus_keys:
+        if key not in goPlusResult:
+            raise KeyError(f"Missing key {key} in goPlusResult")
+
+    for key in required_symbol_keys:
+        if key not in symbolResult:
+            raise KeyError(f"Missing key {key} in symbolResult")
 
 
+def sum_top_10_balances(data):
+    # 将字符串 balance 转为 Decimal 并排序（从高到低）
+    sorted_data = sorted(data, key=lambda x: Decimal(x["balance"]), reverse=True)
+
+    # 取前十名并求和
+    total = sum(Decimal(item["balance"]) for item in sorted_data[:10])
+
+    # 保留两位小数返回
+    return round(total, 2)
 #需要进行根据 goPlusResult  symbolResult 按照目的对象VO进行整合
 #VOOverView
-def uniongoPlusResultAndsymbolResultOverView(goPlusResult, symbolResult):
-    pass
+# 🧠 字段说明
+#
+# 字段名	来源	描述
+# name, symbol, price_usd, market_cap_usd, volume_24h_usd	Symbol API	价格与市值信息
+# creator_address, creator_percent, buy_tax, cannot_buy, cannot_sell_all	GoPlus API	链上安全性、创始人相关数据
+# liquidity_pools	GoPlus API	DEX 上的流动性
+# is_proxy	GoPlus API	是否为代理合约
+# last_updated	Symbol API	数据更新时间
+def sum_top10_holders_ratio(data):
+    # 将字符串 balance 转为 Decimal 并排序（从高到低）
+    sorted_data = sorted(data, key=lambda x: Decimal(x["percent"]), reverse=True)
+
+    # 取前十名并求和
+    total = sum(Decimal(item["percent"]) for item in sorted_data[:10])
+
+    # 保留两位小数返回
+    return round(total, 2)
+
+
+def uniongoPlusResultAndsymbolResultOverView(goPlusResult, CMCResult,Contract_Address=""):
+    """
+        合并goPlusResult与symbolResult的字典数据，并进行合理的数据类型转换与默认值处理
+    """
+    def safe_get(d, key, default=None):
+        return d.get(key, default)
+
+    max_supply = safe_get(CMCResult, "max_supply")
+    price = safe_get(CMCResult, "quote")
+    if not price:
+        price = 0.0
+    else:
+        price = price.get("USD").get("price")
+
+    if max_supply is not None and price is not None:
+        fdv = round(max_supply * price, 2)
+    else:
+        fdv = 0.0  # 或者 None，根据你的业务需求决定
+
+    circulating_supply = safe_get(CMCResult, "circulating_supply")
+    mcap = round((circulating_supply or 0) * (price or 0), 2)
+
+    max_supply=safe_get(CMCResult, "max_supply")
+    if not max_supply:
+        max_supply=0
+
+    circulating_supply= safe_get(CMCResult, "circulating_supply")
+
+    token_symbol=safe_get(goPlusResult,"token_symbol")
+
+    creator_address= safe_get(goPlusResult,"creator_address")
+    owner_address=safe_get(goPlusResult,"owner_address")
+    holder_count=safe_get(goPlusResult,"holder_count")
+    # 设置高精度以确保中间计算准确
+    getcontext().prec = 28
+    #计算前十holders信息余额信息
+    top10Banlance = sum_top_10_balances(safe_get(goPlusResult,"holders"))
+    top10_holders_ratio = sum_top10_holders_ratio(safe_get(goPlusResult,"holders"))
+    basic_info = {
+        "Token_Price":round(price,4),
+        "FDV":fdv,
+        "M.Cap":mcap,
+        "Max_Supply":max_supply,
+        "Circulation":circulating_supply,
+        "Token_Symbol":token_symbol,
+        "Contract_Address":Contract_Address,
+        "Contract_Creator":creator_address,
+        "Contract_Owner":owner_address,
+        "Toker_Holders":holder_count,
+        "Token_Supply":top10Banlance,
+        "Top10_Holders_Ratio":top10_holders_ratio
+    }
+    #组织返回基础信息
+    return basic_info
 
 #需要进行根据 goPlusResult  symbolResult 按照目的对象VO进行整合
 #VODetails
-def uniongoPlusResultAndsymbolResultDetails(goPlusResult, symbolResult):
-    pass
+# 🔍 字段解释说明
+# 🔐 risk_info（风险信息）
+#
+# 字段名	说明
+# honeypot	是否为“蜜罐合约”，即买入可以但无法卖出，属于典型诈骗手法。
+# slippage_modifiable	是否可修改滑点设置，可能用于操控交易滑点，影响用户交易成本。
+# hidden_owner	合约是否隐藏了 owner（所有者）信息，可能存在操控风险。
+# blacklisted	是否存在黑名单功能，可能对某些地址限制交易。
+# mintable	合约是否可以增发（Mint），可能导致通胀、价格崩盘。
+# transfer_pausable	合约是否可以暂停转账功能，可能影响代币流动性。
+# proxy_contract	是否为代理合约结构，常用于合约升级，也可能隐藏逻辑。
+# buy_tax	买入代币时收取的税率（%），如有较高税率应注意风险。
+# sell_tax	卖出代币时收取的税率（%），如有较高税率应注意风险。
+# creator_address	部署该合约的创作者地址。
+# creator_percent	创作者持有该代币的比例（%），比例高风险集中。
+# deployer_percent	部署者初始持仓占比（%），用于判断初期分布情况。
+# holders	当前该代币的持有人数，用于判断分布是否集中。
+# cannot_buy	是否禁止买入，常见于蜜罐合约。
+# cannot_sell_all	是否无法一次性卖出全部资产，控制用户卖出权利。
+# 🧊 dex_liquidity（DEX流动性）
+# 是一个数组，结构可能如下：
+#
+# json
+# 复制
+# 编辑
+# [
+#   {
+#     "dex": "Uniswap V2",
+#     "pair": "TOKEN/USDT",
+#     "liquidity_usd": 123456.78,
+#     "pair_address": "0xabc...",
+#     "last_updated": "2024-04-15T12:34:56Z"
+#   }
+# ]
+#
+# 字段名	说明
+# dex	去中心化交易所名称（如 Uniswap、PancakeSwap）
+# pair	交易对名称（如 TOKEN/USDT）
+# liquidity_usd	当前交易对中的美元流动性金额
+# pair_address	该交易对合约地址
+# last_updated	数据最后更新时间
+# 💰 symbol_info（币种基本信息）
+#
+# 字段名	说明
+# symbol	代币符号（如 ETH、BTC）
+# name	代币名称
+# price_usd	当前价格（以美元计）
+# percent_change_1h	过去 1 小时的价格涨跌幅（%）
+# percent_change_24h	过去 24 小时的价格涨跌幅（%）
+# percent_change_7d	过去 7 天的价格涨跌幅（%）
+# volume_24h_usd	24 小时内交易量（美元）
+# market_cap_usd	当前市场总市值（美元）
+# circulating_supply	流通中的代币数量
+# total_supply	代币总发行量
+# max_supply	最大供应量（如果有限制）
+# last_updated	数据更新时间戳
+def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Address=""):
+    """
+           合并goPlusResult与symbolResult的字典数据，并进行合理的数据类型转换与默认值处理
+       """
+
+    def safe_get(d, key, default=None):
+        return d.get(key, default)
+    max_supply = safe_get(CMCResult, "max_supply")
+    price = safe_get(CMCResult, "quote")
+    if not price:
+        price = 0.0
+    else:
+        price = price.get("USD").get("price")
+
+    if max_supply is not None and price is not None:
+        fdv = round(max_supply * price, 2)
+    else:
+        fdv = 0.0  # 或者 None，根据你的业务需求决定
+
+    circulating_supply = safe_get(CMCResult, "circulating_supply")
+    mcap = round((circulating_supply or 0) * (price or 0), 2)
+
+    max_supply = safe_get(CMCResult, "max_supply")
+
+    circulating_supply = safe_get(CMCResult, "circulating_supply")
+
+    token_symbol = safe_get(goPlusResult, "token_symbol")
+
+    creator_address = safe_get(goPlusResult, "creator_address")
+    owner_address = safe_get(goPlusResult, "owner_address")
+    holder_count = safe_get(goPlusResult, "holder_count")
+    # 设置高精度以确保中间计算准确
+    getcontext().prec = 28
+    # 计算前十holders信息余额信息
+    top10Banlance = sum_top_10_balances(safe_get(goPlusResult, "holders"))
+    #计算前十的利息信息
+    top10_holders_ratio = sum_top10_holders_ratio(safe_get(goPlusResult, "holders"))
+
+    is_open_source = safe_get(goPlusResult,"is_open_source")
+    is_proxy=safe_get(goPlusResult,"is_proxy")
+    can_take_back_ownership=safe_get(goPlusResult,"can_take_back_ownership")
+    owner_change_balance=safe_get(goPlusResult,"owner_change_balance")
+    hidden_owner=safe_get(goPlusResult,"hidden_owner")
+    selfdestruct=safe_get(goPlusResult,"selfdestruct")
+    external_call=safe_get(goPlusResult,"external_call")
+    gs_tooken = ""
+    buy_tax=safe_get(goPlusResult, "buy_tax")
+    sell_tax=safe_get(goPlusResult,"sell_tax")
+    is_honeypot=safe_get(goPlusResult,"is_honeypot")
+    transfer_pausable=safe_get(goPlusResult,"transfer_pausable")
+    trading_cooldown=safe_get(goPlusResult,"trading_cooldown")
+    is_anti_whale=safe_get(goPlusResult,"is_anti_whale")
+    anti_whale_modifiable=safe_get(goPlusResult,"anti_whale_modifiable")
+    tax_Cannot_Be_Modified = ""
+    is_blacklisted=safe_get(goPlusResult,"is_blacklisted")
+    is_whitelisted= safe_get(goPlusResult,"is_whitelisted")
+    personal_Addresses=""
+
+    Dex_And_Liquidity=safe_get(goPlusResult,"dex")
+    Social_Media=[{}] #暂时是空的
+    detail_info = {
+        "Token_Price": round(price,4),
+        "FDV": fdv,
+        "M.Cap": mcap,
+        "Max_Supply": max_supply,
+        "Circulation": circulating_supply,
+        "Token_Symbol": token_symbol,
+        "Contract_Address": Contract_Address,
+        "Contract_Creator": creator_address,
+        "Contract_Owner": owner_address,
+        "Toker_Holders": holder_count,
+        "Token_Supply": top10Banlance,
+        "Top10_Holders_Ratio": top10_holders_ratio,
+        "Contract_Source_Code_Verified":is_open_source,
+        "No_Proxy":is_proxy,
+        "No_Function_Found_That_Retrieves_Ownership":can_take_back_ownership,
+        "Owner_Cant_Change_Balance":owner_change_balance,
+        "No_Hidden_Owner":hidden_owner,
+        "This_Token_Can_Not_Self_Destruct":selfdestruct,
+        "No_External_Call_Risk_Found":external_call,
+        "This_Token_Is_Not_A_Gas_Abuser":gs_tooken,
+        "Buy_Tax":buy_tax,
+        "Sell_Tax":sell_tax,
+        "This_Does_Not_Appear_To_Be_A_Honeypot":is_honeypot,
+        "No_Codes_Found_To_Suspend_Trading":transfer_pausable,
+        "No_Trading_Cooldown_Function":trading_cooldown,
+        "No_Anti_Whale_Unlimited_Number_Of_Transactions":is_anti_whale,
+        "Anti_Whale_Cannot_Be_Modified":anti_whale_modifiable,
+        "Tax_Cannot_Be_Modified":tax_Cannot_Be_Modified,
+        "No_Blacklist":is_blacklisted,
+        "No_Whitelist":is_whitelisted,
+        "No_Tax_Changes_Found_For_Personal_Addresses":personal_Addresses,
+        "Dex_And_Liquidity":Dex_And_Liquidity,
+        "Social_Media":Social_Media
+    }
+    # 组织返回基础信息
+    return detail_info
 
 #其他类型API工具分析
 def api_extra_asnyc(selectedType,type_value):
@@ -89,11 +341,12 @@ def api_extra_asnyc(selectedType,type_value):
     goPlusResult = GoPlusAPISearch(chain_id, contract_addresses)
     #symbolResult
     symbolResult = SymbolAPISearch(symbol)
+    symbolResult = symbolResult[0] #只取第一个数组数据
     response = {}
-    response["overview"] = uniongoPlusResultAndsymbolResultOverView(goPlusResult,symbolResult)
-    response["details"] =uniongoPlusResultAndsymbolResultDetails(goPlusResult,symbolResult)
+    response["overview"] = uniongoPlusResultAndsymbolResultOverView(goPlusResult,symbolResult,contract_addresses)
+    response["details"] =uniongoPlusResultAndsymbolResultDetails(goPlusResult,symbolResult,contract_addresses)
     response["type"] = type_value
-    response["state"] =  TaskState.RESEARCH_TASK_DISPLAY_RESEARCH,
+    response["state"] =  TaskState.RESEARCH_TASK_DISPLAY_RESEARCH
     return response
 
 #默认返回处理函数
@@ -186,7 +439,12 @@ def getDetailRowdata(selectedType):
     }
     # 使用工具函数发起请求
     result = send_post_request(url, payload, headers)
-    return result
+    #如果没有错误返回
+    if not result.get("error"):
+        return result.get("data",{})
+    return {}
+
+
 
 #根据选择的获取详情信息
 def OverView(result):
@@ -276,6 +534,10 @@ def wrapListInfo(typelist):
 
     for item in typelist:
         item_type = item.get("type")
+        # 只处理 type 为 1, 2, 3, 4 的项
+        if item_type not in [1, 2, 3, 4]:
+            continue
+
         if item_type in [2, 4]:
             title = item.get("title")
             if not title:
@@ -405,12 +667,106 @@ async def research_task(state: AgentState) -> AgentState:
 
 if __name__ == '__main__':
     # result = SymbolAPISearch("SHIB")
-    # print(result)
+    # print(result[0])
     # res=searchRowData("ETH")
-    res= getDetailRowdata({"selectedType": {
-        "id":15927
-    }})
-    print(res)
+    # res= getDetailRowdata({
+    #     "id":15927
+    # })
     # print(res)
+    # print(res)
+    res =api_extra_asnyc({
+        "chain_id":56,
+        "contract_addresses": ["0xba2ae424d960c26247dd6c32edc70b295c744c43"],
+        "symbol": "SHIB"
+    },3)
+    print(res)
+    # holders =  [
+    #             {
+    #                 "address": "0xf89d7b9c864f589bbf53a82105107622b35eaa40",
+    #                 "tag": "",
+    #                 "is_contract": 0,
+    #                 "balance": "253401357.079465127146308694",
+    #                 "percent": "0.048872061814309366",
+    #                 "is_locked": 0
+    #             },
+    #             {
+    #                 "address": "0xc882b111a75c0c657fc507c04fbfcd2cc984f071",
+    #                 "tag": "",
+    #                 "is_contract": 0,
+    #                 "balance": "214590128.266262252054737317",
+    #                 "percent": "0.041386763410586392",
+    #                 "is_locked": 0
+    #             },
+    #             {
+    #                 "address": "0xfd5840cd36d94d7229439859c0112a4185bc0255",
+    #                 "tag": "",
+    #                 "is_contract": 1,
+    #                 "balance": "200318420.412027605353016519",
+    #                 "percent": "0.038634261227935523",
+    #                 "is_locked": 0
+    #             },
+    #             {
+    #                 "address": "0xd3a22590f8243f8e83ac230d1842c9af0404c4a1",
+    #                 "tag": "",
+    #                 "is_contract": 0,
+    #                 "balance": "175878698.2749313132394152",
+    #                 "percent": "0.033920712631452860",
+    #                 "is_locked": 0
+    #             },
+    #             {
+    #                 "address": "0x4fdfe365436b5273a42f135c6a6244a20404271e",
+    #                 "tag": "",
+    #                 "is_contract": 0,
+    #                 "balance": "66659496.314147336311909448",
+    #                 "percent": "0.012856233533722212",
+    #                 "is_locked": 0
+    #             },
+    #             {
+    #                 "address": "0x98b4be9c7a32a5d3befb08bb98d65e6d204f7e98",
+    #                 "tag": "",
+    #                 "is_contract": 0,
+    #                 "balance": "55744690.7657593423",
+    #                 "percent": "0.010751157785115606",
+    #                 "is_locked": 0
+    #             },
+    #             {
+    #                 "address": "0xf05f0e4362859c3331cb9395cbc201e3fa6757ea",
+    #                 "tag": "",
+    #                 "is_contract": 1,
+    #                 "balance": "53599647.972738348579722504",
+    #                 "percent": "0.010337455722967667",
+    #                 "is_locked": 0
+    #             },
+    #             {
+    #                 "address": "0x434742703055bd20f42142d9d70b0735a5eb1b14",
+    #                 "tag": "",
+    #                 "is_contract": 0,
+    #                 "balance": "49135172.833872314733077642",
+    #                 "percent": "0.009476418088955764",
+    #                 "is_locked": 0
+    #             },
+    #             {
+    #                 "address": "0x0d0707963952f2fba59dd06f2b425ace40b492fe",
+    #                 "tag": "",
+    #                 "is_contract": 0,
+    #                 "balance": "46220027.996774487034664095",
+    #                 "percent": "0.008914190876290788",
+    #                 "is_locked": 0
+    #             },
+    #             {
+    #                 "address": "0x36696169c63e42cd08ce11f5deebbcebae652050",
+    #                 "tag": "PancakeV3",
+    #                 "is_contract": 1,
+    #                 "balance": "39919790.10248848553543981",
+    #                 "percent": "0.007699100241563673",
+    #                 "is_locked": 0
+    #             }
+    #         ]
+    # # 设置高精度以确保中间计算准确
+    # getcontext().prec = 28
+    # result = sum_top_10_balances(holders)
+    # print(f"前十地址总余额：{result}")
+    # result = sum_top10_holders_ratio(holders)
+    # print(f"前十地址平均信息：{result}")
     # res=GoPlusAPISearch(56,["0xba2ae424d960c26247dd6c32edc70b295c744c43"])
     # print(res)
