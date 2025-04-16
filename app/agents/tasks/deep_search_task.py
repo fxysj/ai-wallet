@@ -18,7 +18,24 @@ from app.test.deepSearchProject.deepSearchTask_prompt_test import DEEPSEARCHTASK
 #获取rawData数据s
 #根据详情信息返回OverView数据
 def wrap_del_with_detail(detail_data):
-    return detail_data
+    return {
+        "Project_Name": detail_data.get("project_name", ""),
+        "logo": detail_data.get("logo", ""),
+        "Token_Symbol": detail_data.get("token_symbol", ""),
+        "Token_Price": detail_data.get("price", ""),
+        "FDV": detail_data.get("fully_diluted_market_cap", ""),
+        "M.Cap": detail_data.get("market_cap", ""),
+        "Brief": detail_data.get("one_liner", ""),
+        "Fundraising_Amount": detail_data.get("total_funding", ""),
+        "Ecosystem": detail_data.get("ecosystem", ""),
+        "X_Followers": detail_data.get("followers", ""),
+        "Descroption": detail_data.get("description"),
+        "Reports":detail_data.get("reports",[]),
+        "Events":detail_data.get("event",[]),
+        "investors":detail_data.get("investors",[]),
+        "Team_Member":detail_data.get("team_members",[]),
+        "Social_Media":detail_data.get("social_media",[])
+    }
 
 #账号深度分析
 def account_deep_asynic(selectedType,type_value):
@@ -370,6 +387,22 @@ def EmptyResult():
     }
 
 
+def wrap_del_with_OverView(detail_data):
+    return {
+        "Project_Name":detail_data.get("project_name",""),
+        "logo":detail_data.get("logo",""),
+        "Token_Symbol":detail_data.get("token_symbol",""),
+        "Token_Price":detail_data.get("price",""),
+        "FDV":detail_data.get("fully_diluted_market_cap",""),
+        "M.Cap":detail_data.get("market_cap",""),
+        "Brief":detail_data.get("one_liner",""),
+        "Fundraising_Amount":detail_data.get("total_funding",""),
+        "Ecosystem":detail_data.get("ecosystem",""),
+        "X_Followers":detail_data.get("followers",""),
+        "Descroption":detail_data.get("description")
+    }
+
+
 def handle_type_based_data(type_item, attached_data):
     """
     根据项目类型处理不同逻辑
@@ -385,8 +418,8 @@ def handle_type_based_data(type_item, attached_data):
         detail_data = getDetailRowdata(type_item)
         if detail_data:
             return {
-                "overview": wrap_del_with_detail(detail_data),
-                "details": detail_data,
+                "overview": wrap_del_with_OverView(detail_data),
+                "details": wrap_del_with_detail(detail_data),
                 "state": TaskState.RESEARCH_TASK_DISPLAY_RESEARCH,
                 "type":type_value
             }
