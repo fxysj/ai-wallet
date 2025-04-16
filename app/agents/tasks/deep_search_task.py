@@ -548,6 +548,7 @@ def wrapListInfo(typelist):
             search_result = searchRowData(title).get("data")
             if isinstance(search_result, list) and len(search_result) > 0:
                 first_data = search_result[0]
+                print("first_data:",first_data)
 
                 # 创建新项，保留原有字段，只替换指定字段
                 updated_item = item.copy()
@@ -611,6 +612,7 @@ async def research_task(state: AgentState) -> AgentState:
             response_data = call_llm_chain(state)
             print("deep_search_data")
             data = response_data.get("data", {})
+            print("deep_search_data:", data)
             if data.get("missFields"):
                 data["intent"] = state.detected_intent.value
                 timestamp_time = time.time()
@@ -626,6 +628,7 @@ async def research_task(state: AgentState) -> AgentState:
     response_data = call_llm_chain(state)
     print("deep_search_data")
     data = response_data.get("data", {})
+    print("deep_search_data:",data)
     if data.get("missFields"):
         data["intent"] = state.detected_intent.value
         timestamp_time = time.time()
