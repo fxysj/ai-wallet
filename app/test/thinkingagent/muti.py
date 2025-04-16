@@ -4,7 +4,6 @@ import time
 from typing import Dict, List, Any, Optional
 from pymongo import MongoClient
 from loguru import logger
-from langgraph import prebuilt
 from langchain_core.callbacks import AsyncCallbackHandler
 from langchain_core.messages import HumanMessage
 from langchain_core.tools import tool
@@ -12,7 +11,8 @@ from langchain_openai import ChatOpenAI
 from tenacity import retry, stop_after_attempt, retry_if_exception_type
 from pydantic import BaseModel, Field
 from langchain_core.agents import AgentFinish
-from langchain.agents import AgentExecutor
+from langchain.agents import AgentExecutor, create_tool_calling_agent
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 from app.agents.lib.llm.llm import LLMFactory
 
@@ -60,12 +60,50 @@ async def weather_tool(location: str, date: Optional[str] = None) -> str:
         return f"无法获取{location}的天气信息"
 
 
-# ==================== 异步回调处理器 ====================
-class AsyncReasoningTraceHandler(AsyncCallbackHandler):
+# ==================== 增强型异步回调处理器 ====================
+class EnhancedAsyncCallbackHandler(AsyncCallbackHandler):
     def __init__(self, storage_backend: Optional[Any] = None):
-        self.state: Dict[str, List[Dict]] = {"reasoning_trace": []}
+        self.state: Dict[str, Any] = {
+            "reasoning_trace": [],
+            "token_usage": {
+                "total_tokens": 0,
+                "prompt_tokens": 0,
+                "completion_tokens": 0
+            }
+        }
         self.storage = storage_backend or FileStorage()
         self.lock = asyncio.Lock()
+
+    async def on_llm_start(self, serialized: Dict[str, Any], prompts: List[str], **kwargs: Any) -> None:
+        """记录LLM开始时的状态"""
+        async with self.lock:
+            self.state["current_llm_start"] = time.time()
+
+    async def on_llm_end(self, response: Any, **kwargs: Any) -> None:
+        """处理LLM结束时的token使用数据"""
+        async with self.lock:
+            try:
+                # 安全获取token使用数据
+                usage = response.llm_output.get("token_usage", {}) if hasattr(response, "llm_output") else {}
+
+                # 更新token计数
+                self.state["token_usage"]["prompt_tokens"] += usage.get("prompt_tokens", 0)
+                self.state["token_usage"]["completion_tokens"] += usage.get("completion_tokens", 0)
+                self.state["token_usage"]["total_tokens"] += usage.get("total_tokens", 0) or (
+                        usage.get("prompt_tokens", 0) + usage.get("completion_tokens", 0)
+                )
+
+                # 记录处理时间
+                if hasattr(self, "current_llm_start"):
+                    process_time = time.time() - self.state.pop("current_llm_start")
+                    self.state.setdefault("timings", []).append({
+                        "event": "llm_processing",
+                        "duration_seconds": process_time
+                    })
+
+                await self._safe_save()
+            except Exception as e:
+                logger.error(f"处理LLM输出失败: {e}")
 
     async def on_agent_action(self, action: Any, **kwargs: Any) -> None:
         async with self.lock:
@@ -91,12 +129,14 @@ class AsyncReasoningTraceHandler(AsyncCallbackHandler):
                 "timestamp": time.time(),
                 "type": "finish",
                 "thought": getattr(finish, 'log', 'No log').strip(),
-                "final_answer": finish.return_values.get('output', '')
+                "final_answer": finish.return_values.get('output', ''),
+                "token_usage": self.state["token_usage"].copy()
             }
             self.state["reasoning_trace"].append(entry)
             await self._safe_save()
 
     async def _safe_save(self):
+        """带错误处理的保存方法"""
         try:
             await self.storage.save(self.state.copy())
         except Exception as e:
@@ -121,8 +161,7 @@ class MongoDBStorage:
             self.client = MongoClient(uri, serverSelectionTimeoutMS=5000)
             self.db = self.client[db_name]
             self.collection = self.db["traces"]
-            # 测试连接
-            self.client.server_info()
+            self.client.server_info()  # 测试连接
         except Exception as e:
             logger.error(f"MongoDB连接失败: {e}")
             raise
@@ -141,22 +180,34 @@ class MongoDBStorage:
 # ==================== 代理初始化 ====================
 def initialize_agent():
     llm = LLMFactory.getDefaultOPENAI()
+
     tools = [weather_tool]
     storage = MongoDBStorage()
-    trace_handler = AsyncReasoningTraceHandler(storage)
+    callback_handler = EnhancedAsyncCallbackHandler(storage)
 
-    # 使用正确的Agent创建方式
-    agent = prebuilt.create_tool_calling_agent(llm, tools)
-    agent_executor = AgentExecutor(agent=agent, tools=tools, callbacks=[trace_handler])
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", "You are a helpful assistant. Respond to the user's request appropriately."),
+        ("user", "{input}"),
+        MessagesPlaceholder(variable_name="agent_scratchpad")
+    ])
 
-    return agent_executor, trace_handler
+    agent = create_tool_calling_agent(llm, tools, prompt)
+    agent_executor = AgentExecutor(
+        agent=agent,
+        tools=tools,
+        callbacks=[callback_handler],
+        return_intermediate_steps=True,
+        handle_parsing_errors=True
+    )
+
+    return agent_executor, callback_handler
 
 
 # ==================== 主程序 ====================
 async def main():
     try:
         logger.info("初始化代理...")
-        agent_executor, trace_handler = initialize_agent()
+        agent_executor, callback_handler = initialize_agent()
 
         questions = [
             "What's the weather like in Beijing tomorrow?",
@@ -166,11 +217,16 @@ async def main():
 
         for question in questions:
             logger.info(f"处理问题: {question}")
-            response = await agent_executor.ainvoke({"input": question})
-            logger.success(f"代理响应: {response['output']}")
-            logger.debug(f"完整追踪: {json.dumps(trace_handler.state, indent=2, ensure_ascii=False)}")
+            try:
+                response = await agent_executor.ainvoke({"input": question})
+                logger.success(f"代理响应: {response['output']}")
+                logger.debug(f"Token使用情况: {callback_handler.state['token_usage']}")
+            except Exception as e:
+                logger.error(f"处理问题失败: {question} - {str(e)}")
+                continue
 
-        await trace_handler.storage.save(trace_handler.state)
+        await callback_handler.storage.save(callback_handler.state)
+        logger.info(f"最终Token使用统计: {callback_handler.state['token_usage']}")
         logger.info("所有追踪记录已保存")
 
     except Exception as e:
