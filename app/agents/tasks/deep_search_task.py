@@ -276,6 +276,10 @@ def wrapListInfo(typelist):
 
     for item in typelist:
         item_type = item.get("type")
+        # 只处理 type 为 1, 2, 3, 4 的项
+        if item_type not in [1, 2, 3, 4]:
+            continue
+
         if item_type in [2, 4]:
             title = item.get("title")
             if not title:
