@@ -49,7 +49,10 @@ def GoPlusAPISearch(chain_id, contract_addresses):
     url = f"https://api.gopluslabs.io/api/v1/token_security/{chain_id}?contract_addresses={contract_param}"
 
     # 发起 GET 请求（使用你封装的工具函数）
-    return send_get_request(url)
+    res =  send_get_request(url)
+    if not res.get("error"):
+        return res.get("result").get(contract_addresses[0])
+    return {}
 
 #https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?symbol=SHIB
 #根据代币的名称查询
@@ -67,18 +70,154 @@ def SymbolAPISearch(symbol):
         "X-CMC_PRO_API_KEY": "d2cf066b-ca89-4266-a580-e6733c044aa1"
     }
 
-    return send_get_request(url, headers=headers)
+    res = send_get_request(url, headers=headers)
+    if not res.get("error"):
+        return res.get("data").get(symbol)
+    return {}
 
+#验证数据完整性
+def validate_data(goPlusResult, symbolResult):
+    required_goPlus_keys = ["chain", "creator_address", "creator_percent"]
+    required_symbol_keys = ["name", "symbol", "price_usd"]
+
+    for key in required_goPlus_keys:
+        if key not in goPlusResult:
+            raise KeyError(f"Missing key {key} in goPlusResult")
+
+    for key in required_symbol_keys:
+        if key not in symbolResult:
+            raise KeyError(f"Missing key {key} in symbolResult")
 
 #需要进行根据 goPlusResult  symbolResult 按照目的对象VO进行整合
 #VOOverView
+# 🧠 字段说明
+#
+# 字段名	来源	描述
+# name, symbol, price_usd, market_cap_usd, volume_24h_usd	Symbol API	价格与市值信息
+# creator_address, creator_percent, buy_tax, cannot_buy, cannot_sell_all	GoPlus API	链上安全性、创始人相关数据
+# liquidity_pools	GoPlus API	DEX 上的流动性
+# is_proxy	GoPlus API	是否为代理合约
+# last_updated	Symbol API	数据更新时间
 def uniongoPlusResultAndsymbolResultOverView(goPlusResult, symbolResult):
-    pass
+    """
+        合并goPlusResult与symbolResult的字典数据，并进行合理的数据类型转换与默认值处理
+    """
+    def safe_get(d, key, default=None):
+        return d.get(key, default)
+
+    return {
+        "name": safe_get(symbolResult, "name"),
+        "symbol": safe_get(symbolResult, "symbol"),
+        "token_address": safe_get(symbolResult, "token_address"),
+        "chain": safe_get(goPlusResult, "chain"),
+        "price_usd": safe_get(symbolResult, "price_usd"),
+        "market_cap_usd": safe_get(symbolResult, "market_cap_usd"),
+        "volume_24h_usd": safe_get(symbolResult, "volume_24h_usd"),
+        "percent_change_24h": safe_get(symbolResult, "percent_change_24h"),
+        "creator_address": safe_get(goPlusResult, "creator_address"),
+        "creator_percent": safe_get(goPlusResult, "creator_percent"),
+        "is_proxy": safe_get(goPlusResult, "is_proxy"),
+        "buy_tax": safe_get(goPlusResult, "buy_tax"),
+        "cannot_buy": safe_get(goPlusResult, "cannot_buy"),
+        "cannot_sell_all": safe_get(goPlusResult, "cannot_sell_all"),
+        "liquidity_pools": safe_get(goPlusResult, "dex", []),  # DEX 流动性信息，默认空列表
+        "last_updated": safe_get(symbolResult, "last_updated")
+    }
 
 #需要进行根据 goPlusResult  symbolResult 按照目的对象VO进行整合
 #VODetails
+# 🔍 字段解释说明
+# 🔐 risk_info（风险信息）
+#
+# 字段名	说明
+# honeypot	是否为“蜜罐合约”，即买入可以但无法卖出，属于典型诈骗手法。
+# slippage_modifiable	是否可修改滑点设置，可能用于操控交易滑点，影响用户交易成本。
+# hidden_owner	合约是否隐藏了 owner（所有者）信息，可能存在操控风险。
+# blacklisted	是否存在黑名单功能，可能对某些地址限制交易。
+# mintable	合约是否可以增发（Mint），可能导致通胀、价格崩盘。
+# transfer_pausable	合约是否可以暂停转账功能，可能影响代币流动性。
+# proxy_contract	是否为代理合约结构，常用于合约升级，也可能隐藏逻辑。
+# buy_tax	买入代币时收取的税率（%），如有较高税率应注意风险。
+# sell_tax	卖出代币时收取的税率（%），如有较高税率应注意风险。
+# creator_address	部署该合约的创作者地址。
+# creator_percent	创作者持有该代币的比例（%），比例高风险集中。
+# deployer_percent	部署者初始持仓占比（%），用于判断初期分布情况。
+# holders	当前该代币的持有人数，用于判断分布是否集中。
+# cannot_buy	是否禁止买入，常见于蜜罐合约。
+# cannot_sell_all	是否无法一次性卖出全部资产，控制用户卖出权利。
+# 🧊 dex_liquidity（DEX流动性）
+# 是一个数组，结构可能如下：
+#
+# json
+# 复制
+# 编辑
+# [
+#   {
+#     "dex": "Uniswap V2",
+#     "pair": "TOKEN/USDT",
+#     "liquidity_usd": 123456.78,
+#     "pair_address": "0xabc...",
+#     "last_updated": "2024-04-15T12:34:56Z"
+#   }
+# ]
+#
+# 字段名	说明
+# dex	去中心化交易所名称（如 Uniswap、PancakeSwap）
+# pair	交易对名称（如 TOKEN/USDT）
+# liquidity_usd	当前交易对中的美元流动性金额
+# pair_address	该交易对合约地址
+# last_updated	数据最后更新时间
+# 💰 symbol_info（币种基本信息）
+#
+# 字段名	说明
+# symbol	代币符号（如 ETH、BTC）
+# name	代币名称
+# price_usd	当前价格（以美元计）
+# percent_change_1h	过去 1 小时的价格涨跌幅（%）
+# percent_change_24h	过去 24 小时的价格涨跌幅（%）
+# percent_change_7d	过去 7 天的价格涨跌幅（%）
+# volume_24h_usd	24 小时内交易量（美元）
+# market_cap_usd	当前市场总市值（美元）
+# circulating_supply	流通中的代币数量
+# total_supply	代币总发行量
+# max_supply	最大供应量（如果有限制）
+# last_updated	数据更新时间戳
 def uniongoPlusResultAndsymbolResultDetails(goPlusResult, symbolResult):
-    pass
+    return {
+        "risk_info": {
+            "honeypot": goPlusResult.get("is_honeypot"),
+            "slippage_modifiable": goPlusResult.get("slippage_modifiable"),
+            "hidden_owner": goPlusResult.get("hidden_owner"),
+            "blacklisted": goPlusResult.get("blacklisted"),
+            "mintable": goPlusResult.get("mintable"),
+            "transfer_pausable": goPlusResult.get("transfer_pausable"),
+            "proxy_contract": goPlusResult.get("is_proxy"),
+            "buy_tax": goPlusResult.get("buy_tax"),
+            "sell_tax": goPlusResult.get("sell_tax"),
+            "creator_address": goPlusResult.get("creator_address"),
+            "creator_percent": goPlusResult.get("creator_percent"),
+            "deployer_percent": goPlusResult.get("deployer_percent"),
+            "holders": goPlusResult.get("holders"),
+            "cannot_buy": goPlusResult.get("cannot_buy"),
+            "cannot_sell_all": goPlusResult.get("cannot_sell_all"),
+        },
+        "dex_liquidity": goPlusResult.get("dex", []),  # DEX 流动性池信息数组
+        "symbol_info": {
+            "symbol": symbolResult.get("symbol"),
+            "name": symbolResult.get("name"),
+            "price_usd": symbolResult.get("price_usd"),
+            "percent_change_1h": symbolResult.get("percent_change_1h"),
+            "percent_change_24h": symbolResult.get("percent_change_24h"),
+            "percent_change_7d": symbolResult.get("percent_change_7d"),
+            "volume_24h_usd": symbolResult.get("volume_24h_usd"),
+            "market_cap_usd": symbolResult.get("market_cap_usd"),
+            "circulating_supply": symbolResult.get("circulating_supply"),
+            "total_supply": symbolResult.get("total_supply"),
+            "max_supply": symbolResult.get("max_supply"),
+            "last_updated": symbolResult.get("last_updated")
+        }
+    }
+
 
 #其他类型API工具分析
 def api_extra_asnyc(selectedType,type_value):
@@ -89,11 +228,12 @@ def api_extra_asnyc(selectedType,type_value):
     goPlusResult = GoPlusAPISearch(chain_id, contract_addresses)
     #symbolResult
     symbolResult = SymbolAPISearch(symbol)
+    symbolResult = symbolResult[0] #只取第一个数组数据
     response = {}
     response["overview"] = uniongoPlusResultAndsymbolResultOverView(goPlusResult,symbolResult)
     response["details"] =uniongoPlusResultAndsymbolResultDetails(goPlusResult,symbolResult)
     response["type"] = type_value
-    response["state"] =  TaskState.RESEARCH_TASK_DISPLAY_RESEARCH,
+    response["state"] =  TaskState.RESEARCH_TASK_DISPLAY_RESEARCH
     return response
 
 #默认返回处理函数
@@ -189,8 +329,9 @@ def getDetailRowdata(selectedType):
     #如果没有错误返回
     if not result.get("error"):
         return result.get("data",{})
+    return {}
 
-    return result
+
 
 #根据选择的获取详情信息
 def OverView(result):
@@ -413,12 +554,18 @@ async def research_task(state: AgentState) -> AgentState:
 
 if __name__ == '__main__':
     # result = SymbolAPISearch("SHIB")
-    # print(result)
+    # print(result[0])
     # res=searchRowData("ETH")
-    res= getDetailRowdata({
-        "id":15927
-    })
-    print(res)
+    # res= getDetailRowdata({
+    #     "id":15927
+    # })
     # print(res)
+    # print(res)
+    res =api_extra_asnyc({
+        "chain_id":56,
+        "contract_addresses": ["0xba2ae424d960c26247dd6c32edc70b295c744c43"],
+        "symbol": "SHIB"
+    },3)
+    print(res)
     # res=GoPlusAPISearch(56,["0xba2ae424d960c26247dd6c32edc70b295c744c43"])
     # print(res)
