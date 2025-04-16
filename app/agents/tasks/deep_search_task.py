@@ -160,7 +160,7 @@ def uniongoPlusResultAndsymbolResultOverView(goPlusResult, CMCResult,Contract_Ad
     top10Banlance = sum_top_10_balances(safe_get(goPlusResult,"holders"))
     top10_holders_ratio = sum_top10_holders_ratio(safe_get(goPlusResult,"holders"))
     basic_info = {
-        "Token_Price":round(price,4),
+        "Token_Price":str(round(price,4)),
         "FDV":fdv,
         "M.Cap":mcap,
         "Max_Supply":max_supply,
@@ -170,8 +170,8 @@ def uniongoPlusResultAndsymbolResultOverView(goPlusResult, CMCResult,Contract_Ad
         "Contract_Creator":creator_address,
         "Contract_Owner":owner_address,
         "Toker_Holders":holder_count,
-        "Token_Supply":top10Banlance,
-        "Top10_Holders_Ratio":top10_holders_ratio
+        "Token_Supply": str(top10Banlance),
+        "Top10_Holders_Ratio": str(top10_holders_ratio),
     }
     #组织返回基础信息
     return basic_info
@@ -305,8 +305,8 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
         "Contract_Creator": creator_address,
         "Contract_Owner": owner_address,
         "Toker_Holders": holder_count,
-        "Token_Supply": top10Banlance,
-        "Top10_Holders_Ratio": top10_holders_ratio,
+        "Token_Supply": str(top10Banlance),
+        "Top10_Holders_Ratio": str(top10_holders_ratio),
         "Contract_Source_Code_Verified":is_open_source,
         "No_Proxy":is_proxy,
         "No_Function_Found_That_Retrieves_Ownership":can_take_back_ownership,
@@ -337,14 +337,16 @@ def api_extra_asnyc(selectedType,type_value):
     chain_id = selectedType.get("chain_id")
     contract_addresses = selectedType.get("contract_addresses")
     symbol= selectedType.get("symbol")
+    response = {"overview":{},"details":{}}
     #goPlusResult
     goPlusResult = GoPlusAPISearch(chain_id, contract_addresses)
     #symbolResult
     symbolResult = SymbolAPISearch(symbol)
-    symbolResult = symbolResult[0] #只取第一个数组数据
-    response = {}
-    response["overview"] = uniongoPlusResultAndsymbolResultOverView(goPlusResult,symbolResult,contract_addresses)
-    response["details"] =uniongoPlusResultAndsymbolResultDetails(goPlusResult,symbolResult,contract_addresses)
+    if goPlusResult and symbolResult:
+        symbolResult = symbolResult[0]  # 只取第一个数组数据
+        response["overview"] = uniongoPlusResultAndsymbolResultOverView(goPlusResult, symbolResult, contract_addresses)
+        response["details"] = uniongoPlusResultAndsymbolResultDetails(goPlusResult, symbolResult, contract_addresses)
+
     response["type"] = type_value
     response["state"] =  TaskState.RESEARCH_TASK_DISPLAY_RESEARCH
     return response
@@ -599,6 +601,7 @@ async def research_task(state: AgentState) -> AgentState:
             "overview": handled_result.get("overview", {}),
             "details": handled_result.get("details", {}),
             "state": handled_result.get("state", ""),
+            "type":handled_result.get("type")
         })
         return state.copy(update={"result": data})
 
