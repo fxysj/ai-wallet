@@ -186,6 +186,10 @@ def getDetailRowdata(selectedType):
     }
     # 使用工具函数发起请求
     result = send_post_request(url, payload, headers)
+    #如果没有错误返回
+    if not result.get("error"):
+        return result.get("data",{})
+
     return result
 
 #根据选择的获取详情信息
@@ -411,9 +415,9 @@ if __name__ == '__main__':
     # result = SymbolAPISearch("SHIB")
     # print(result)
     # res=searchRowData("ETH")
-    res= getDetailRowdata({"selectedType": {
+    res= getDetailRowdata({
         "id":15927
-    }})
+    })
     print(res)
     # print(res)
     # res=GoPlusAPISearch(56,["0xba2ae424d960c26247dd6c32edc70b295c744c43"])
