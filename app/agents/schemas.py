@@ -83,6 +83,7 @@ class AgentState(BaseModel):
     result: Any = None #传递内部数据
     langguage:str="中文"#默认语言是中文的方式
     isAsync:bool=False #是否需要分析 默认不需要
+    thinking_info:Any=None #模型思考
 
 
 class ResearchTopicSchema(BaseModel):
