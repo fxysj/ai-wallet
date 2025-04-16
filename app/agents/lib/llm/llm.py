@@ -17,7 +17,7 @@ class LLMFactory():
         return llm
 
     @staticmethod
-    def getOpenAI(open_key, url, initial_state=None) -> ChatOpenAI:
+    def getOpenAI(open_key, url) -> ChatOpenAI:
         print(f"Using OpenAI URL: {url}")
         # 如果有初始状态，就创建一个回调 handler
         # callbacks = []
@@ -35,7 +35,7 @@ class LLMFactory():
         return llm
 
     @staticmethod
-    def getDefaultOPENAI(initial_state=None) -> ChatOpenAI:
+    def getDefaultOPENAI() -> ChatOpenAI:
 
         # 如果有初始状态，就创建一个回调 handler
         # callbacks = []
