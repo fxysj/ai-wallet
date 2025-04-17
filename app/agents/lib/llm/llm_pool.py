@@ -1,3 +1,4 @@
+import copy
 import json
 import time
 import logging
@@ -115,18 +116,18 @@ def retry_with_backoff(func, retries: int = 3, delay: float = 2.0):
 # 6. JsonOutputParser with Fallback
 class JsonOutputParser:
     def parse(self, response: str, response_model: Type[BaseModel]):
-        # Log the raw response for debugging
         logger.info(f"Raw response from LLM: {response}")
 
         try:
-            # Try parsing the response as JSON
+            # 解析 JSON 并进行深度拷贝
             response_dict = json.loads(response)
-            # Directly assign the JSON data to the model
-            return response_model(data=response_dict)
+            response_dict = copy.deepcopy(response_dict)
+            return response_model(**response_dict)
         except json.JSONDecodeError:
-            # If the response is not JSON, assign it to the response attribute
+            # 如果是文本，也进行深度拷贝
+            response_copy = copy.deepcopy(response)
             logger.info("Response is not JSON, returning plain text.")
-            return response_model(response=response)
+            return response_model(response=response_copy)
 
 
 # 7. LLMChain with Rate Limiting, Circuit Breaking, and Logging
