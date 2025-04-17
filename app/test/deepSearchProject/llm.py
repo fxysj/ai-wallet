@@ -5,7 +5,7 @@ from app.test.deepSearchProject.deepSearchTask_prompt_test import DEEPSEARCHTASK
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 def generate_chain():
-    llm = LLMFactory.getDefaultDeepSearchOPENAI()
+    llm = LLMFactory.getDefaultOPENAI()
     prompt = PromptTemplate(
         template=DEEPSEARCHTASK_PROMPT_TEST,
         input_variables=["current_data", "history", "input", "langguage", "chain_data"],

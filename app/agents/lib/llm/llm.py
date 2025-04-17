@@ -12,7 +12,7 @@ class LLMFactory():
             model="gpt-4o-search-preview",
             temperature=0.3,
             openai_api_key=settings.OPENAI_API_KEY,
-            openai_api_base=settings.OPENAI_API_BASE_URL
+            openai_api_base=settings.OPENAI_API_BASE_URL,
         )
         return llm
 
