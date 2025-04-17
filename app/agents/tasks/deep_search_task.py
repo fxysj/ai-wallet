@@ -578,6 +578,23 @@ def call_llm_chain_wrap(state: AgentState):
         })
 
 
+def filter_items(data_list):
+    if not data_list or not isinstance(data_list, list):
+        return []
+
+    def is_valid_type_2_or_4(item):
+        return item.get("type") in (2, 4) and isinstance(item.get("id"), int)
+
+    def is_valid_type_3(item):
+        return (
+            item.get("type") == 3
+            and item.get("chain_id") not in (None, "", [])
+            and item.get("contract_addresses")
+            and item.get("symbol")
+        )
+
+    return [item for item in data_list if is_valid_type_2_or_4(item) or is_valid_type_3(item)]
+
 #需要根据返回的typelist进行优化处理
 def wrapListInfo(typelist):
     new_list = []
@@ -671,7 +688,7 @@ async def research_task(state: AgentState) -> AgentState:
                 return state.copy(update={"result": data})
 
             # 对 LLM 返回的数据进行处理
-            data["typeList"] = wrapListInfo(data.get("typeList"))
+            data["typeList"] = filter_items(wrapListInfo(data.get("typeList")))
         return update_result_with_handling(data, state)
 
     # 情况二：attached_data 不存在，同样调用 LLM
@@ -686,7 +703,7 @@ async def research_task(state: AgentState) -> AgentState:
         data["timestamp"] = time.time()
         return state.copy(update={"result": data})
 
-    data["typeList"] = wrapListInfo(data.get("typeList"))
+    data["typeList"] = filter_items(wrapListInfo(data.get("typeList")))
     return update_result_with_handling(data, state)
 
 
