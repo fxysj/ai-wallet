@@ -37,6 +37,9 @@ class Settings(BaseSettings):
 
     modelname:str=Field(default="",env="modelname")
 
+    TAVILY_API_KEY:str=Field(default="",env="TAVILY_API_KEY")
+
+
     # 其他缓队列的配置
 
     class Config:
