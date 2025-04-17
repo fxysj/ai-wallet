@@ -4,6 +4,7 @@ from app.config import settings
 from app.agents.lib.llm.callback.CallbackHandler import ThoughtCaptureHandler
 from pydantic import BaseModel
 from typing import Type, Optional
+import json
 
 
 # 1. 定义返回类型的 Pydantic 模型
@@ -33,7 +34,19 @@ class LLMFactory():
 class JsonOutputParser:
     def parse(self, response: str, response_model: Type[BaseModel]):
         """解析 JSON 输出并转换为 Pydantic 模型"""
-        return response_model(response=response)
+        try:
+            # 假设响应是一个 JSON 字符串，尝试将其解析为字典
+            response_dict = json.loads(response)
+
+            # 从响应字典中提取 'data' 字段
+            if "data" not in response_dict:
+                raise ValueError("'data' field is missing in the response")
+
+            # 创建模型实例
+            return response_model(data=response_dict["data"])
+        except (json.JSONDecodeError, ValueError) as e:
+            # 解析失败时返回错误信息
+            raise ValueError(f"Failed to parse response: {str(e)}")
 
 
 class LLMChain:
@@ -122,5 +135,7 @@ if __name__ == '__main__':
     # 调用链处理用户最新输入
     chain_response = chain.invoke(prompt_data, Data)
 
+
     # 打印返回的模型实例
-    print(chain_response.json())  # 输出符合 Data 格式的 JSON
+    print(chain_response.model_dump_json())  # 输出符合 Data 格式的 JSON
+
