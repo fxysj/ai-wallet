@@ -1,8 +1,10 @@
-from typing import Type, Dict, Any
+import asyncio
+from typing import Type, Dict, Any, List
 
 from pydantic import BaseModel
 
 from app.agents.lib.llm.extension.chain import ChainNode
+from app.agents.lib.llm.llm_pool import ResponseModel
 
 
 class ChainExecutor:
@@ -48,3 +50,16 @@ class ChainExecutor:
                 results.extend(next_results)
 
         return results
+
+# 添加并行处理
+async def execute_parallel(self, nodes: List[ChainNode], input_data):
+    tasks = [self.execute(node, input_data, ResponseModel) for node in nodes]
+    return await asyncio.gather(*tasks)
+
+# 添加错误处理
+async def execute_with_fallback(self, primary_node, fallback_node, input_data):
+    try:
+        return await self.execute(primary_node, input_data, ResponseModel)
+    except Exception as e:
+        print(f"Primary node failed: {e}, trying fallback")
+        return await self.execute(fallback_node, input_data, ResponseModel)
