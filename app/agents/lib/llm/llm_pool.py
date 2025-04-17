@@ -1,7 +1,6 @@
 from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 from app.config import settings
-from app.agents.lib.llm.callback.CallbackHandler import ThoughtCaptureHandler
 from pydantic import BaseModel
 from typing import Type, Optional
 import json
@@ -33,20 +32,27 @@ class LLMFactory():
 # 3. 创建链式调用（PromptTemplate -> LLM -> JsonOutputParser）
 class JsonOutputParser:
     def parse(self, response: str, response_model: Type[BaseModel]):
-        """解析 JSON 输出并转换为 Pydantic 模型"""
+        """Parse the response from LLM, handling both JSON and plain text."""
         try:
-            # 假设响应是一个 JSON 字符串，尝试将其解析为字典
-            response_dict = json.loads(response)
+            # Log the raw response for debugging
+            print(f"Raw response from LLM: {response}")
 
-            # 从响应字典中提取 'data' 字段
-            if "data" not in response_dict:
-                raise ValueError("'data' field is missing in the response")
+            # Try parsing the response as JSON
+            try:
+                response_dict = json.loads(response)
+                # Check if 'data' field exists in the response
+                if "data" not in response_dict:
+                    raise ValueError("'data' field is missing in the response")
+                return response_model(data=response_dict["data"])
+            except json.JSONDecodeError:
+                # If the response is not JSON, return as plain text
+                print("Response is not JSON, returning plain text.")
+                return response_model(response=response)
 
-            # 创建模型实例
-            return response_model(data=response_dict["data"])
         except (json.JSONDecodeError, ValueError) as e:
-            # 解析失败时返回错误信息
+            # Log detailed error message
             raise ValueError(f"Failed to parse response: {str(e)}")
+
 
 
 class LLMChain:
