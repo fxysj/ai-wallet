@@ -85,6 +85,7 @@ tron	Tron
 4. 不调用 RootData；
 5. 输出格式需与其他类型一致。
 
+
 🌍【当前语言】：{language}
 🗣【当前输入】：{input}  
 📜【对话历史】：{history} 

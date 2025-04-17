@@ -125,6 +125,10 @@ def wrapListInfo(typelist):
 
     for item in typelist:
         item_type = item.get("type")
+        # 只处理 type 为 1, 2, 3, 4 的项
+        if item_type not in [1, 2, 3, 4]:
+            continue
+
         if item_type in [2, 4]:
             title = item.get("title")
             if not title:
@@ -135,6 +139,7 @@ def wrapListInfo(typelist):
             search_result = searchRowData(title).get("data")
             if isinstance(search_result, list) and len(search_result) > 0:
                 first_data = search_result[0]
+                print("first_data:",first_data)
 
                 # 创建新项，保留原有字段，只替换指定字段
                 updated_item = item.copy()
@@ -164,7 +169,7 @@ def test_case_1_basic_search():
 
 
 def test_case_2_modify_input():
-    run_deep_search_test("深度搜索")
+    run_deep_search_test("Solana")
 
 
 def test_case_3_missing_fields():
