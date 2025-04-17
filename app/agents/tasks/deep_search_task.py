@@ -562,6 +562,21 @@ def searchRowData(query):
     # 使用工具函数发起请求
     return send_post_request(url, payload, headers)
 
+#测试分类信息
+def call_llm_chain_wrap(state: AgentState):
+        prompt = PromptTemplate(
+            template=DEEPSEARCHTASK_PROMPT_TEST,
+            input_variables=["current_data", "history", "input", "langguage"],
+        )
+        llm = LLMFactory.getDefaultDeepSearchOPENAI()
+        chain = prompt | llm | JsonOutputParser()
+        return chain.invoke({
+            "current_data": str(state.attached_data),
+            "history": state.history,
+            "input": state.user_input,
+            "language": state.langguage
+        })
+
 
 #需要根据返回的typelist进行优化处理
 def wrapListInfo(typelist):
@@ -713,12 +728,12 @@ if __name__ == '__main__':
     # })
     # print(res)
     # print(res)
-    res =api_extra_asnyc({
-        "chain_id":56,
-        "contract_addresses": ["0xba2ae424d960c26247dd6c32edc70b295c744c43"],
-        "symbol": "SHIB"
-    },3)
-    print(res)
+    # res =api_extra_asnyc({
+    #     "chain_id":56,
+    #     "contract_addresses": ["0xba2ae424d960c26247dd6c32edc70b295c744c43"],
+    #     "symbol": "SHIB"
+    # },3)
+    # print(res)
     # holders =  [
     #             {
     #                 "address": "0xf89d7b9c864f589bbf53a82105107622b35eaa40",
@@ -809,3 +824,12 @@ if __name__ == '__main__':
     # print(f"前十地址平均信息：{result}")
     # res=GoPlusAPISearch(56,["0xba2ae424d960c26247dd6c32edc70b295c744c43"])
     # print(res)
+    state = AgentState(
+        attached_data={},
+        history="",
+        user_input="solana",
+        langguage="cn",
+        messages=[]
+    )
+    res = call_llm_chain_wrap(state)
+    print(res)
