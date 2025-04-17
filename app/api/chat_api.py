@@ -5,6 +5,7 @@ from  app.agents.lib.llm.llm import  LLMFactory
 from app.agents.tasks.analysis_task import parse_complex_intent
 from .exceptions.exceptions import BusinessException
 from app.agents.utils import chain_data_util
+from ..agents.form.form import TaskState
 from ..agents.lib.aiNodeJsSDk.tools.AgentStateResponseWrape import stream_text_agent_state, generate_chat_responses, \
     stream_text_agent_state_transfor
 from ..agents.lib.redisManger.redisManager import RedisDictManager
@@ -101,16 +102,33 @@ display_and_save_graph(app=app,filename="graph.png",output_dir="graphs")
 # ------------------------------------------------------------------------------
 @router.get("/test",summary="测试接口")
 async def test(request:Request):
-    return BaseResponse.success(request.headers.values())
+    initial_state = AgentState(
+        user_input="我想转账",  # 用户输入信息
+        attached_data={"indent":Intention.unclear.value},  # 用户保存的数据信息
+        session_id="ssd",  # 会话信息
+        history="",  # 历史上下文信息
+        chain_data={},  # 链数据
+        messages=[],  # 历史信息
+        langguage=settings.LanGuage,  # 语言配置
+        isAsync=settings.ISLangGuageAynsNIS,  # 是否进行配置
+        detected_intent=Intention.unclear,  # 默认不知道
+        thinking_info=""
+    )
+    result = await app.ainvoke(initial_state)
+    print("DEBUG - result 类型:", type(result))
+    print("result:", result)
+    # ✅ 将其挂载到 request 上，供中间件后续使用
+    request.state.agent_state = result
+    return BaseResponse.success(result)
 
 #测试业务异常
 @router.get("/ex")
-def test_error():
+async def test_error():
     raise BusinessException(code=1001,msg="测试业务异常")
 
 
 @router.get("/parser")
-def test_parser():
+async def test_parser():
     from langchain_core.exceptions import OutputParserException
     raise OutputParserException("这是一个输出解析错误")
 
@@ -210,6 +228,8 @@ async def analyze_request(request: Request):
         result = await app.ainvoke(initial_state)
         print("DEBUG - result 类型:", type(result))
         print("result:",result)
+        # ✅ 将其挂载到 request 上，供中间件后续使用
+        request.state.agent_state = result
         # 确保 session 已初始化，防止为 None 的错误
         if session is None:
             session = {}
