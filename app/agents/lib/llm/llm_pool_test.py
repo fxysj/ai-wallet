@@ -1,3 +1,7 @@
+import json
+import time
+from typing import Optional
+
 from langchain_core.prompts import PromptTemplate
 from pydantic import BaseModel
 
@@ -162,12 +166,64 @@ def rate_limiting_test():
         if i >= 10:
             assert response.status == "error", "Test failed: Rate limiting should block the request"
 
+
+def test_complex_json_format():
+    # 定义复杂的提示词模板
+    complex_prompt_template = """
+    You are an advanced assistant. Please provide a detailed response in JSON format that includes:
+    - 'response': a string, describing the answer to the question.
+    - 'metadata': an object with keys:
+        - 'timestamp': the current time in seconds since epoch.
+        - 'language': the language of the response.
+        - 'context': an optional description of the user's inquiry.
+    - 'status': a string, either "success" or "error", indicating the status of the response.
+    - 'additional_info': optional string, any additional information about the request.
+
+    Respond to the following question: {user_input}
+    """
+
+    # 输入数据
+    prompt_data = {
+        "prompt_template": complex_prompt_template,
+        "user_input": "What is the meaning of life?",
+        "timestamp": str(int(time.time())),
+        "context": "User is seeking a philosophical perspective.",
+    }
+
+    # 自定义返回的Pydantic模型
+    class ComplexResponseModel(BaseModel):
+        response: str
+        status: str
+        metadata: dict
+        additional_info: Optional[str] = None
+
+    # 模拟 LLM 服务调用
+    llm_service = LLMService(pool_size=3)
+
+    # 获取响应
+    response = llm_service.get_response(prompt_data, ComplexResponseModel)
+
+    # 断言检查
+    assert response.status == "success", f"Expected success, got {response.status}"
+    assert "response" in response.dict(), "Missing 'response' field"
+    assert "metadata" in response.dict(), "Missing 'metadata' field"
+    assert "timestamp" in response.metadata, "Missing 'timestamp' in metadata"
+    assert "language" in response.metadata, "Missing 'language' in metadata"
+
+    # 输出完整的响应
+    print(json.dumps(response.dict(), indent=4))
+
+
+# 运行测试
+
+
 if __name__ == "__main__":
-    basic_test()
-    concurrent_test()
-    circuit_breaker_test()
-    complex_case_test()
-    custom_response_test()
-    complex_prompt_test()
-    fallback_test()
-    rate_limiting_test()
+    test_complex_json_format()
+    # basic_test()
+    # concurrent_test()
+    # circuit_breaker_test()
+    # complex_case_test()
+    # custom_response_test()
+    # complex_prompt_test()
+    # fallback_test()
+    # rate_limiting_test()

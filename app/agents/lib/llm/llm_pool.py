@@ -115,24 +115,18 @@ def retry_with_backoff(func, retries: int = 3, delay: float = 2.0):
 # 6. JsonOutputParser with Fallback
 class JsonOutputParser:
     def parse(self, response: str, response_model: Type[BaseModel]):
-        try:
-            # Log the raw response for debugging
-            logger.info(f"Raw response from LLM: {response}")
+        # Log the raw response for debugging
+        logger.info(f"Raw response from LLM: {response}")
 
+        try:
             # Try parsing the response as JSON
-            try:
-                response_dict = json.loads(response)
-                # Check if 'data' field exists in the response
-                if "data" not in response_dict:
-                    raise ValueError("'data' field is missing in the response")
-                return response_model(data=response_dict["data"])
-            except json.JSONDecodeError:
-                # If the response is not JSON, return as plain text
-                logger.info("Response is not JSON, returning plain text.")
-                return response_model(response=response)
-        except (json.JSONDecodeError, ValueError) as e:
-            logger.error(f"Failed to parse response: {str(e)}")
-            raise ValueError(f"Failed to parse response: {str(e)}")
+            response_dict = json.loads(response)
+            # Directly assign the JSON data to the model
+            return response_model(data=response_dict)
+        except json.JSONDecodeError:
+            # If the response is not JSON, assign it to the response attribute
+            logger.info("Response is not JSON, returning plain text.")
+            return response_model(response=response)
 
 
 # 7. LLMChain with Rate Limiting, Circuit Breaking, and Logging
