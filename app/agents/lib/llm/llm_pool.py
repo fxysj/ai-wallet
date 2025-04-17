@@ -6,6 +6,9 @@ import random
 from typing import Type, Optional
 from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
+
+from app.agents.lib.llm.extension.context import LLMContext
+from app.agents.lib.llm.extension.service_decorator import llm_service_wrapper
 from app.config import settings
 from pydantic import BaseModel
 from threading import Lock
@@ -167,6 +170,8 @@ class LLMChain:
             return ResponseModel(response="Service failed to respond.", status="error")
 
 
+
+
 # 8. Service Integration
 class LLMService:
     def __init__(self, pool_size: int = 5):
@@ -178,6 +183,16 @@ class LLMService:
         """简化外部调用接口"""
         return self.chain.invoke(prompt_data, response_model)
 
+
+class EnhancedLLMService(LLMService):
+    def __init__(self, pool_size: int = 5):
+        super().__init__(pool_size)
+        self.context = LLMContext()
+
+    @llm_service_wrapper
+    async def get_response(self, prompt_data: dict, response_model: Type[BaseModel]):
+        # 保持原有的实现不变
+        return  super().get_response(prompt_data, response_model)
 
 # Example usage
 if __name__ == '__main__':
