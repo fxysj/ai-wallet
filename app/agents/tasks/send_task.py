@@ -46,7 +46,7 @@ async def send_task(state: AgentState) -> AgentState:
         "langguage": state.langguage,
         "chain_data": state.chain_data
     })
-    
+
     print(chain_response)
     response_data = chain_response
     data = response_data.get("data")
