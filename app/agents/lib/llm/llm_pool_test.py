@@ -1,92 +1,173 @@
-from langchain.prompts import PromptTemplate
-
-
-from app.agents.lib.llm.llm_pool import LLMService, Chain, JsonOutputParser, Data
+from langchain_core.prompts import PromptTemplate
 from pydantic import BaseModel
-from typing import Type, Optional
+
+from app.agents.lib.llm.llm_pool import LLMService, ResponseModel
 
 
-# Dummy response model for testing
-class SimpleResponseModel(BaseModel):
-    response: str
-    status: str = "success"
-    additional_info: Optional[str] = None
-
-# Static prompt template for testing
-simple_prompt_template = "Please provide a brief health tip."
-
-# Test the response with no dynamic variables
-def test_simple_prompt():
-    # Setup prompt and LLM service
+def basic_test():
     prompt_template = PromptTemplate(
-        template=simple_prompt_template,
-        input_variables=[]
+        template="What is the meaning of life?",
+        input_variables=["input"]
     )
-
-    llm_service = LLMService(pool_size=10)  # Set pool size to 3
-
+    llm_service = LLMService(pool_size=3)
     prompt_data = {
         "prompt_template": prompt_template,
-        "current_data": None,  # No dynamic data
-        "history": None,
-        "input": None,
-        "langguage": "zh",
-        "chain_data": None
+        "input": "What is the meaning of life?"
     }
 
-    chain = Chain(prompt_template, llm_service.chain.pool[0], JsonOutputParser())
-    chain_response = chain.invoke(prompt_data, SimpleResponseModel)
-
-    print(chain_response.model_dump_json())  # Should print the response in the SimpleResponseModel format
-    # assert chain_response.response == "Your health tip: Eat a balanced diet and exercise regularly."
-
-test_simple_prompt()
-
+    # Get response
+    response = llm_service.get_response(prompt_data, ResponseModel)
+    print(f"Basic Test Response: {response}")
+    assert response.status == "success", "Test failed: Status should be 'success'"
 
 
 
 import threading
-import time
 
+def concurrent_test():
+    def make_request(thread_id):
+        prompt_template = PromptTemplate(
+            template="Provide a health tip for {input}",
+            input_variables=["input"]
+        )
+        llm_service = LLMService(pool_size=3)
+        prompt_data = {
+            "prompt_template": prompt_template,
+            "input": f"Request {thread_id}"
+        }
 
+        response = llm_service.get_response(prompt_data, ResponseModel)
+        print(f"Thread {thread_id}: {response}")
 
-def test_concurrent_requests():
-    # Setup the basic test
+    threads = []
+    for i in range(10):  # Test with 10 concurrent requests
+        thread = threading.Thread(target=make_request, args=(i,))
+        threads.append(thread)
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+
+def circuit_breaker_test():
     prompt_template = PromptTemplate(
-        template="Please provide a health tip based on the following input: {input}",
+        template="What is the meaning of life?",
         input_variables=["input"]
     )
 
     llm_service = LLMService(pool_size=3)
-    state = {
-        "input": "I am looking for a diet plan."
-    }
-
     prompt_data = {
         "prompt_template": prompt_template,
-        "current_data": None,
-        "history": None,
-        "input": state["input"],
-        "langguage": "zh",
-        "chain_data": None
+        "input": "What is the meaning of life?"
     }
-    chain_01 = Chain(prompt_template, llm_service.chain.pool[0], JsonOutputParser())
-    # A function to simulate invoking the LLM service concurrently
-    def invoke_llm_service_concurrently(prompt_data, response_model, thread_id):
-        try:
-            chain_response = chain_01.invoke(prompt_data, response_model)
-            print(f"Thread {thread_id}: {chain_response.model_dump_json()}")
-        except Exception as e:
-            print(f"Thread {thread_id} failed: {str(e)}")
-    # Creating multiple threads to test concurrency
-    threads = []
-    for i in range(10):  # Let's test with 10 concurrent requests
-        thread = threading.Thread(target=invoke_llm_service_concurrently, args=(prompt_data, SimpleResponseModel, i))
-        threads.append(thread)
-        thread.start()
 
-    # Wait for all threads to complete
-    for thread in threads:
-        thread.join()
-if __name__ == '__main__':
-  test_concurrent_requests()
+    # Simulate failure by making multiple unsuccessful calls
+    for i in range(5):  # Exceed the circuit breaker threshold (3 failures)
+        response = llm_service.get_response(prompt_data, ResponseModel)
+        print(f"Attempt {i + 1}: {response}")
+        assert response.status == "error", "Test failed: Circuit breaker should be triggered"
+
+def complex_case_test():
+    prompt_template = PromptTemplate(
+        template="Provide a health tip for {input} with additional info {info}",
+        input_variables=["input", "info"]
+    )
+
+    llm_service = LLMService(pool_size=3)
+    prompt_data = {
+        "prompt_template": prompt_template,
+        "input": "I need to lose weight.",
+        "info": "I am 30 years old."
+    }
+
+    # Get response
+    response = llm_service.get_response(prompt_data, ResponseModel)
+    print(f"Complex Case Test Response: {response}")
+    assert response.status == "success", "Test failed: Status should be 'success'"
+
+class CustomResponseModel(BaseModel):
+    message: str
+    result: str
+
+def custom_response_test():
+    prompt_template = PromptTemplate(
+        template="Tell me something interesting about {input}",
+        input_variables=["input"]
+    )
+
+    llm_service = LLMService(pool_size=3)
+    prompt_data = {
+        "prompt_template": prompt_template,
+        "input": "space exploration"
+    }
+
+    response = llm_service.get_response(prompt_data, CustomResponseModel)
+    print(f"Custom Response Test: {response}")
+    assert response.result == "success", "Test failed: Custom response model didn't return expected result"
+
+def complex_prompt_test():
+    prompt_template = PromptTemplate(
+        template="You are an expert in {field}. Please answer the following question: {question}",
+        input_variables=["field", "question"]
+    )
+
+    llm_service = LLMService(pool_size=3)
+    prompt_data = {
+        "prompt_template": prompt_template,
+        "field": "astronomy",
+        "question": "What is a black hole?"
+    }
+
+    response = llm_service.get_response(prompt_data, ResponseModel)
+    print(f"Complex Prompt Test Response: {response}")
+    assert response.status == "success", "Test failed: Status should be 'success'"
+
+def fallback_test():
+    prompt_template = PromptTemplate(
+        template="What is the meaning of life?",
+        input_variables=["input"]
+    )
+
+    llm_service = LLMService(pool_size=3)
+    prompt_data = {
+        "prompt_template": prompt_template,
+        "input": "What is the meaning of life?"
+    }
+
+    # Simulate an invalid response scenario
+    def invalid_response():
+        return '{"invalid_response": "no data"}'
+
+    # Replace llm_service.invoke to simulate invalid response
+    llm_service.chain.pool[0].invoke = invalid_response
+    response = llm_service.get_response(prompt_data, ResponseModel)
+    print(f"Fallback Test Response: {response}")
+    assert response.status == "error", "Test failed: Fallback should have occurred"
+
+def rate_limiting_test():
+    prompt_template = PromptTemplate(
+        template="Provide a health tip for {input}",
+        input_variables=["input"]
+    )
+
+    llm_service = LLMService(pool_size=3)
+    prompt_data = {
+        "prompt_template": prompt_template,
+        "input": "How to improve my fitness?"
+    }
+
+    # Simulate multiple requests to exceed rate limit
+    for i in range(12):  # Exceed the limit of 10 requests per minute
+        response = llm_service.get_response(prompt_data, ResponseModel)
+        print(f"Rate Limiting Test Attempt {i + 1}: {response}")
+        if i >= 10:
+            assert response.status == "error", "Test failed: Rate limiting should block the request"
+
+if __name__ == "__main__":
+    basic_test()
+    concurrent_test()
+    circuit_breaker_test()
+    complex_case_test()
+    custom_response_test()
+    complex_prompt_test()
+    fallback_test()
+    rate_limiting_test()
