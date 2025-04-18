@@ -1,9 +1,11 @@
 # 初始化大模型
 from langchain_openai import ChatOpenAI
+from typing import Optional, Union
 
-from app.agents.lib.llm.callback.CallbackHandler import ThoughtCaptureHandler
+from langgraph.prebuilt.chat_agent_executor import StructuredResponseSchema
+
 from app.config import settings
-
+from langgraph.prebuilt import create_react_agent
 
 class LLMFactory():
     @staticmethod
@@ -50,6 +52,25 @@ class LLMFactory():
             # callbacks=callbacks
         )
         return llm
+
+    @staticmethod
+    def create_custom_agent(llm, tools, prompt=None,debug=False,state=None, response_format: Optional[
+        Union[StructuredResponseSchema, tuple[str, StructuredResponseSchema]]
+    ] = None):
+        """
+        创建一个可注入提示词、LLM 和工具的 React Agent。
+
+        参数：
+        - llm: 语言模型（LangChain LLM 实例）
+        - tools: 工具列表（LangChain Tool 对象组成的列表）
+        - prompt: （可选）PromptTemplate 或字符串，作为 agent 的提示词
+
+        返回：
+        - agent: 创建好的 agent 对象
+        """
+        agent = create_react_agent(llm, tools, prompt=prompt,debug=debug,state_schema=state,response_format=response_format) if prompt else create_react_agent(llm, tools)
+        return agent
+
 
 if __name__ == '__main__':
     initial_state = {}
