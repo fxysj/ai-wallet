@@ -488,19 +488,40 @@ def EmptyResult():
 #新增类型处理
 def wrap_del_with_OverView(detail_data):
     #默认初始化为项目信息
-    res = {
+
+    price = detail_data.get("price", "")
+    if not price:
+        price = 0.0
+
+    fdv = detail_data.get("fully_diluted_market_cap", "")
+    if not fdv:
+        fdv=0
+
+    MCap=detail_data.get("market_cap", "")
+    if not MCap:
+        MCap=0
+
+    total_funding=detail_data.get("total_funding", "")
+    if not total_funding:
+        total_funding=0
+
+    followers=detail_data.get("followers", "")
+    if not  followers:
+        followers=0
+
+    res = filter_empty_values({
         "Project_Name": detail_data.get("project_name", ""),
         "logo": detail_data.get("logo", ""),
         "Token_Symbol": detail_data.get("token_symbol", ""),
-        "Token_Price": detail_data.get("price", ""),
-        "FDV": detail_data.get("fully_diluted_market_cap", ""),
-        "M.Cap": detail_data.get("market_cap", ""),
+        "Token_Price": str(round(price,2)),
+        "FDV": format_number(fdv),
+        "M.Cap": format_number(MCap),
         "Brief": detail_data.get("one_liner", ""),
-        "Fundraising_Amount": detail_data.get("total_funding", ""),
+        "Fundraising_Amount": format_number(total_funding),
         "Ecosystem": detail_data.get("ecosystem", ""),
-        "X_Followers": detail_data.get("followers", ""),
+        "X_Followers":format_number(followers),
         "Descroption": detail_data.get("description")
-    }
+    })
     #如果不是项目如果是4 VCTOKEN主流币
 #     if type==4:
 #         res = {
