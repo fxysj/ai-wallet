@@ -1,6 +1,6 @@
 # FastAPI 入口
 from contextlib import asynccontextmanager
-
+from sqlalchemy import inspect
 import uvicorn
 from app.api.chat_api import router as chat_router
 from app.api.exceptions.register import register_exception_handlers
@@ -15,6 +15,14 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         print("✅ 数据库表结构已初始化")
+
+        # 检查已创建的表
+        def do_inspect(sync_conn):
+            inspector = inspect(sync_conn)
+            return inspector.get_table_names()
+
+        tables = await conn.run_sync(do_inspect)
+        print(f"✅ 数据库和表已创建，当前存在的表: {tables}")
 
     yield  # 应用运行期间
 
