@@ -138,6 +138,27 @@ def sum_top10_holders_ratio(data):
     return round(total, 2)
 
 
+def format_number(num):
+    if num < 1000:
+        return f"{num:.2f}"
+    elif 1000 <= num < 1000000:
+        return f"{round(num / 1000, 2):.2f}K"
+    elif 1000000 <= num < 1000000000:
+        return f"{round(num / 1000000, 2):.2f}M"
+    else:
+        return f"{round(num / 1000000000, 2):.2f}B"
+
+def format_string(s):
+    if len(s) <= 10:
+        return s
+    return s[:4] + '***' + s[-6:]
+
+def filter_empty_values(info_dict):
+    for key, value in info_dict.items():
+        if value is None or (isinstance(value, str) and value.strip() == ""):
+            info_dict[key] = "--"
+    return info_dict
+
 def uniongoPlusResultAndsymbolResultOverView(goPlusResult, CMCResult,Contract_Address=""):
     """
         合并goPlusResult与symbolResult的字典数据，并进行合理的数据类型转换与默认值处理
@@ -153,12 +174,12 @@ def uniongoPlusResultAndsymbolResultOverView(goPlusResult, CMCResult,Contract_Ad
         price = price.get("USD").get("price")
 
     if max_supply is not None and price is not None:
-        fdv = round(max_supply * price, 2)
+        fdv = max_supply * price
     else:
         fdv = 0.0  # 或者 None，根据你的业务需求决定
 
     circulating_supply = safe_get(CMCResult, "circulating_supply")
-    mcap = round((circulating_supply or 0) * (price or 0), 2)
+    mcap = (circulating_supply or 0) * (price or 0)
 
     max_supply=safe_get(CMCResult, "max_supply")
     if not max_supply:
@@ -177,21 +198,21 @@ def uniongoPlusResultAndsymbolResultOverView(goPlusResult, CMCResult,Contract_Ad
     top10Banlance = sum_top_10_balances(safe_get(goPlusResult,"holders"))
     top10_holders_ratio = sum_top10_holders_ratio(safe_get(goPlusResult,"holders"))
     basic_info = {
-        "Token_Price":str(round(price,4)),
-        "FDV":fdv,
-        "M.Cap":mcap,
-        "Max_Supply":max_supply,
-        "Circulation":circulating_supply,
+         "Token_Price": f"{price:.2f}",
+         "FDV": format_number(fdv),
+         "M.Cap": format_number(mcap),
+         "Max_Supply": format_number(max_supply),
+         "Circulation": format_number(circulating_supply),
         "Token_Symbol":token_symbol,
-        "Contract_Address":Contract_Address,
-        "Contract_Creator":creator_address,
-        "Contract_Owner":owner_address,
-        "Toker_Holders":holder_count,
-        "Token_Supply": str(top10Banlance),
-        "Top10_Holders_Ratio": str(top10_holders_ratio),
+        "Contract_Address":format_string(Contract_Address),#按照前四后六进行展示
+        "Contract_Creator":format_string(creator_address),#按照前四后六进行展示
+        "Contract_Owner":format_string(owner_address),#按照前四后六进行展示
+        "Toker_Holders":holder_count,#统计风险项和注意项的总数。
+        "Token_Supply": str(top10Banlance),#保留小数点后两位展示。直接展示真实数字，不需要进行k m b单位换算。
+        "Top10_Holders_Ratio": str(top10_holders_ratio*100),#保留小数点后两位并采用百分比展示。
     }
     #组织返回基础信息
-    return basic_info
+    return filter_empty_values(basic_info)
 
 #需要进行根据 goPlusResult  symbolResult 按照目的对象VO进行整合
 #VODetails
@@ -387,20 +408,39 @@ def EmptyResult():
     }
 
 
+#新增类型处理
 def wrap_del_with_OverView(detail_data):
-    return {
-        "Project_Name":detail_data.get("project_name",""),
-        "logo":detail_data.get("logo",""),
-        "Token_Symbol":detail_data.get("token_symbol",""),
-        "Token_Price":detail_data.get("price",""),
-        "FDV":detail_data.get("fully_diluted_market_cap",""),
-        "M.Cap":detail_data.get("market_cap",""),
-        "Brief":detail_data.get("one_liner",""),
-        "Fundraising_Amount":detail_data.get("total_funding",""),
-        "Ecosystem":detail_data.get("ecosystem",""),
-        "X_Followers":detail_data.get("followers",""),
-        "Descroption":detail_data.get("description")
+    #默认初始化为项目信息
+    res = {
+        "Project_Name": detail_data.get("project_name", ""),
+        "logo": detail_data.get("logo", ""),
+        "Token_Symbol": detail_data.get("token_symbol", ""),
+        "Token_Price": detail_data.get("price", ""),
+        "FDV": detail_data.get("fully_diluted_market_cap", ""),
+        "M.Cap": detail_data.get("market_cap", ""),
+        "Brief": detail_data.get("one_liner", ""),
+        "Fundraising_Amount": detail_data.get("total_funding", ""),
+        "Ecosystem": detail_data.get("ecosystem", ""),
+        "X_Followers": detail_data.get("followers", ""),
+        "Descroption": detail_data.get("description")
     }
+    #如果不是项目如果是4 VCTOKEN主流币
+#     if type==4:
+#         res = {
+#     "Token_Price": detail_data.get("price", ""),
+#     "logo": detail_data.get("logo", ""),
+#     "Token_Symbol": detail_data.get("token_symbol", ""),
+#     "Project_Name": detail_data.get("project_name", ""),
+#     "FDV": detail_data.get("fully_diluted_market_cap", ""),
+#     "M.Cap": detail_data.get("market_cap", ""),
+#     "Brief": detail_data.get("one_liner", ""),
+#     "Fundraising_Amount": detail_data.get("total_funding", ""),
+#     "Ecosystem": detail_data.get("ecosystem", ""),
+#     "X_Followers": detail_data.get("followers", "")
+# }
+
+    return res
+
 
 
 def handle_type_based_data(type_item, attached_data):
@@ -726,5 +766,13 @@ async def research_task(state: AgentState) -> AgentState:
 
     data["typeList"] = filter_items(wrapListInfo(data.get("typeList")))
     return update_result_with_handling(data, state)
+if __name__ == '__main__':
+    # 示例调用
+    contract_address = "0x123456789abcdef"
+    contract_creator = "creator12345678"
+    contract_owner = "owner12345678"
 
+    print(format_string(contract_address))
+    print(format_string(contract_creator))
+    print(format_string(contract_owner))
 
