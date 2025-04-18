@@ -656,8 +656,6 @@ def wrapListInfo(typelist):
     return new_list
 
 
-
-
 async def research_task(state: AgentState) -> AgentState:
     print("research_task")
     print("DEBUG - attached_data 类型:", type(state.attached_data))
@@ -728,6 +726,5 @@ async def research_task(state: AgentState) -> AgentState:
 
     data["typeList"] = filter_items(wrapListInfo(data.get("typeList")))
     return update_result_with_handling(data, state)
-
 
 
