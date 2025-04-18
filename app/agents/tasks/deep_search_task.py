@@ -13,7 +13,7 @@ from app.agents.schemas import AgentState
 from app.agents.tools import send_post_request, send_get_request
 from app.agents.lib.redisManger.redisManager import redis_dict_manager
 from app.test.deepSearchProject.deepSearchTask_prompt_test import DEEPSEARCHTASK_PROMPT_TEST
-
+from app.agents.tasks.deep_search_task_enum import EnumValueRegistry
 
 #获取rawData数据s
 #根据详情信息返回OverView数据
@@ -279,6 +279,7 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
 
     def safe_get(d, key, default=None):
         return d.get(key, default)
+
     max_supply = safe_get(CMCResult, "max_supply")
     price = safe_get(CMCResult, "quote")
     if not price:
@@ -287,14 +288,16 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
         price = price.get("USD").get("price")
 
     if max_supply is not None and price is not None:
-        fdv = round(max_supply * price, 2)
+        fdv = max_supply * price
     else:
         fdv = 0.0  # 或者 None，根据你的业务需求决定
 
     circulating_supply = safe_get(CMCResult, "circulating_supply")
-    mcap = round((circulating_supply or 0) * (price or 0), 2)
+    mcap = (circulating_supply or 0) * (price or 0)
 
     max_supply = safe_get(CMCResult, "max_supply")
+    if not max_supply:
+        max_supply = 0
 
     circulating_supply = safe_get(CMCResult, "circulating_supply")
 
@@ -307,8 +310,29 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
     getcontext().prec = 28
     # 计算前十holders信息余额信息
     top10Banlance = sum_top_10_balances(safe_get(goPlusResult, "holders"))
-    #计算前十的利息信息
     top10_holders_ratio = sum_top10_holders_ratio(safe_get(goPlusResult, "holders"))
+
+
+    #下面进行注册器注册
+    #注册是否开源的枚举器
+    registry = EnumValueRegistry()
+    registry.register("is_open_source") \
+        .on("1", title="Contract source code verified",
+            description="This token contract is open source. You can check the contract code for details. Unsourced token contracts are likely to have malicious functions to defraud their users of their assets") \
+        .on("0", title="Contract source code can't verified",
+            description="This token contract is not open source. Unsourced token contracts are likely to have malicious functions to defraud their users of their assets.")\
+    .register("is_proxy")\
+    .on("1",title="In this contract, there is a proxy contract.",description="The proxy contract means contract owner can modifiy the function of the token and possibly effect the price.")\
+    .on("0",title="No proxy",description="There is no proxy in the contract. The proxy contract means contract owner can modifiy the function of the token and possibly effect the price.")\
+    .register("is_mintable")\
+    .on("1",title="Mint function",description="The contract may contain additional issuance functions, which could maybe generate a large number of tokens, resulting in significant fluctuations in token prices. It is recommended to confirm with the project team whether it complies with the token issuance instructions.")\
+    .on("0",title="No mint function",description="Mint function is transparent or non-existent. Hidden mint functions may increase the amount of tokens in circulation and effect the price of the token.")\
+    .register("can_take_back_ownership")\
+    .on("1",title="Function has been found that can revoke ownership",description="If this function exists, it is possible for the project owner to regain ownership even after relinquishing it")\
+    .on("0",title="No function found that retrieves ownership",description="If this function exists, it is possible for the project owner to regain ownership even after relinquishing it")
+
+
+
 
     is_open_source = safe_get(goPlusResult,"is_open_source")
     is_proxy=safe_get(goPlusResult,"is_proxy")
@@ -333,18 +357,18 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
     Dex_And_Liquidity=safe_get(goPlusResult,"dex")
     Social_Media=[{}] #暂时是空的
     detail_info = {
-        "Token_Price": round(price,4),
-        "FDV": fdv,
-        "M.Cap": mcap,
-        "Max_Supply": max_supply,
-        "Circulation": circulating_supply,
+        "Token_Price": f"{price:.2f}",
+        "FDV": format_number(fdv),
+        "M.Cap": format_number(mcap),
+        "Max_Supply": format_number(max_supply),
+        "Circulation": format_number(circulating_supply),
         "Token_Symbol": token_symbol,
-        "Contract_Address": Contract_Address,
-        "Contract_Creator": creator_address,
-        "Contract_Owner": owner_address,
-        "Toker_Holders": holder_count,
-        "Token_Supply": str(top10Banlance),
-        "Top10_Holders_Ratio": str(top10_holders_ratio),
+        "Contract_Address": format_string(Contract_Address),  # 按照前四后六进行展示
+        "Contract_Creator": format_string(creator_address),  # 按照前四后六进行展示
+        "Contract_Owner": format_string(owner_address),  # 按照前四后六进行展示
+        "Toker_Holders": holder_count,  # 统计风险项和注意项的总数。
+        "Token_Supply": str(top10Banlance),  # 保留小数点后两位展示。直接展示真实数字，不需要进行k m b单位换算。
+        "Top10_Holders_Ratio": str(top10_holders_ratio * 100),  # 保留小数点后两位并采用百分比展示。
         "Contract_Source_Code_Verified":is_open_source,
         "No_Proxy":is_proxy,
         "No_Function_Found_That_Retrieves_Ownership":can_take_back_ownership,
@@ -368,7 +392,7 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
         "Social_Media":Social_Media
     }
     # 组织返回基础信息
-    return detail_info
+    return filter_empty_values(detail_info)
 
 #其他类型API工具分析
 def api_extra_asnyc(selectedType,type_value):
