@@ -28,7 +28,7 @@ app = FastAPI(title="区块链智能助手 Pro",
 
 
 #设置请求后响应日志stateAgent采集
-app.add_middleware(AgentStateSaveMiddleware)
+# app.add_middleware(AgentStateSaveMiddleware)
 #设置跨域
 app = setup_cors_middleware(app)
 # 注册 API

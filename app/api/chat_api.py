@@ -105,7 +105,7 @@ async def test(request:Request):
     initial_state = AgentState(
         user_input="我想转账",  # 用户输入信息
         attached_data={"indent":Intention.unclear.value},  # 用户保存的数据信息
-        session_id="ssd",  # 会话信息
+        session_id="sdsadsadsad",  # 会话信息
         history="",  # 历史上下文信息
         chain_data={},  # 链数据
         messages=[],  # 历史信息
