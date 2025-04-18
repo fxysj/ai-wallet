@@ -214,6 +214,18 @@ def uniongoPlusResultAndsymbolResultOverView(goPlusResult, CMCResult,Contract_Ad
     #组织返回基础信息
     return filter_empty_values(basic_info)
 
+def format_percentage(value, decimals=0):
+    """
+    将数值格式化为百分比字符串。
+    例如：0.15 -> "15%"，保留 `decimals` 位小数。
+    """
+    try:
+        percent_value = float(value) * 100
+        format_str = f"{{:.{decimals}f}}%"
+        return format_str.format(percent_value)
+    except (ValueError, TypeError):
+        return ""
+
 #需要进行根据 goPlusResult  symbolResult 按照目的对象VO进行整合
 #VODetails
 # 🔍 字段解释说明
@@ -329,19 +341,60 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
     .on("0",title="No mint function",description="Mint function is transparent or non-existent. Hidden mint functions may increase the amount of tokens in circulation and effect the price of the token.")\
     .register("can_take_back_ownership")\
     .on("1",title="Function has been found that can revoke ownership",description="If this function exists, it is possible for the project owner to regain ownership even after relinquishing it")\
-    .on("0",title="No function found that retrieves ownership",description="If this function exists, it is possible for the project owner to regain ownership even after relinquishing it")
+    .on("0",title="No function found that retrieves ownership",description="If this function exists, it is possible for the project owner to regain ownership even after relinquishing it")\
+    .register("owner_change_balance")\
+    .on("1",title="Owner can change balance",description="The contract owner is found to have the authority to modify the token balances of other addresses.")\
+    .on("0",title="Owner can't change balance",description="The contract owner is not found to have the authority to modify the balance of tokens at other addresses.")\
+    .register("hidden_owner")\
+    .on("1",title="Hidden ownership detected",description="Hidden owner address was found for the token. For contracts with hidden owner, developer can still manipulate the contract even if the ownership has been abandoned")\
+    .on("0",title="No hidden owner",description="No hidden owner address was found for the token. For contract with a hidden owner, developer can still manipulate the contract even if the ownership has been abandoned.")\
+    .register("selfdestruct")\
+    .on("1",title="This token can  self destruct",description="Self-destruct function found. If triggered, the contract will be destroyed, all functions will become unavailable, and all related assets will be erased.")\
+    .on("0",title="This token can not self destruct",description="No self-destruct function found. If this function exists and is triggered, the contract will be destroyed, all functions will be unavailable, and all related assets will be erased.")\
+    .register("external_call")\
+    .on("1",title="External call risk found",description="External calls would cause this token contract to be highly dependent on other contracts, which may be a potential risk.")\
+    .on("0",title="No external call risk found",description="External calls would cause this token contract to be highly dependent on other contracts, which may be a potential risk.")\
+    .register("gas_abuse")\
+    .on("1",title="This token is a gas abuser",description="Gas abuse activity has been found.")\
+    .on("0",title="This token is not a gas abuser",description="No gas abuse activity has been found.")\
+    .on("",title="This token is not a gas abuser",description="No gas abuse activity has been found.")\
+    .register("is_honeypot")\
+    .on("1",title="This appears to be a honeypot",description="We are aware of malicious code.")\
+    .on("0",title="This does not appear to be a honeypot",description="We are not aware of any malicious code.")\
+    .register("transfer_pausable")\
+    .on("1",title="Functions that can suspend trading",description="If a suspendable code is included, the token maybe neither be bought nor sold (honeypot risk).")\
+    .on("0",title="No codes found to suspend trading",description="If a suspendable code is included, the token maybe neither be bought nor sold (honeypot risk).")\
+    .register("trading_cooldown")\
+    .on("1",title="Trading cooldown function exists",description="The token contract has  trading cooldown function. If there is a trading cooldown function, the user will not be able to sell the token within a certain time or block after buying.")\
+    .on("0",title="No trading cooldown function",description="The token contract has no trading cooldown function. If there is a trading cooldown function, the user will not be able to sell the token within a certain time or block after buying.")\
+    .register("is_anti_whale")\
+    .on("1",title="Anti-whale mechanism exists (Limited number of transactions)",description="There is a limit to the number of token transactions. The number of scam token transactions may be limited (honeypot risk).")\
+    .on("0",title="No anti_whale(Unlimited number of transactions)",description="There is no limit to the number of token transactions. The number of scam token transactions may be limited (honeypot risk).")\
+    .register("anti_whale_modifiable")\
+    .on("1",title="Anti whale can  be modified",description="The maximum trading amount or maximum position can  be modified.")\
+    .on("0",title="Anti whale can not be modified",description="The maximum trading amount or maximum position can not be modified")\
+    .register("is_blacklisted")\
+    .on("1",title="Blacklist function",description="The blacklist function is included. Some addresses may not be able to trade normally (honeypot risk).")\
+    .on("0",title="No blacklist",description="The blacklist function is not included. If there is a blacklist, some addresses may not be able to trade normally (honeypot risk).")\
+    .register("is_whitelisted")\
+    .on("1",title="Whitelist function",description="Having a whitelist function means that, for this contract, some privileged users may have greater advantages in transactions, such as bypassing transaction limits, being exempt from taxes, trading earlier than others, or not being affected by transaction cooldown restrictions.")\
+    .on("0",title="No whitelist",description="The whitelist function is not included. If there is a whitelist, some addresses may not be able to trade normally (honeypot risk).")
+
+
+
 
 
 
 
     is_open_source = safe_get(goPlusResult,"is_open_source")
     is_proxy=safe_get(goPlusResult,"is_proxy")
+    is_mintable= safe_get(goPlusResult,"is_mintable")
     can_take_back_ownership=safe_get(goPlusResult,"can_take_back_ownership")
     owner_change_balance=safe_get(goPlusResult,"owner_change_balance")
     hidden_owner=safe_get(goPlusResult,"hidden_owner")
     selfdestruct=safe_get(goPlusResult,"selfdestruct")
     external_call=safe_get(goPlusResult,"external_call")
-    gs_tooken = ""
+    gs_tooken = safe_get(goPlusResult,"gas_abuse")
     buy_tax=safe_get(goPlusResult, "buy_tax")
     sell_tax=safe_get(goPlusResult,"sell_tax")
     is_honeypot=safe_get(goPlusResult,"is_honeypot")
@@ -369,27 +422,27 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
         "Toker_Holders": holder_count,  # 统计风险项和注意项的总数。
         "Token_Supply": str(top10Banlance),  # 保留小数点后两位展示。直接展示真实数字，不需要进行k m b单位换算。
         "Top10_Holders_Ratio": str(top10_holders_ratio * 100),  # 保留小数点后两位并采用百分比展示。
-        "Contract_Source_Code_Verified":is_open_source,
-        "No_Proxy":is_proxy,
-        "No_Function_Found_That_Retrieves_Ownership":can_take_back_ownership,
-        "Owner_Cant_Change_Balance":owner_change_balance,
-        "No_Hidden_Owner":hidden_owner,
-        "This_Token_Can_Not_Self_Destruct":selfdestruct,
-        "No_External_Call_Risk_Found":external_call,
-        "This_Token_Is_Not_A_Gas_Abuser":gs_tooken,
-        "Buy_Tax":buy_tax,
-        "Sell_Tax":sell_tax,
-        "This_Does_Not_Appear_To_Be_A_Honeypot":is_honeypot,
-        "No_Codes_Found_To_Suspend_Trading":transfer_pausable,
-        "No_Trading_Cooldown_Function":trading_cooldown,
-        "No_Anti_Whale_Unlimited_Number_Of_Transactions":is_anti_whale,
-        "Anti_Whale_Cannot_Be_Modified":anti_whale_modifiable,
+        "Contract_Source_Code_Verified":registry.format("is_open_source",is_open_source),
+        "No_Proxy":registry.format("is_proxy",is_proxy),
+        "No_Mint_Function":registry.format("is_mintable",is_mintable),
+        "No_Function_Found_That_Retrieves_Ownership":registry.format("can_take_back_ownership",can_take_back_ownership),
+        "Owner_Cant_Change_Balance":registry.format("owner_change_balance",owner_change_balance),
+        "No_Hidden_Owner":registry.format("hidden_owner",hidden_owner),
+        "This_Token_Can_Not_Self_Destruct":registry.format("selfdestruct",selfdestruct),
+        "No_External_Call_Risk_Found":registry.format("external_call",external_call),
+        "This_Token_Is_Not_A_Gas_Abuser":registry.format("gas_abuse",gs_tooken),
+        "Buy_Tax":format_percentage(buy_tax,decimals=2),
+        "Sell_Tax":format_percentage(sell_tax,decimals=2),
+        "This_Does_Not_Appear_To_Be_A_Honeypot":registry.format("is_honeypot",is_honeypot),
+        "No_Codes_Found_To_Suspend_Trading":registry.format("transfer_pausable",transfer_pausable),
+        "No_Trading_Cooldown_Function":registry.format("trading_cooldown",trading_cooldown),
+        "No_Anti_Whale_Unlimited_Number_Of_Transactions":registry.format("is_anti_whale",is_anti_whale),
+        "Anti_Whale_Cannot_Be_Modified":registry.format("anti_whale_modifiable",anti_whale_modifiable),
         "Tax_Cannot_Be_Modified":tax_Cannot_Be_Modified,
-        "No_Blacklist":is_blacklisted,
-        "No_Whitelist":is_whitelisted,
+        "No_Blacklist":registry.format("is_blacklisted",is_blacklisted),
+        "No_Whitelist":registry.format("is_whitelisted",is_whitelisted),
         "No_Tax_Changes_Found_For_Personal_Addresses":personal_Addresses,
-        "Dex_And_Liquidity":Dex_And_Liquidity,
-        "Social_Media":Social_Media
+        "Dex_And_Liquidity":Dex_And_Liquidity
     }
     # 组织返回基础信息
     return filter_empty_values(detail_info)
@@ -792,11 +845,20 @@ async def research_task(state: AgentState) -> AgentState:
     return update_result_with_handling(data, state)
 if __name__ == '__main__':
     # 示例调用
-    contract_address = "0x123456789abcdef"
-    contract_creator = "creator12345678"
-    contract_owner = "owner12345678"
+    # contract_address = "0x123456789abcdef"
+    # contract_creator = "creator12345678"
+    # contract_owner = "owner12345678"
+    #
+    # print(format_string(contract_address))
+    # print(format_string(contract_creator))
+    # print(format_string(contract_owner))
+    buy_tax = 0.1
+    sell_tax = "0.075"
 
-    print(format_string(contract_address))
-    print(format_string(contract_creator))
-    print(format_string(contract_owner))
+    result = {
+        "Buy_Tax": format_percentage(buy_tax),  # 10%
+        "Sell_Tax": format_percentage(sell_tax)  # 8%
+    }
+
+    print(result)
 
