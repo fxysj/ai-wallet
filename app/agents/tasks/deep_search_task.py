@@ -595,45 +595,68 @@ def filter_items(data_list):
 
     return [item for item in data_list if is_valid_type_2_or_4(item) or is_valid_type_3(item)]
 
+
+def add_title_prefix(item_type, title):
+    """
+    根据 item_type 添加对应的 title 前缀
+    """
+    if not title:
+        return title
+
+    if item_type == 3:
+        return f"Analysis report of the {title}"
+    elif item_type in [2, 4]:
+        return f"Background information of the {title}"
+    return title
+
 #需要根据返回的typelist进行优化处理
 def wrapListInfo(typelist):
     new_list = []
 
     for item in typelist:
         item_type = item.get("type")
-        # 只处理 type 为 1, 2, 3, 4 的项
+
         if item_type not in [1, 2, 3, 4]:
             continue
 
-        if item_type in [2, 4]:
+        if item_type == 3:
+            title = item.get("title", "")
+            item = item.copy()
+            item["title"] = add_title_prefix(item_type, title)
+            new_list.append(item)
+
+        elif item_type in [2, 4]:
             title = item.get("title")
             if not title:
                 new_list.append(item)
                 continue
 
-            # 调用 searchRowData，并取第一条结果
             search_result = searchRowData(title).get("data")
             if isinstance(search_result, list) and len(search_result) > 0:
                 first_data = search_result[0]
-                print("first_data:",first_data)
+                print("first_data:", first_data)
 
-                # 创建新项，保留原有字段，只替换指定字段
                 updated_item = item.copy()
                 updated_item.update({
                     "id": first_data.get("id"),
-                    "title": first_data.get("name"),
+                    "title": add_title_prefix(item_type, first_data.get("name")),
                     "logo": first_data.get("logo"),
-                    "detail": first_data.get("introduce")  # 用 introduce 替换 detail
+                    "detail": first_data.get("introduce")
                 })
 
                 new_list.append(updated_item)
             else:
-                # 如果返回不合法，就保留原始
+                item = item.copy()
+                item["title"] = add_title_prefix(item_type, title)
                 new_list.append(item)
+
         else:
             new_list.append(item)
 
     return new_list
+
+
+
 
 async def research_task(state: AgentState) -> AgentState:
     print("research_task")
@@ -708,145 +731,3 @@ async def research_task(state: AgentState) -> AgentState:
 
 
 
-
-
-
-
-
-
-# if __name__ == '__main__':
-#     test_data = {
-#         'intent': 'deep_research',
-#         'form': {
-#             'query': 'Official Trump',
-#             'selectedProject': {
-#                 'introduce': 'Official Trump is a meme coin issued on the Solana blockchain.',
-#                 'name': 'Official Trump',
-#                 'logo': 'https://public.rootdata.com/images/b13/1737172225426.jpg',
-#                 'active': True,
-#                 'rootdataurl': 'https://www.rootdata.com/Projects/detail/Official Trump?k=MTU5Mjc=',
-#                 'id': 15927,
-#                 'type': 1
-#             }
-#         },
-#         'typeList': [{'id': 15927, 'type': 1}]
-#     }
-#     result = getDetailRowdata(test_data)
-#     print("详细数据：", result)
-#     overview_result = OverView(result)
-#     print("大模型概述：", overview_result)
-
-if __name__ == '__main__':
-    # result = SymbolAPISearch("SHIB")
-    # print(result[0])
-    # res=searchRowData("ETH")
-    # res= getDetailRowdata({
-    #     "id":15927
-    # })
-    # print(res)
-    # print(res)
-    # res =api_extra_asnyc({
-    #     "chain_id":56,
-    #     "contract_addresses": ["0xba2ae424d960c26247dd6c32edc70b295c744c43"],
-    #     "symbol": "SHIB"
-    # },3)
-    # print(res)
-    # holders =  [
-    #             {
-    #                 "address": "0xf89d7b9c864f589bbf53a82105107622b35eaa40",
-    #                 "tag": "",
-    #                 "is_contract": 0,
-    #                 "balance": "253401357.079465127146308694",
-    #                 "percent": "0.048872061814309366",
-    #                 "is_locked": 0
-    #             },
-    #             {
-    #                 "address": "0xc882b111a75c0c657fc507c04fbfcd2cc984f071",
-    #                 "tag": "",
-    #                 "is_contract": 0,
-    #                 "balance": "214590128.266262252054737317",
-    #                 "percent": "0.041386763410586392",
-    #                 "is_locked": 0
-    #             },
-    #             {
-    #                 "address": "0xfd5840cd36d94d7229439859c0112a4185bc0255",
-    #                 "tag": "",
-    #                 "is_contract": 1,
-    #                 "balance": "200318420.412027605353016519",
-    #                 "percent": "0.038634261227935523",
-    #                 "is_locked": 0
-    #             },
-    #             {
-    #                 "address": "0xd3a22590f8243f8e83ac230d1842c9af0404c4a1",
-    #                 "tag": "",
-    #                 "is_contract": 0,
-    #                 "balance": "175878698.2749313132394152",
-    #                 "percent": "0.033920712631452860",
-    #                 "is_locked": 0
-    #             },
-    #             {
-    #                 "address": "0x4fdfe365436b5273a42f135c6a6244a20404271e",
-    #                 "tag": "",
-    #                 "is_contract": 0,
-    #                 "balance": "66659496.314147336311909448",
-    #                 "percent": "0.012856233533722212",
-    #                 "is_locked": 0
-    #             },
-    #             {
-    #                 "address": "0x98b4be9c7a32a5d3befb08bb98d65e6d204f7e98",
-    #                 "tag": "",
-    #                 "is_contract": 0,
-    #                 "balance": "55744690.7657593423",
-    #                 "percent": "0.010751157785115606",
-    #                 "is_locked": 0
-    #             },
-    #             {
-    #                 "address": "0xf05f0e4362859c3331cb9395cbc201e3fa6757ea",
-    #                 "tag": "",
-    #                 "is_contract": 1,
-    #                 "balance": "53599647.972738348579722504",
-    #                 "percent": "0.010337455722967667",
-    #                 "is_locked": 0
-    #             },
-    #             {
-    #                 "address": "0x434742703055bd20f42142d9d70b0735a5eb1b14",
-    #                 "tag": "",
-    #                 "is_contract": 0,
-    #                 "balance": "49135172.833872314733077642",
-    #                 "percent": "0.009476418088955764",
-    #                 "is_locked": 0
-    #             },
-    #             {
-    #                 "address": "0x0d0707963952f2fba59dd06f2b425ace40b492fe",
-    #                 "tag": "",
-    #                 "is_contract": 0,
-    #                 "balance": "46220027.996774487034664095",
-    #                 "percent": "0.008914190876290788",
-    #                 "is_locked": 0
-    #             },
-    #             {
-    #                 "address": "0x36696169c63e42cd08ce11f5deebbcebae652050",
-    #                 "tag": "PancakeV3",
-    #                 "is_contract": 1,
-    #                 "balance": "39919790.10248848553543981",
-    #                 "percent": "0.007699100241563673",
-    #                 "is_locked": 0
-    #             }
-    #         ]
-    # # 设置高精度以确保中间计算准确
-    # getcontext().prec = 28
-    # result = sum_top_10_balances(holders)
-    # print(f"前十地址总余额：{result}")
-    # result = sum_top10_holders_ratio(holders)
-    # print(f"前十地址平均信息：{result}")
-    # res=GoPlusAPISearch(56,["0xba2ae424d960c26247dd6c32edc70b295c744c43"])
-    # print(res)
-    state = AgentState(
-        attached_data={},
-        history="",
-        user_input="solana",
-        langguage="cn",
-        messages=[]
-    )
-    res = call_llm_chain_wrap(state)
-    print(res)
