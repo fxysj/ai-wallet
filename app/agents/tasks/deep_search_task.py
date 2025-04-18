@@ -562,6 +562,38 @@ def searchRowData(query):
     # 使用工具函数发起请求
     return send_post_request(url, payload, headers)
 
+#测试分类信息
+def call_llm_chain_wrap(state: AgentState):
+        prompt = PromptTemplate(
+            template=DEEPSEARCHTASK_PROMPT_TEST,
+            input_variables=["current_data", "history", "input", "langguage"],
+        )
+        llm = LLMFactory.getDefaultDeepSearchOPENAI()
+        chain = prompt | llm | JsonOutputParser()
+        return chain.invoke({
+            "current_data": str(state.attached_data),
+            "history": state.history,
+            "input": state.user_input,
+            "language": state.langguage
+        })
+
+
+def filter_items(data_list):
+    if not data_list or not isinstance(data_list, list):
+        return []
+
+    def is_valid_type_2_or_4(item):
+        return item.get("type") in (2, 4) and isinstance(item.get("id"), int)
+
+    def is_valid_type_3(item):
+        return (
+            item.get("type") == 3
+            and item.get("chain_id") not in (None, "", [])
+            and item.get("contract_addresses")
+            and item.get("symbol")
+        )
+
+    return [item for item in data_list if is_valid_type_2_or_4(item) or is_valid_type_3(item)]
 
 #需要根据返回的typelist进行优化处理
 def wrapListInfo(typelist):
@@ -656,7 +688,7 @@ async def research_task(state: AgentState) -> AgentState:
                 return state.copy(update={"result": data})
 
             # 对 LLM 返回的数据进行处理
-            data["typeList"] = wrapListInfo(data.get("typeList"))
+            data["typeList"] = filter_items(wrapListInfo(data.get("typeList")))
         return update_result_with_handling(data, state)
 
     # 情况二：attached_data 不存在，同样调用 LLM
@@ -671,7 +703,7 @@ async def research_task(state: AgentState) -> AgentState:
         data["timestamp"] = time.time()
         return state.copy(update={"result": data})
 
-    data["typeList"] = wrapListInfo(data.get("typeList"))
+    data["typeList"] = filter_items(wrapListInfo(data.get("typeList")))
     return update_result_with_handling(data, state)
 
 
@@ -713,12 +745,12 @@ if __name__ == '__main__':
     # })
     # print(res)
     # print(res)
-    res =api_extra_asnyc({
-        "chain_id":56,
-        "contract_addresses": ["0xba2ae424d960c26247dd6c32edc70b295c744c43"],
-        "symbol": "SHIB"
-    },3)
-    print(res)
+    # res =api_extra_asnyc({
+    #     "chain_id":56,
+    #     "contract_addresses": ["0xba2ae424d960c26247dd6c32edc70b295c744c43"],
+    #     "symbol": "SHIB"
+    # },3)
+    # print(res)
     # holders =  [
     #             {
     #                 "address": "0xf89d7b9c864f589bbf53a82105107622b35eaa40",
@@ -809,3 +841,12 @@ if __name__ == '__main__':
     # print(f"前十地址平均信息：{result}")
     # res=GoPlusAPISearch(56,["0xba2ae424d960c26247dd6c32edc70b295c744c43"])
     # print(res)
+    state = AgentState(
+        attached_data={},
+        history="",
+        user_input="solana",
+        langguage="cn",
+        messages=[]
+    )
+    res = call_llm_chain_wrap(state)
+    print(res)

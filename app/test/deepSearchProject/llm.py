@@ -33,7 +33,7 @@ def run_deep_search_test(input_text, current_data=None, history=None, langguage=
     print(result)
     print("==========================================")
     data = result.get("data")
-    data["typeList"] = wrapListInfo(data.get("typeList"))
+    data["typeList"] = filter_items(wrapListInfo(data.get("typeList")))
     result["data"] = data
 
     print("============ RESULTWrap ====================")
@@ -118,6 +118,25 @@ def getDetailRowdata(attached_data):
     result = send_post_request(url, payload, headers)
     return result
 
+# [{'id': 117, 'title': 'Solana', 'logo': 'https://public.rootdata.com/images/b15/1666364340995.jpg', 'type': 2, 'detail': 'Solana is a high-performance blockchain protocol designed to enable scalable, user-friendly applications for the world.', 'chain_id': 1, 'contract_addresses': [], 'symbol': 'SOL'}]
+
+def filter_items(data_list):
+    def is_valid_type_2_or_4(item):
+        return item.get("type") in (2, 4) and isinstance(item.get("id"), int)
+
+    def is_valid_type_3(item):
+        return (
+            item.get("type") == 3
+            and item.get("chain_id") not in (None, "", [])
+            and item.get("contract_addresses")
+            and item.get("symbol")
+        )
+
+    return [item for item in data_list if is_valid_type_2_or_4(item) or is_valid_type_3(item)]
+
+
+
+
 
 #需要根据返回的typelist进行优化处理
 def wrapListInfo(typelist):
@@ -125,6 +144,10 @@ def wrapListInfo(typelist):
 
     for item in typelist:
         item_type = item.get("type")
+        # 只处理 type 为 1, 2, 3, 4 的项
+        if item_type not in [1, 2, 3, 4]:
+            continue
+
         if item_type in [2, 4]:
             title = item.get("title")
             if not title:
@@ -135,6 +158,7 @@ def wrapListInfo(typelist):
             search_result = searchRowData(title).get("data")
             if isinstance(search_result, list) and len(search_result) > 0:
                 first_data = search_result[0]
+                print("first_data:",first_data)
 
                 # 创建新项，保留原有字段，只替换指定字段
                 updated_item = item.copy()
@@ -164,7 +188,7 @@ def test_case_1_basic_search():
 
 
 def test_case_2_modify_input():
-    run_deep_search_test("深度搜索")
+    run_deep_search_test("Solana")
 
 
 def test_case_3_missing_fields():
@@ -182,7 +206,32 @@ def test_case_5_english_environment():
 def test_case_6_fully_filled_ready_search():
     run_deep_search_test("我找的是 Aave 协议，不是 Token，快点开始吧！")
 
+def test():
+    data = [
+        {'id': 117, 'title': 'Solana', 'logo': '...', 'type': 2, 'detail': '...', 'chain_id': 1,
+         'contract_addresses': [], 'symbol': 'SOL'},
+        {'id': 'type2_ethereum', 'title': 'Ethereum', 'logo': '...', 'type': 2, 'detail': '...', 'chain_id': 1,
+         'contract_addresses': [], 'symbol': 'ETH'},
+        {'id': 'type4_startuptoken', 'title': 'StartupToken', 'logo': '...', 'type': 4, 'detail': '...', 'chain_id': 56,
+         'contract_addresses': [], 'symbol': 'STT'},
+        {'id': 'type3_pepe', 'title': 'Pepe', 'logo': '...', 'type': 3, 'detail': '...', 'chain_id': 1,
+         'contract_addresses': ['0xabc'], 'symbol': 'PEPE'},
+        {'id': 'type3_doge', 'title': 'Doge', 'logo': '...', 'type': 3, 'detail': '...', 'chain_id': 1,
+         'contract_addresses': [], 'symbol': ''},
+    ]
+
+    filtered = filter_items(data)
+
+    from pprint import pprint
+    pprint(filtered)
+
+    # from pprint import pprint
+    #
+    # pprint(filtered)
+
+
 if __name__ == '__main__':
+    #test()
     #test_case_1_basic_search()
     test_case_2_modify_input()
     # test_case_3_missing_fields()
