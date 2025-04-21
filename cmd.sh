@@ -23,6 +23,10 @@ docker rmi registry.cn-hangzhou.aliyuncs.com/sinrpc/ai-wallet:latest
 
 docker-compose down
 
+sudo certbot --nginx -d ai.testtikee.com
+
+sudo certbot --webroot -w /usr/local/openresty/nginx/html -d testapi1.tikee.com
+
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'I5xlwT@2025';
 FLUSH PRIVILEGES;
 
