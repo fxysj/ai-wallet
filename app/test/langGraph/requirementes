@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+transformers
+torch
+langchain
+langgraph
+pydantic
+deep-translator
+langdetect
