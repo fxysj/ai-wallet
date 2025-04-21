@@ -81,7 +81,7 @@ tron	Tron
 🧩【Meme Token 特别补全规则（type = 3）】
 当搜索结果中包含类型为 3 的 Meme Token 时，需进行以下补全：
 1. 根据用户输入关键词，从 chain_id 对应表中匹配所属链，并填充字段 `chain_id`；
-2. 如果不在表中则需要根据自己搜索的结果进行填充 必须为整数
+2. 如果chain_id不在表中则需要根据自己搜索的结果进行填充 必须为整数
 3. 查询该 Meme Token 的主合约地址，填入 `contract_addresses`；
 4. 查询出对应代币的名称，填入 `symbol`；
 5. 不调用 RootData；
