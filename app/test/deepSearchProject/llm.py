@@ -188,7 +188,7 @@ def test_case_1_basic_search():
 
 
 def test_case_2_modify_input():
-    run_deep_search_test("Solana")
+    run_deep_search_test("Analysis report of the Official Trump")
 
 
 def test_case_3_missing_fields():
