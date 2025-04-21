@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+redis
+openai
+langchain
+langgraph
+transformers
+torch
+python-dotenv
+requests
+python-dotenv

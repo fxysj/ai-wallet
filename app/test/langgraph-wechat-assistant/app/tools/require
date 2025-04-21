@@ -1,0 +1,2 @@
+pip install deep-translator langdetect transformers
+Successfully installed deep-translator-1.11.4 langdetect-1.0.9
