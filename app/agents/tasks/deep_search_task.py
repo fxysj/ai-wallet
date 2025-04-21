@@ -69,9 +69,22 @@ def GoPlusAPISearch(chain_id, contract_addresses):
 
     # 发起 GET 请求（使用你封装的工具函数）
     res =  send_get_request(url)
+    result = res.get("result")
     if not res.get("error"):
-        return res.get("result").get(contract_addresses[0])
-    return {}
+        if result is not None and contract_addresses:
+            contract_address = contract_addresses[0]
+            if contract_address in result:
+                return result.get(contract_address)
+            else:
+                # 处理合约地址未找到的情况
+                return {}
+        else:
+            # 处理 res.get("result") 为 None 或 contract_addresses 为空的情况
+            return {}
+
+    return  {}
+
+
 
 #https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?symbol=SHIB
 #根据代币的名称查询
@@ -90,6 +103,8 @@ def SymbolAPISearch(symbol):
     }
 
     res = send_get_request(url, headers=headers)
+    print("res:")
+    print(res)
     if not res.get("error"):
         return res.get("data").get(symbol)
     return {}
@@ -450,9 +465,19 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
 #其他类型API工具分析
 def api_extra_asnyc(selectedType,type_value):
     chain_id = selectedType.get("chain_id")
+
+    # 检查 chain_id 是否为字符串，并且不是数字
+    if isinstance(chain_id, str) and not chain_id.isdigit():
+        chain_id = 56  # 默认为 56
+    else:
+        # 如果是数字字符串或其他类型，转换为整数
+        chain_id = int(chain_id) if chain_id else 56
+
     contract_addresses = selectedType.get("contract_addresses")
     symbol= selectedType.get("symbol")
     response = {"overview":{},"details":{}}
+    print("selectedType:")
+    print(selectedType)
     #goPlusResult
     goPlusResult = GoPlusAPISearch(chain_id, contract_addresses)
     #symbolResult
