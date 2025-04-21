@@ -846,9 +846,11 @@ async def research_task(state: AgentState) -> AgentState:
         data["timestamp"] = state.attached_data.get("timestamp", timestamp_time)
         selectedType = {}
         if state.attached_data:
-            if state.attached_data.get("form"):
-                if state.attached_data.get("form").get("selectedType"):
-                    selectedType = state.attached_data.get("form").get("selectedType")
+            form = state.attached_data.get("form")
+            if form is not None:
+                selectedType = form.get("selectedType", {})
+            else:
+                selectedType = {}
 
         handled_result = handle_type_based_data(selectedType, state.attached_data)
         data.update({
