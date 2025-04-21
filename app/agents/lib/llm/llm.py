@@ -6,6 +6,7 @@ from langgraph.prebuilt.chat_agent_executor import StructuredResponseSchema
 
 from app.config import settings
 from langgraph.prebuilt import create_react_agent
+from langchain_community.callbacks.manager import get_openai_callback
 
 class LLMFactory():
     @staticmethod
@@ -77,7 +78,14 @@ if __name__ == '__main__':
 
     llm = LLMFactory.getDefaultOPENAI()
 
-    response = llm.invoke("你是一个智能助理，分步骤思考：如何制定一个健康的饮食计划？")
+    # 使用 get_openai_callback 来监控 tokens 和费用
+    with get_openai_callback() as cb:
+        response = llm.invoke("你是一个智能助理，分步骤思考：如何制定一个健康的饮食计划？")
 
     print("最终回复：", response.content)
     print("捕获到的思考过程：", initial_state.get("thoughts"))
+    print("=== Token 使用情况 ===")
+    print(f"总 tokens: {cb.total_tokens}")
+    print(f"Prompt tokens: {cb.prompt_tokens}")
+    print(f"Completion tokens: {cb.completion_tokens}")
+    print(f"花费（USD）: ${cb.total_cost}")
