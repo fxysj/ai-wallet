@@ -24,7 +24,7 @@ async def receive_task(state: AgentState) -> AgentState:
 
     prompt = PromptTemplate(
         template=RECEIVETASKS_TEMPLATE,
-        input_variables=["current_data", "history", "input", "langguage"],
+        input_variables=["current_data", "history", "input", "langguage","chain_data"],
     )
     llm = LLMFactory.getDefaultOPENAI().bind_tools([cross_chain_swap])
     # 使用新版输出解析器
@@ -41,7 +41,8 @@ async def receive_task(state: AgentState) -> AgentState:
         "current_data": str(state.attached_data),
         "history": state.history,
         "input": state.user_input,
-        "langguage": state.langguage
+        "langguage": state.langguage,
+        "chain_data":state.chain_data
     })
     print(chain_response)
 
