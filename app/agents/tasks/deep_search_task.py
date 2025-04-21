@@ -480,7 +480,7 @@ def EmptyResult():
     return  {
         "overview": {},
         "details": {},
-        "state": TaskState.RESEARCH_TASK_DISPLAY_RESEARCH,
+        "state": TaskState.RESEARCH_TASK_DISPLAY_PROMPTED_PROJECT,
         "type":"",
     }
 
@@ -550,6 +550,7 @@ def handle_type_based_data(type_item, attached_data):
         return EmptyResult()
     #如果不为空则进行根据type整合数据
     type_value = type_item.get("type")
+    state = TaskState.RESEARCH_TASK_DISPLAY_RESEARCH
 
     if type_value in [2, 4]:
         # 走 getDetailRowdata 查询
@@ -558,7 +559,7 @@ def handle_type_based_data(type_item, attached_data):
             return {
                 "overview": wrap_del_with_OverView(detail_data),
                 "details": wrap_del_with_detail(detail_data),
-                "state": TaskState.RESEARCH_TASK_DISPLAY_RESEARCH,
+                "state": state,
                 "type":type_value
             }
 
@@ -831,7 +832,7 @@ async def research_task(state: AgentState) -> AgentState:
 
     # 情况一：attached_data 存在
     if state.attached_data:
-        selected_type = state.attached_data.get("selectedType")
+        selected_type = state.attached_data.get("form").get("selectedType")
         data = state.attached_data if selected_type else None
 
         if not selected_type:
