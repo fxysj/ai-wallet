@@ -844,7 +844,12 @@ async def research_task(state: AgentState) -> AgentState:
         timestamp_time = time.time()
         print("使用 time 模块获取的 UTC 时间戳:", timestamp_time)
         data["timestamp"] = state.attached_data.get("timestamp", timestamp_time)
-        selectedType = state.attached_data.get("form").get("selectedType",{})
+        selectedType = {}
+        if state.attached_data:
+            if state.attached_data.get("form"):
+                if state.attached_data.get("form").get("selectedType"):
+                    selectedType = state.attached_data.get("form").get("selectedType")
+
         handled_result = handle_type_based_data(selectedType, state.attached_data)
         data.update({
             "description":"I have confirmed the information to be queried. Kindly assist in retrieving the relevant data",
