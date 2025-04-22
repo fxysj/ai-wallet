@@ -15,7 +15,6 @@ class ParallelChainExecutor:
                            response_model: Type[BaseModel]):
         """执行单个节点"""
         try:
-            formatted_prompt = node.prompt_template.format(**input_data)
             prompt_data = {
                 "prompt_template": node.prompt_template,
                 **input_data
@@ -55,6 +54,10 @@ class ParallelChainExecutor:
             "results": "\n\n".join([f"结果 {i + 1}: {result}" for i, result in enumerate(successful_results)]),
             "original_input": input_data.get("input", "")
         }
+        print(aggregate_input)
+        # 确保 aggregate_input 中的值有效
+        if not aggregate_input["results"]:
+            print("聚合结果为空，请检查并行执行的节点是否返回有效结果。")
         # 创建聚合节点
         aggregation_node = ChainNode(
             "gpt-4o",
@@ -63,13 +66,17 @@ class ParallelChainExecutor:
         )
 
         # 执行聚合
-        aggregation_result = await self.execute_node(
-            aggregation_node,
-            aggregate_input,
-            response_model
-        )
+        try:
+            aggregation_result = await self.execute_node(
+                aggregation_node,
+                aggregate_input,
+                response_model
+            )
+        except Exception as e:
+            print(f"聚合节点执行失败: {str(e)}")
+            aggregation_result = {"node": aggregation_node, "result": None, "status": "error", "error": str(e)}
 
-
+        # 返回结果
         return {
             "individual_results": node_results,
             "aggregation": aggregation_result

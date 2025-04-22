@@ -6,30 +6,28 @@ import random
 from typing import Type, Optional
 from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
-
+from queue import Queue
 from app.agents.lib.llm.extension.context import LLMContext
 from app.agents.lib.llm.extension.service_decorator import llm_service_wrapper
 from app.config import settings
 from pydantic import BaseModel
 from threading import Lock
+import asyncio
 
-# Configure logging
+# 配置日志
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
-# 1. 定义返回类型的 Pydantic 模型
+# 定义返回类型的 Pydantic 模型
 class ResponseModel(BaseModel):
     response: str
     status: str = "success"
     additional_info: Optional[str] = None
 
-
 class Data(BaseModel):
     data: dict
 
-
-# 2. 创建 PromptTemplate 和 LLM 连接池
+# 创建 PromptTemplate 和 LLM 连接池
 class LLMFactory:
     @staticmethod
     def getDefaultOPENAI() -> ChatOpenAI:
@@ -41,8 +39,7 @@ class LLMFactory:
             openai_api_base=settings.OPENAI_API_BASE_URL
         )
 
-
-# 3. 限流服务 - Token Bucket (Simple Implementation)
+# 限流服务 - Token Bucket (改进版)
 class RateLimiter:
     def __init__(self, max_requests: int, per_seconds: int):
         self.max_requests = max_requests
@@ -67,8 +64,7 @@ class RateLimiter:
                 return True
             return False
 
-
-# 4. Circuit Breaker
+# Circuit Breaker
 class CircuitBreaker:
     def __init__(self, failure_threshold: int, recovery_time: int):
         self.failure_threshold = failure_threshold
@@ -101,8 +97,7 @@ class CircuitBreaker:
         self.failure_count = 0
         logger.info("Circuit breaker reset.")
 
-
-# 5. Retry Logic
+# Retry Logic (重试逻辑)
 def retry_with_backoff(func, retries: int = 3, delay: float = 2.0):
     """Retry logic with backoff."""
     for i in range(retries):
@@ -115,8 +110,7 @@ def retry_with_backoff(func, retries: int = 3, delay: float = 2.0):
             else:
                 raise
 
-
-# 6. JsonOutputParser with Fallback
+# JsonOutputParser with Fallback
 class JsonOutputParser:
     def parse(self, response: str, response_model: Type[BaseModel]):
         logger.info(f"Raw response from LLM: {response}")
@@ -132,13 +126,15 @@ class JsonOutputParser:
             logger.info("Response is not JSON, returning plain text.")
             return response_model(response=response_copy)
 
-
-# 7. LLMChain with Rate Limiting, Circuit Breaking, and Logging
+# LLMChain with Rate Limiting, Circuit Breaking, and Logging
 class LLMChain:
     def __init__(self, pool_size: int = 5, rate_limiter: RateLimiter = RateLimiter(10, 60),
                  circuit_breaker: CircuitBreaker = CircuitBreaker(3, 10)):
         self.pool_size = pool_size
-        self.pool = [LLMFactory.getDefaultOPENAI() for _ in range(self.pool_size)]
+        self.pool = Queue(maxsize=self.pool_size)  # 使用线程安全的队列管理连接池
+        for _ in range(self.pool_size):
+            self.pool.put(LLMFactory.getDefaultOPENAI())  # 初始化连接池
+
         self.rate_limiter = rate_limiter
         self.circuit_breaker = circuit_breaker
 
@@ -151,38 +147,39 @@ class LLMChain:
         if not self.circuit_breaker.call():
             return ResponseModel(response="Service unavailable due to circuit breaker.", status="error")
 
-        llm = self.pool.pop()  # 获取 LLM 连接
-        prompt_template = prompt_data['prompt_template']
-        response = prompt_template.format(**prompt_data)
-
-        # Execute LLM request with retry logic
-        def llm_request():
-            return llm.invoke(response)
-
         try:
+            llm = self.pool.get(timeout=5)  # 获取 LLM 连接（阻塞获取）
+            prompt_template = prompt_data['prompt_template']
+            response = prompt_template.format(**prompt_data)
+
+            # 执行 LLM 请求
+            def llm_request():
+                return llm.invoke(response)
+
             llm_response = retry_with_backoff(llm_request)
-            # Parse JSON response
+            # 解析 JSON 响应
             parser = JsonOutputParser()
             return parser.parse(llm_response.content, response_model)
+
         except Exception as e:
             self.circuit_breaker.fail()
             logger.error(f"LLM request failed: {e}")
             return ResponseModel(response="Service failed to respond.", status="error")
 
+        finally:
+            if not self.pool.full():
+                self.pool.put(llm)  # 确保 LLM 实例返回连接池
 
-
-
-# 8. Service Integration
+# Service Integration
 class LLMService:
     def __init__(self, pool_size: int = 5):
-        rate_limiter = RateLimiter(10, 60)  # Allow 10 requests per minute
-        circuit_breaker = CircuitBreaker(3, 10)  # After 3 failed requests, wait 10 seconds before retrying
+        rate_limiter = RateLimiter(10, 60)  # 每分钟允许 10 次请求
+        circuit_breaker = CircuitBreaker(3, 10)  # 3 次失败后等待 10 秒恢复
         self.chain = LLMChain(pool_size, rate_limiter, circuit_breaker)
 
     def get_response(self, prompt_data: dict, response_model: Type[BaseModel]):
         """简化外部调用接口"""
         return self.chain.invoke(prompt_data, response_model)
-
 
 class EnhancedLLMService(LLMService):
     def __init__(self, pool_size: int = 5):
@@ -192,24 +189,24 @@ class EnhancedLLMService(LLMService):
     @llm_service_wrapper
     async def get_response(self, prompt_data: dict, response_model: Type[BaseModel]):
         # 保持原有的实现不变
-        return  super().get_response(prompt_data, response_model)
+        return super().get_response(prompt_data, response_model)
 
-# Example usage
+# 示例用法
 if __name__ == '__main__':
     prompt_template = PromptTemplate(
         template="What is the meaning of life?",
         input_variables=["input"]
     )
 
-    llm_service = LLMService(pool_size=3)  # Set pool size to 3
+    llm_service = LLMService(pool_size=3)  # 设置连接池大小为 3
 
-    # Sample user input data
+    # 用户输入数据示例
     prompt_data = {
         "prompt_template": prompt_template,
         "input": "What is the meaning of life?"
     }
 
-    # Get the response from the LLM
+    # 获取 LLM 响应
     response = llm_service.get_response(prompt_data, ResponseModel)
     print("sss")
     print(response)
