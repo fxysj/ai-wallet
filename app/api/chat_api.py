@@ -12,6 +12,8 @@ from ..agents.lib.redisManger.redisManager import RedisDictManager
 from ..agents.lib.session.TranSession import TransactionSystem
 from ..agents.response.Response import SystemResponse
 from ..agents.stateToolBindingFactory.StateStrategyFactory import StateStrategyFactory
+from ..agents.tasks.fallback_task import fallback_task
+from ..agents.tasks.route_with_retry_check import route_with_retry_check
 from ..agents.tasks.user_langguage import userLangGuageAnaysic
 from ..agents.tasks.buy_task import buy_task
 from ..agents.tasks.deep_accunt_analysis import analysis_task
@@ -68,6 +70,7 @@ workflow.add_node("handle_research", research_task) #深度搜索智能体
 workflow.add_node("handle_analysis", analysis_task) #账号深度分析智能体
 workflow.add_node("handle_news", news_task) #新闻投资资讯智能体
 workflow.add_node("handle_unclear",unclear_task) #没有完成的智能体
+workflow.add_node("fallback", fallback_task) #无法识别的节点
 workflow.add_edge("user_langguage","intent_parser") #设置边 用户行为
 #条件边
 workflow.add_conditional_edges(
@@ -84,10 +87,25 @@ workflow.add_conditional_edges(
         Intention.unclear.value: "handle_unclear",
     }
 )
+# 添加 handle_unclear 后的判断路由
+workflow.add_conditional_edges(
+    "handle_unclear",
+    route_with_retry_check,
+    {
+        Intention.send.value: "handle_send",
+        Intention.receive.value: "handle_receive",
+        Intention.swap.value: "handle_swap",
+        Intention.buy.value: "handle_buy",
+        Intention.deep_research.value: "handle_research",
+        Intention.account_analysis.value: "handle_analysis",
+        Intention.newsletter.value: "handle_news",
+        "fail": "fallback"
+    }
+)
 for node in [
     "handle_send", "handle_receive", "handle_swap",
     "handle_buy", "handle_research", "handle_analysis",
-    "handle_news", "handle_unclear"
+    "handle_news","fallback"
 ]:
     workflow.add_edge(node, END)
 

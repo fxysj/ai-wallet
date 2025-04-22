@@ -8,18 +8,19 @@ from app.agents.lib.llm.llm import LLMFactory
 from app.agents.tools import GetWrapResponse
 from app.config import settings
 from app.agents.lib.redisManger.redisManager import redis_dict_manager
-from app.agents.proptemts.unclear_propmt_en import  UnClearTemplate
+from app.agents.proptemts.unclear_prompt_cle import  UnClearTemplate
 
 async def unclear_task(state: AgentState) -> AgentState:
     system_message = UnClearTemplate
-    llm = LLMFactory.getOpenAI(open_key=settings.OPENAI_API_KEY, url=settings.OPENAI_API_BASE_URL)
+    llm = LLMFactory.getDefaultOPENAI()
     prompt = PromptTemplate(
         template=system_message,
-        input_variables=["input", "langguage"],
+        input_variables=["message_history", "langguage","latest_message","attached_data"],
     )
     chain = prompt | llm | JsonOutputParser()
     # 将 state.user_input 封装成字典
-    input_data = {"input": state.user_input, "langguage": state.langguage}
+    input_data = {"message_history": state.history, "langguage": state.langguage,"latest_message": state.user_input, "attached_data": state.attached_data}
     result = await chain.ainvoke(input_data)
     print("进入无法匹配模式")
-    return state.copy(update={"result": result["data"]})
+    print(result)
+    return state.copy(update={"result": result})
