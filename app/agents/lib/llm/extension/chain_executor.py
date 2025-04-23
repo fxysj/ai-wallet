@@ -92,6 +92,7 @@ class ParallelChainExecutor:
         try:
             # 尝试主节点
             main_result = await self.execute_node(main_node, input_data, response_model)
+            print(main_result)
             if main_result["status"] == "success":
                 return main_result
         except Exception as e:

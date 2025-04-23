@@ -281,10 +281,56 @@ async def ahgghred():
 # 首先尝试主节点（在示例中，我们故意使用一个不存在的模型让它失败）
 # 如果主节点失败，按顺序尝试备用节点
 # 一旦有一个节点成功，就返回其结果
+
+async def fallback():
+    # 创建服务实例
+    service = EnhancedLLMService(pool_size=3)
+
+    # 创建执行器
+    executor = ParallelChainExecutor(service)
+
+
+    # 创建一个故意会失败的节点
+    failing_node = ChainNode(
+        "non-existent-model",  # 这会导致错误
+        "This will fail: {input}",
+        name="Failing-Node"
+    )
+    sentiment_node = ChainNode(
+        "gpt-3.5-turbo",
+        "Analyze the sentiment of this text. Respond with only: positive, negative, or neutral: {input}",
+        name="Sentiment"
+    )
+    # 准备输入数据
+    input_data = {
+        "input": "The new product launch exceeded all expectations. Sales were 50% higher than projected, and customer feedback has been overwhelmingly positive. The marketing team did an excellent job with the promotion, and the development team delivered a high-quality product on schedule. This success has boosted team morale and positioned us well for the next quarter."
+    }
+
+    # 创建多个处理节点
+    summarize_node = ChainNode(
+        "gpt-4o",
+        "Summarize this text in 2-3 sentences: {input}",
+        name="Summarize"
+    )
+
+    # 执行带有故障转移的链条
+    fallback_result = await executor.execute_with_fallback(
+        failing_node,
+        [summarize_node, sentiment_node],  # 故障转移节点
+        input_data,
+        ResponseModel
+    )
+    print(fallback_result)
+
+    if fallback_result["status"] == "success":
+        print(f"\n故障转移成功! 使用节点: {fallback_result['node'].name}")
+        print(fallback_result["result"].response)
+    else:
+        print("\n所有节点都失败了")
 if __name__ == "__main__":
     import asyncio
 
-    asyncio.run(ahgghred())
+    asyncio.run(fallback())
     # asyncio.run(example_usage())
     # asyncio.run(chain_example())
     # asyncio.run(chain_example_s())

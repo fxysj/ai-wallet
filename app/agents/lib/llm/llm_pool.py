@@ -30,10 +30,10 @@ class Data(BaseModel):
 # 创建 PromptTemplate 和 LLM 连接池
 class LLMFactory:
     @staticmethod
-    def getDefaultOPENAI() -> ChatOpenAI:
-        """返回 OpenAI 的 LLM 实例"""
+    def getDefaultOPENAI(model_name: str = "gpt-4o") -> ChatOpenAI:
+        """返回指定模型名称的 OpenAI 的 LLM 实例"""
         return ChatOpenAI(
-            model="gpt-4o",
+            model=model_name,
             temperature=0.3,
             openai_api_key=settings.OPENAI_API_KEY,
             openai_api_base=settings.OPENAI_API_BASE_URL
@@ -128,12 +128,13 @@ class JsonOutputParser:
 
 # LLMChain with Rate Limiting, Circuit Breaking, and Logging
 class LLMChain:
-    def __init__(self, pool_size: int = 5, rate_limiter: RateLimiter = RateLimiter(10, 60),
+    def __init__(self, pool_size: int = 5, model_name: str = "gpt-4o",
+                 rate_limiter: RateLimiter = RateLimiter(10, 60),
                  circuit_breaker: CircuitBreaker = CircuitBreaker(3, 10)):
         self.pool_size = pool_size
-        self.pool = Queue(maxsize=self.pool_size)  # 使用线程安全的队列管理连接池
+        self.pool = Queue(maxsize=self.pool_size)
         for _ in range(self.pool_size):
-            self.pool.put(LLMFactory.getDefaultOPENAI())  # 初始化连接池
+            self.pool.put(LLMFactory.getDefaultOPENAI(model_name))  # 使用传入的 model_name
 
         self.rate_limiter = rate_limiter
         self.circuit_breaker = circuit_breaker
@@ -172,10 +173,10 @@ class LLMChain:
 
 # Service Integration
 class LLMService:
-    def __init__(self, pool_size: int = 5):
-        rate_limiter = RateLimiter(10, 60)  # 每分钟允许 10 次请求
-        circuit_breaker = CircuitBreaker(3, 10)  # 3 次失败后等待 10 秒恢复
-        self.chain = LLMChain(pool_size, rate_limiter, circuit_breaker)
+    def __init__(self, pool_size: int = 5, model_name: str = "gpt-4o"):
+        rate_limiter = RateLimiter(10, 60)
+        circuit_breaker = CircuitBreaker(3, 10)
+        self.chain = LLMChain(pool_size, model_name, rate_limiter, circuit_breaker)
 
     def get_response(self, prompt_data: dict, response_model: Type[BaseModel]):
         """简化外部调用接口"""
@@ -198,7 +199,7 @@ if __name__ == '__main__':
         input_variables=["input"]
     )
 
-    llm_service = LLMService(pool_size=3)  # 设置连接池大小为 3
+    llm_service = LLMService(pool_size=3,model_name="gpt-3.5-turbo")  # 设置连接池大小为 3
 
     # 用户输入数据示例
     prompt_data = {
