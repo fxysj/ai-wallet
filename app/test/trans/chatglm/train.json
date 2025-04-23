@@ -1,0 +1,12 @@
+[
+  {
+    "instruction": "请对下列句子进行情感分析：",
+    "input": "这家餐厅的菜又贵又难吃。",
+    "output": "负面"
+  },
+  {
+    "instruction": "请总结以下内容的要点：",
+    "input": "苹果公司发布了新一代MacBook Pro，采用M3芯片...",
+    "output": "苹果发布新MacBook Pro，搭载M3芯片"
+  }
+]
