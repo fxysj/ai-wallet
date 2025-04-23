@@ -18,24 +18,24 @@ from app.agents.tasks.deep_search_task_enum import EnumValueRegistry
 #获取rawData数据s
 #根据详情信息返回OverView数据
 def wrap_del_with_detail(detail_data):
-    return {
+    return format_and_convert_keys({
         "Project_Name": detail_data.get("project_name", ""),
         "logo": detail_data.get("logo", ""),
         "Token_Symbol": detail_data.get("token_symbol", ""),
-        "Token_Price": detail_data.get("price", ""),
-        "FDV": detail_data.get("fully_diluted_market_cap", ""),
-        "M.Cap": detail_data.get("market_cap", ""),
+        "Token_Price": str(round(price, 2)),
+        "FDV": format_number(fdv),
+        "M.Cap": format_number(MCap),
         "Brief": detail_data.get("one_liner", ""),
-        "Fundraising_Amount": detail_data.get("total_funding", ""),
+        "Fundraising_Amount": format_number(total_funding),
         "Ecosystem": detail_data.get("ecosystem", ""),
-        "X_Followers": detail_data.get("followers", ""),
-        "Descroption": detail_data.get("description"),
+        "X_Followers": format_number(followers),
+        "Description": detail_data.get("description"),
         "Reports":detail_data.get("reports",[]),
         "Events":detail_data.get("event",[]),
         "investors":detail_data.get("investors",[]),
         "Team_Member":detail_data.get("team_members",[]),
         "Social_Media":detail_data.get("social_media",[])
-    }
+    })
 
 #账号深度分析
 def account_deep_asynic(selectedType,type_value):
@@ -227,7 +227,7 @@ def uniongoPlusResultAndsymbolResultOverView(goPlusResult, CMCResult,Contract_Ad
         "Top10_Holders_Ratio": str(top10_holders_ratio*100),#保留小数点后两位并采用百分比展示。
     }
     #组织返回基础信息
-    return filter_empty_values(basic_info)
+    return format_and_convert_keys(basic_info)
 
 def format_percentage(value, decimals=0):
     """
@@ -460,7 +460,7 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
         "Dex_And_Liquidity":Dex_And_Liquidity
     }
     # 组织返回基础信息
-    return filter_empty_values(detail_info)
+    return format_and_convert_keys(detail_info)
 
 #其他类型API工具分析
 def api_extra_asnyc(selectedType,type_value):
@@ -509,6 +509,16 @@ def EmptyResult():
         "type":"",
     }
 
+# 将 snake_case 转换为 camelCase
+def to_camel_case(snake_str: str) -> str:
+    components = snake_str.split('_')
+    return components[0].lower() + ''.join(x.title() for x in components[1:])
+
+# 将字典中的键名从 snake_case 转为 camelCase 并过滤空值
+def format_and_convert_keys(data: dict) -> dict:
+    filtered = filter_empty_values(data)
+    return {to_camel_case(k): v for k, v in filtered.items()}
+
 
 #新增类型处理
 def wrap_del_with_OverView(detail_data):
@@ -534,7 +544,7 @@ def wrap_del_with_OverView(detail_data):
     if not  followers:
         followers=0
 
-    res = filter_empty_values({
+    res = format_and_convert_keys({
         "Project_Name": detail_data.get("project_name", ""),
         "logo": detail_data.get("logo", ""),
         "Token_Symbol": detail_data.get("token_symbol", ""),
@@ -545,7 +555,7 @@ def wrap_del_with_OverView(detail_data):
         "Fundraising_Amount": format_number(total_funding),
         "Ecosystem": detail_data.get("ecosystem", ""),
         "X_Followers":format_number(followers),
-        "Descroption": detail_data.get("description")
+        "Description": detail_data.get("description")
     })
     #如果不是项目如果是4 VCTOKEN主流币
 #     if type==4:
@@ -906,13 +916,48 @@ if __name__ == '__main__':
     # print(format_string(contract_address))
     # print(format_string(contract_creator))
     # print(format_string(contract_owner))
-    buy_tax = 0.1
-    sell_tax = "0.075"
+    # buy_tax = 0.1
+    # sell_tax = "0.075"
+    #
+    # result = {
+    #     "Buy_Tax": format_percentage(buy_tax),  # 10%
+    #     "Sell_Tax": format_percentage(sell_tax)  # 8%
+    # }
+    #
 
-    result = {
-        "Buy_Tax": format_percentage(buy_tax),  # 10%
-        "Sell_Tax": format_percentage(sell_tax)  # 8%
+    detail_data = {
+        "project_name": "AI Launchpad",
+        "logo": "",
+        "token_symbol": "AILP",
+        "one_liner": "Accelerating AI startups",
+        "ecosystem": "Ethereum",
+        "description": None
     }
 
-    print(result)
+    price = 0.1234
+    fdv = 5000000
+    MCap = 3000000
+    total_funding = 1000000
+    followers = 15400
+
+    raw_data = {
+        "Project_Name": detail_data.get("project_name", ""),
+        "logo": detail_data.get("logo", ""),
+        "Token_Symbol": detail_data.get("token_symbol", ""),
+        "Token_Price": str(round(price, 2)),
+        "FDV": fdv,
+        "M.Cap": MCap,
+        "Brief": detail_data.get("one_liner", ""),
+        "Fundraising_Amount": total_funding,
+        "Ecosystem": detail_data.get("ecosystem", ""),
+        "X_Followers": followers,
+        "Description": detail_data.get("description")
+    }
+
+    # 应用过滤 + 字段名驼峰转换
+    final_data = format_and_convert_keys(raw_data)
+
+    # 输出
+    print(final_data)
+    # print(result)
 
