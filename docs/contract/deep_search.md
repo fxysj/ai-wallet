@@ -1,7 +1,7 @@
 
 
 ###当用户选择对应的项目类型请求:
-请求地址:{{url}}/api/v1/chat
+请求地址:{{url}}/api/v1/chat 选中类型为2,4 2项目  4 VCTOKEN 
 请求方式:POST 
 请求Body:json:
 ```
@@ -58,179 +58,61 @@ ROWDATA:https://www.rootdata.com/zh/Api/Doc
             "timestamp": 1744970148.2828474,
             "description": "I have confirmed the information to be queried. Kindly assist in retrieving the relevant data",
             "overview": {
-                "Project_Name": "Solana",
-                "logo": "https://public.rootdata.com/images/b15/1666364340995.jpg",
-                "Token_Symbol": "SOL",
-                "Token_Price": "",
-                "FDV": "",
-                "M.Cap": "",
-                "Brief": "High performance underlying blockchain",
-                "Fundraising_Amount": 335760000,
-                "Ecosystem": "",
-                "X_Followers": "",
-                "Descroption": "Solana is a high-performance blockchain protocol designed to enable scalable, user-friendly applications for the world."
-            },
+    'projectName': 'Solana',
+    'logo': 'https://public.rootdata.com/images/b15/1666364340995.jpg',
+    'tokenSymbol': 'SOL',
+    'tokenPrice': '',
+    'fdv': '',
+    'mCap': '',
+    'brief': 'High performance underlying blockchain',
+    'fundraisingAmount': 335760000,
+    'ecosystem': '',
+    'xFollowers': '',
+    'description': 'Solana is a high-performance blockchain protocol designed to enable scalable, user-friendly applications for the world.'
+},
             "details": {
-                "Project_Name": "Solana",
-                "logo": "https://public.rootdata.com/images/b15/1666364340995.jpg",
-                "Token_Symbol": "SOL",
-                "Token_Price": "",
-                "FDV": "",
-                "M.Cap": "",
-                "Brief": "High performance underlying blockchain",
-                "Fundraising_Amount": 335760000,
-                "Ecosystem": "",
-                "X_Followers": "",
-                "Descroption": "Solana is a high-performance blockchain protocol designed to enable scalable, user-friendly applications for the world.",
-                "Reports": [],
-                "Events": [],
-                "investors": [
-                    {
-                        "invest_id": 146,
-                        "name": "Polychain",
-                        "logo": "https://public.rootdata.com/images/b11/1666594345259.jpg",
-                        "type": 2,
-                        "lead_investor": 1
-                    },
-                    {
-                        "invest_id": 237,
-                        "name": "Andreessen Horowitz",
-                        "logo": "https://public.rootdata.com/images/b30/1684378189698.jpg",
-                        "type": 2,
-                        "lead_investor": 1
-                    },
-                    {
-                        "invest_id": 154,
-                        "name": "Multicoin Capital",
-                        "logo": "https://public.rootdata.com/images/b11/1666595811200.jpg",
-                        "type": 2,
-                        "lead_investor": 1
-                    },
-                    {
-                        "invest_id": 4095,
-                        "name": "CoinShares",
-                        "logo": "https://public.rootdata.com/images/b16/1666708223779.jpg",
-                        "type": 1,
-                        "lead_investor": 0
-                    },
-                    {
-                        "invest_id": 127,
-                        "name": "Slow Ventures",
-                        "logo": "https://public.rootdata.com/images/b17/1666771674014.jpg",
-                        "type": 2,
-                        "lead_investor": 0
-                    },
-                    {
-                        "invest_id": 154,
-                        "name": "Multicoin Capital",
-                        "logo": "https://public.rootdata.com/images/b11/1666595811200.jpg",
-                        "type": 2,
-                        "lead_investor": 0
-                    },
-                    {
-                        "invest_id": 205,
-                        "name": "Distributed Global",
-                        "logo": "https://public.rootdata.com/images/b17/1666777126677.jpg",
-                        "type": 2,
-                        "lead_investor": 0
-                    },
-                    {
-                        "invest_id": 622,
-                        "name": "BlockTower Capital",
-                        "logo": "https://public.rootdata.com/images/b17/1666872618399.jpg",
-                        "type": 2,
-                        "lead_investor": 0
-                    },
-                    {
-                        "invest_id": 10666,
-                        "name": "500 Global",
-                        "logo": "https://public.rootdata.com/images/b16/1668833547965.jpg",
-                        "type": 2,
-                        "lead_investor": 0
-                    },
-                    {
-                        "invest_id": 10940,
-                        "name": "Passport Capital",
-                        "logo": "https://public.rootdata.com/images/b16/1668916747073.jpg",
-                        "type": 2,
-                        "lead_investor": 0
-                    },
-                    {
-                        "invest_id": 8942,
-                        "name": "Chris McCann",
-                        "logo": "https://public.rootdata.com/images/b19/1668693102065.jpg",
-                        "type": 3,
-                        "lead_investor": 0
-                    },
-                    {
-                        "invest_id": 4176,
-                        "name": "Alameda Research",
-                        "logo": "https://public.rootdata.com/images/b6/1668583230756.jpg",
-                        "type": 1,
-                        "lead_investor": 0
-                    },
-                    {
-                        "invest_id": 132,
-                        "name": "Ryze Labs",
-                        "logo": "https://public.rootdata.com/images/b6/1694083345119.jpg",
-                        "type": 2,
-                        "lead_investor": 0
-                    },
-                    {
-                        "invest_id": 153,
-                        "name": "NGC Ventures",
-                        "logo": "https://public.rootdata.com/images/b17/1666772406262.jpg",
-                        "type": 2,
-                        "lead_investor": 0
-                    },
-                    {
-                        "invest_id": 221,
-                        "name": "CMS Holdings",
-                        "logo": "https://public.rootdata.com/images/b17/1666777767934.jpg",
-                        "type": 2,
-                        "lead_investor": 0
-                    },
-                    {
-                        "invest_id": 257,
-                        "name": "Blockchange Ventures",
-                        "logo": "https://public.rootdata.com/images/b17/1666778988873.jpg",
-                        "type": 2,
-                        "lead_investor": 0
-                    },
-                    {
-                        "invest_id": 10595,
-                        "name": "Foundation Capital",
-                        "logo": "https://public.rootdata.com/images/b16/1668786932521.jpg",
-                        "type": 2,
-                        "lead_investor": 0
-                    },
-                    {
-                        "invest_id": 10939,
-                        "name": "Rockaway Ventures",
-                        "logo": "https://public.rootdata.com/images/b16/1668916651826.jpg",
-                        "type": 2,
-                        "lead_investor": 0
-                    },
-                    {
-                        "invest_id": 11295,
-                        "name": "Jump Trading",
-                        "logo": "https://public.rootdata.com/images/b22/1668495942205.jpg",
-                        "type": 2,
-                        "lead_investor": 0
-                    }
-                ],
-                "Team_Member": [],
-                "Social_Media": {
-                    "website": "https://solana.com/",
-                    "github": "https://github.com/solana-labs",
-                    "gitbook": "",
-                    "X": "https://x.com/solana",
-                    "cmc": "5426",
-                    "linkedin": "https://www.linkedin.com/company/solanalabs/",
-                    "medium": "https://medium.com/solana-labs",
-                    "defillama": "https://defillama.com/chain/Solana"
-                }
-            },
+  "projectName": "Solana",
+  "logo": "https://public.rootdata.com/images/b15/1666364340995.jpg",
+  "tokenSymbol": "SOL",
+  "tokenPrice": "",
+  "fdv": "",
+  "mCap": "",
+  "brief": "High performance underlying blockchain",
+  "fundraisingAmount": 335760000,
+  "ecosystem": "",
+  "xFollowers": "",
+  "descroption": "Solana is a high-performance blockchain protocol designed to enable scalable, user-friendly applications for the world.",
+  "reports": [],
+  "events": [],
+  "investors": [
+    {
+      "investId": 146,
+      "name": "Polychain",
+      "logo": "https://public.rootdata.com/images/b11/1666594345259.jpg",
+      "type": 2,
+      "leadInvestor": 1
+    },
+    {
+      "investId": 237,
+      "name": "Andreessen Horowitz",
+      "logo": "https://public.rootdata.com/images/b30/1684378189698.jpg",
+      "type": 2,
+      "leadInvestor": 1
+    }
+  ],
+  "teamMember": [],
+  "socialMedia": {
+    "website": "https://solana.com/",
+    "github": "https://github.com/solana-labs",
+    "gitbook": "",
+    "x": "https://x.com/solana",
+    "cmc": "5426",
+    "linkedin": "https://www.linkedin.com/company/solanalabs/",
+    "medium": "https://medium.com/solana-labs",
+    "defillama": "https://defillama.com/chain/Solana"
+  }
+}
+            ,
             "type": 2
         },
         "message": "ok",
@@ -238,7 +120,35 @@ ROWDATA:https://www.rootdata.com/zh/Api/Doc
         "alternatives": []
     }
 ]
-###当用户输入查询关键词:
+###当用户输入查询关键词: 选中的类型为 3 MEMETOKEN 
 请求地址:{{url}}/api/v1/chat
 请求方式:POST 
 请求Body:json:
+```
+{
+    "id": "HxFZ2BIL2hwW2E6z1113",
+    "messages": [
+        {
+            "role": "user",
+            "content": "查询狗狗币",
+            "data": {
+                "intent":"deep_research",
+                "form":{
+                    "query":"查询狗狗币",
+                    "selectedType":{
+                        "type":3,
+                        "chain_id":56,
+                        "contract_addresses":["0xba2ae424d960c26247dd6c32edc70b295c744c43"],
+                        "symbol":"SHIB"
+                    }
+                }
+            }
+        }
+    ],
+    "session_id": "0x22223"
+}
+```
+返回如下:
+```json
+
+```
