@@ -14,12 +14,16 @@ vectorstore = Chroma(persist_directory=CHROMA_DB_PATH, embedding_function=embedd
 def search_vector(state: UserState):
     user_id = state.user_id
     user_input = state.user_input
-    search = user_id + ":" + user_input
-    results = vectorstore.similarity_search(search, k=3)
-    # 按照相似度对结果进行排序
-    sorted_results = sorted(results, key=lambda x: x.score, reverse=True)
+    search_query = user_id + ":" + user_input
+
+    # 使用返回分数的搜索方法
+    results = vectorstore.similarity_search_with_score(search_query, k=3)
+
     if results:
-        return {"retrieved": sorted_results[0].page_content}
+        # results 是 (Document, score) 的元组列表
+        sorted_results = sorted(results, key=lambda x: x[1], reverse=False)  # 分数越低越相似
+        top_result = sorted_results[0][0].page_content
+        return {"retrieved": top_result}
     else:
         return {"retrieved": None}
 
