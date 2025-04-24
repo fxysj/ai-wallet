@@ -15,9 +15,11 @@ def search_vector(state: UserState):
     user_id = state.user_id
     user_input = state.user_input
     search = user_id + ":" + user_input
-    result = vectorstore.similarity_search(search, k=1)
-    if result:
-        return {"retrieved": result[0].page_content}
+    results = vectorstore.similarity_search(search, k=3)
+    # 按照相似度对结果进行排序
+    sorted_results = sorted(results, key=lambda x: x.score, reverse=True)
+    if results:
+        return {"retrieved": sorted_results[0].page_content}
     else:
         return {"retrieved": None}
 
@@ -27,34 +29,36 @@ def save_vector(state: UserState):
     user_id = state.user_id
     user_input = state.user_input
 
-    # 拼接完整文档内容
+    # 构建带标签的长文档内容
     content = f"""
-用户 ID: {user_id}
-用户输入: {user_input}
-关键词: {state.keywords}
-用户性格: {state.persona}
+👤 用户 ID: {user_id}
+💬 用户输入: {user_input}
+🔑 抽取关键词: {state.keywords}
+🧠 用户性格画像: {state.persona}
 
-🧭 推荐行程:
+🧭 旅游推荐行程:
 {state.plan}
 
-🏨 推荐酒店:
+🏨 酒店推荐:
 {state.hotels}
 
-✈️ 推荐航班:
+✈️ 航班推荐:
 {state.flights}
 
-📍 打卡地图:
+📍 打卡地图信息:
 {state.map}
 
-🌈 可爱旅游攻略汇总:
+🌈 高情商可爱旅游攻略汇总:
 {state.cute_summary}
-"""
+""".strip()
 
-    # 文本分割器（最多3000字符）
-    splitter = CharacterTextSplitter(chunk_size=3000, chunk_overlap=100)
-    docs = splitter.create_documents([content])
+    # 文本分割器配置：每段最大 1000 字符，无重叠
+    splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
 
-    # 添加到 Chroma
-    vectorstore.add_documents(documents=docs)
+    # 将长文本分割为多个文档块，每块作为独立的向量输入
+    documents = splitter.create_documents([content], metadatas=[{"user_id": user_id}])
+
+    # 添加分割后的文档块到向量数据库
+    vectorstore.add_documents(documents=documents)
 
    # ✅ 无需 persist()，Chroma 自动持久化
