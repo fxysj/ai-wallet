@@ -14,7 +14,7 @@ async def stream_travel_plan(request: Request):
     user_input = data.get("user_input")
     user_id = data.get("user_id")
 
-    state = UserState(user_id=user_id, user_input=user_input, persona="")
+    state = UserState(user_id=user_id, user_input=user_input, persona="",interrupt_input=data.get("interrupt_input",""))
 
     def generator():
         for step in travel_graph.stream(state):

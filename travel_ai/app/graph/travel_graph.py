@@ -1,6 +1,5 @@
 from langgraph.graph import StateGraph, END
 
-from travel_ai.app.chains import extractFillMainTitleTopic
 from travel_ai.app.chains.extractFillMainTitleTopic import ExtractFillMainTitleTopic
 from travel_ai.app.chains.extract_keywords import ExtractKeywordChain
 from travel_ai.app.chains.finsih_check import ReviewSummaryChain
@@ -8,8 +7,9 @@ from travel_ai.app.chains.travel_planner import TravelPlannerChain
 from travel_ai.app.chains.hotel_recommender import HotelRecommenderChain
 from travel_ai.app.chains.flight_recommender import FlightRecommenderChain
 from travel_ai.app.chains.map_generator import MapGeneratorChain
+from travel_ai.app.graph.interrupt_handler_graph import interrupt_subgraph
 from travel_ai.app.graph.vector_search import search_vector, save_vector
-from travel_ai.app.state.user_state import UserState
+from travel_ai.app.state.user_state import UserState, check_interrupt, check_interrupt_route
 
 
 def extract_keywords(state: UserState):
@@ -68,7 +68,11 @@ def review_and_summary(state: UserState):
             "map": state.map
         })
     }
-
+def search_chrom_db(state:UserState):
+    res = search_vector(state)
+    print("search_Res:")
+    print(res)
+    return res
 
 # 构建 LangGraph 流程图
 graph = StateGraph(UserState)
@@ -86,16 +90,37 @@ graph.add_node("plan_trip", plan_trip)
 graph.add_node("recommend_hotel", recommend_hotel)
 graph.add_node("recommend_flight", recommend_flight)
 graph.add_node("generate_map", generate_map)
-graph.add_node("vector_search", search_vector)
+graph.add_node("vector_search", search_chrom_db)
 graph.add_node("review_and_summary", review_and_summary)
+graph.add_node("check_interrupt", check_interrupt)
+# 把中断子图注册为一个节点名，比如 interrupt_handler
+graph.add_node("interrupt_handler", interrupt_subgraph)
+
+
+
+
+
 graph.add_edge("extract_keywords", "extractFillMainTitleTopic")
 graph.add_edge("extractFillMainTitleTopic", "vector_search")
-graph.add_edge("vector_search", "plan_trip")
+graph.add_edge("vector_search", "check_interrupt")
 graph.add_edge("plan_trip", "recommend_hotel")
 graph.add_edge("recommend_hotel", "recommend_flight")
 graph.add_edge("recommend_flight", "generate_map")
 graph.add_edge("generate_map", "review_and_summary")
 graph.add_edge("review_and_summary", END)
+
+
+graph.add_conditional_edges(
+    "check_interrupt",
+    check_interrupt_route,
+    path_map={
+        "interrupt": "interrupt_handler",  # ✅ 是注册过的节点名
+        "continue": "plan_trip",           # ✅ 也是主图的节点名
+    }
+)
+# ✅ 让子图输出自动回到 plan_trip
+graph.add_edge("interrupt_handler", "plan_trip")
+
 graph.set_entry_point("extract_keywords")
 
 travel_graph = graph.compile()

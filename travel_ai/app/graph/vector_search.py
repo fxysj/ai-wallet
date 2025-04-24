@@ -1,10 +1,8 @@
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
-from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
 from travel_ai.app.state.user_state import UserState
-import os
-
+from travel_ai.app.config import llm
 # 初始化 Chroma 向量库（持久化路径为 ./chroma_db）
 CHROMA_DB_PATH = "./chroma_db"
 embedding_model = OpenAIEmbeddings()
@@ -16,9 +14,11 @@ def search_vector(state: UserState):
     user_input = state.user_input
     search_query = user_id + ":" + user_input
 
+    print("search_query :"+search_query)
+
     # 使用返回分数的搜索方法
     results = vectorstore.similarity_search_with_score(search_query, k=3)
-
+    print(results)
     if results:
         # results 是 (Document, score) 的元组列表
         sorted_results = sorted(results, key=lambda x: x[1], reverse=False)  # 分数越低越相似
@@ -66,3 +66,11 @@ def save_vector(state: UserState):
     vectorstore.add_documents(documents=documents)
 
    # ✅ 无需 persist()，Chroma 自动持久化
+
+if __name__ == '__main__':
+    state= UserState(
+        user_input="我想去看极光",
+        user_id="10011"
+    )
+    resource= search_vector(state)
+    print(resource)
