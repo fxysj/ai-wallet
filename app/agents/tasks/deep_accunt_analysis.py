@@ -29,9 +29,9 @@ async def analysis_task(state: AgentState) -> AgentState:
     print("response_data")
     print(response_data)
     data = response_data.get("data")
-    # 使用 time 模块获取当前时间戳
-    timestamp_time = time.time()
-    print("使用 time 模块获取的 UTC 时间戳:", timestamp_time)
+    if data is None:
+      data = {}
+
     data["intent"] = state.detected_intent.value
     if data:
         form = data.get("form")
