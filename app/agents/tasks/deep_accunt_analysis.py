@@ -36,7 +36,7 @@ async def analysis_task(state: AgentState) -> AgentState:
     data["intent"] = state.detected_intent.value
     if data:
         form = data.get("form")
-        if not form:
+        if form:
           missField = data.get("missFields")
           # 这里进行分析
           if missField:
