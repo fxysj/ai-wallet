@@ -21,6 +21,8 @@ docker push registry.cn-hangzhou.aliyuncs.com/sinrpc/mypython:latest
 
 docker rmi registry.cn-hangzhou.aliyuncs.com/sinrpc/ai-wallet:latest
 
+docker rmi redis:alpine
+
 docker-compose down
 
 sudo certbot --nginx -d ai.testtikee.com
