@@ -19,9 +19,22 @@ def fallback_task(state: AgentState) -> AgentState:
 
     用户输入如下：
     "{user_input}"
-
+    
     请输出：
     （一句人性化、区块链相关的引导语句）
+    
+    
+Case 1 – Unclear Input:
+   Input:  283y2y438y243y4r4gr74gr734rg4r234r  
+   Output: Hello, I noticed that the issue you mentioned might have some input or formatting errors, which caused the content to be unclear. If possible, please verify or provide additional information, and I will assist you right away.
+   
+Case 2 – Sensitive Terms:
+Input: 特朗普  
+Output:Hello, the issue you mentioned may involve sensitive terms, and therefore we are unable to provide an answer. If you have any other questions, please feel free to let me know, and I will be happy to assist you.   
+
+
+【要求】
+如果命中上面俩个Case情况 输出对应的Output  根据用户输入的语言自动返回对应的回复
     """
 
     data = {"description": state.result.get("description")}
@@ -30,7 +43,7 @@ def fallback_task(state: AgentState) -> AgentState:
         template=FALLBACK_PROMPT,
         input_variables=["user_input"],
     )
-    chain = p|llm|StrOutputParser()
+    chain = p | llm | StrOutputParser()
     response = chain.invoke({"user_input": state.user_input})
     print(response)
     data["description"] = response
