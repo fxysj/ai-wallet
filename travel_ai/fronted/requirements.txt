@@ -1,0 +1,4 @@
+streamlit
+sseclient-py
+requests
+watchdog

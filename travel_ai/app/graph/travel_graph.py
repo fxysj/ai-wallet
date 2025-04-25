@@ -22,7 +22,7 @@ def plan_trip(state: UserState):
                                       "persona": state.persona,
                                       "context": state.retrieved
                                       })
-    return {"plan": plan}
+    return {"plan": plan.get("plan_trip")}
 
 
 def recommend_hotel(state: UserState):
@@ -30,11 +30,13 @@ def recommend_hotel(state: UserState):
         "keywords": state.keywords,
         "persona": state.persona,
         "context": state.retrieved
-    })}
+    }).get("recommend_hotel")}
 
 
 def recommend_flight(state: UserState):
-    return {"flights": FlightRecommenderChain.invoke({"keywords": state.keywords, "context": state.retrieved})}
+    return {"flights": FlightRecommenderChain.
+    invoke({"keywords": state.keywords, "context": state.retrieved}).get("recommend_flight")
+            }
 
 
 def generate_map(state: UserState):
@@ -42,7 +44,7 @@ def generate_map(state: UserState):
         "keywords": state.keywords,
         "persona": state.persona,
         "context": state.retrieved
-    })}
+    }).get("generate_map")}
 
 
 # 对关键词进行丰富为主题内容扩展
