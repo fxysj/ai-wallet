@@ -85,42 +85,52 @@ graph.set_entry_point("extract_keywords")
 # 最后一步需要对上面的所有的信息进行汇总 进行总结生成出一个合理的信息
 # 内容过滤 内容检测 内容修正
 graph.add_node("extract_keywords", extract_keywords)
-graph.add_node("extractFillMainTitleTopic", extract_filltopic)
-graph.add_node("plan_trip", plan_trip)
-graph.add_node("recommend_hotel", recommend_hotel)
-graph.add_node("recommend_flight", recommend_flight)
-graph.add_node("generate_map", generate_map)
+graph.add_node("extract_filltopic", extract_filltopic)
 graph.add_node("vector_search", search_chrom_db)
-graph.add_node("review_and_summary", review_and_summary)
-graph.add_node("check_interrupt", check_interrupt)
 # 把中断子图注册为一个节点名，比如 interrupt_handler
 graph.add_node("interrupt_handler", interrupt_subgraph)
+# 添加每一步中断检查节点 + 主任务节点
+steps = [
+    ("plan_trip", plan_trip),
+    ("recommend_hotel", recommend_hotel),
+    ("recommend_flight", recommend_flight),
+    ("generate_map", generate_map),
+    ("review_and_summary", review_and_summary)
+]
+
+for step_name, step_fn in steps:
+    check_node = f"check_{step_name}"
+    graph.add_node(check_node, check_interrupt)
+    graph.add_node(step_name, step_fn)
+
+    # 条件跳转：中断 or 继续下一步
+    graph.add_conditional_edges(
+        check_node,
+        check_interrupt_route,
+        path_map={
+            "interrupt": "interrupt_handler",
+            "continue": step_name
+        }
+    )
 
 
 
 
 
-graph.add_edge("extract_keywords", "extractFillMainTitleTopic")
-graph.add_edge("extractFillMainTitleTopic", "vector_search")
-graph.add_edge("vector_search", "check_interrupt")
-graph.add_edge("plan_trip", "recommend_hotel")
-graph.add_edge("recommend_hotel", "recommend_flight")
-graph.add_edge("recommend_flight", "generate_map")
-graph.add_edge("generate_map", "review_and_summary")
+
+
+# 固定顺序连接逻辑
+graph.add_edge("extract_keywords", "extract_filltopic")
+graph.add_edge("extract_filltopic", "vector_search")
+graph.add_edge("vector_search", "check_plan_trip")
+graph.add_edge("plan_trip", "check_recommend_hotel")
+graph.add_edge("recommend_hotel", "check_recommend_flight")
+graph.add_edge("recommend_flight", "check_generate_map")
+graph.add_edge("generate_map", "check_review_and_summary")
 graph.add_edge("review_and_summary", END)
 
 
-graph.add_conditional_edges(
-    "check_interrupt",
-    check_interrupt_route,
-    path_map={
-        "interrupt": "interrupt_handler",  # ✅ 是注册过的节点名
-        "continue": "plan_trip",           # ✅ 也是主图的节点名
-    }
-)
 # ✅ 让子图输出自动回到 plan_trip
 graph.add_edge("interrupt_handler", "plan_trip")
-
-graph.set_entry_point("extract_keywords")
 
 travel_graph = graph.compile()

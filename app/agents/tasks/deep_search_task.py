@@ -9,7 +9,7 @@ from langchain_core.prompts import PromptTemplate
 from app.agents.form.form import TaskState
 from app.agents.lib.llm.llm import LLMFactory
 from app.agents.proptemts.overview_asnsy_propmt import OVERVIEW_ASNYC_PROPMT
-from app.agents.schemas import AgentState
+from app.agents.schemas import AgentState, Intention
 from app.agents.tools import send_post_request, send_get_request
 from app.agents.lib.redisManger.redisManager import redis_dict_manager
 from app.test.deepSearchProject.deepSearchTask_prompt_test import DEEPSEARCHTASK_PROMPT_TEST
@@ -18,6 +18,26 @@ from app.agents.tasks.deep_search_task_enum import EnumValueRegistry
 #获取rawData数据s
 #根据详情信息返回OverView数据
 def wrap_del_with_detail(detail_data):
+    price = detail_data.get("price", "")
+    if not price:
+        price = 0.0
+
+    fdv = detail_data.get("fully_diluted_market_cap", "")
+    if not fdv:
+        fdv = 0
+
+    MCap = detail_data.get("market_cap", "")
+    if not MCap:
+        MCap = 0
+
+    total_funding = detail_data.get("total_funding", "")
+    if not total_funding:
+        total_funding = 0
+
+    followers = detail_data.get("followers", "")
+    if not followers:
+        followers = 0
+
     return format_and_convert_keys({
         "Project_Name": detail_data.get("project_name", ""),
         "logo": detail_data.get("logo", ""),
@@ -850,7 +870,7 @@ async def research_task(state: AgentState) -> AgentState:
         })
 
     def update_result_with_handling(data: dict, state: AgentState) -> AgentState:
-        data["intent"] = state.detected_intent.value
+        data["intent"] = Intention.deep_research.value #这里已经进来了为什么还要继承
         timestamp_time = time.time()
         print("使用 time 模块获取的 UTC 时间戳:", timestamp_time)
         data["timestamp"] = state.attached_data.get("timestamp", timestamp_time)

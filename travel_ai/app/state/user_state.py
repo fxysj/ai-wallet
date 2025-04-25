@@ -15,6 +15,7 @@ class UserState(BaseModel):
     cute_summary:Dict=None #最后的结果
     interrupt_input: Optional[str]=None  # 用户是否打断的内容
     interrupt_answer:str="" #中端的用户答案
+    current_step: Optional[str] = None  # 🧠 新增字段：记录流程当前步骤名
 
 def check_interrupt_route(state: UserState)->str:
     if state.interrupt_input:
