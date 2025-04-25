@@ -18,6 +18,10 @@ async def analysis_task(state: AgentState) -> AgentState:
     )
     llm = LLMFactory.getDefaultOPENAI()
     chain = prompt | llm | JsonOutputParser()
+
+    print("================history:=============")
+    print(state.history)
+    print("================history:=============")
     # 调用链处理用户最新输入
     chain_response = chain.invoke({
         "current_data": str(state.attached_data),
