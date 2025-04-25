@@ -15,11 +15,6 @@ class UserAnalysisResult(BaseModel):
     total_score: int
 
 async def  userLangGuageAnaysic(state: AgentState)->AgentState:
-    #直接从缓存中获取即可
-    language = getUserLanguage(state.session_id)
-    if language:
-        return state.copy(update={"langguage": language})
-
     if state.isAsync:
         #需要从Redis获取信息
         llm = LLMFactory.getDefaultOPENAI()
