@@ -34,27 +34,27 @@ def create_error_response(message: str):
     return response
 
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
-    #message = "Sorry, I ran into a bit of an issue while processing your request. I've logged the details, so feel free to try again in a moment!"
-    message = load_error_message()
+    message = "Sorry, I ran into a bit of an issue while processing your request. I've logged the details, so feel free to try again in a moment!"
+    #message = load_error_message()
     return create_error_response(message)
 
 async def business_exception_handler(request: Request, exc: BusinessException):
-    message = load_error_message()
-    #message = "Sorry, I ran into a bit of an issue while processing your request. I've logged the details, so feel free to try again in a moment!"
+    #message = load_error_message()
+    message = "Sorry, I ran into a bit of an issue while processing your request. I've logged the details, so feel free to try again in a moment!"
     return create_error_response(message)
 
 async def model_output_exception_handler(request: Request, exc: ModelOutputException):
-    message = load_error_message()
-    #message = "Sorry, I ran into a bit of an issue while processing your request. I've logged the details, so feel free to try again in a moment!"
+    #message = load_error_message()
+    message = "Sorry, I ran into a bit of an issue while processing your request. I've logged the details, so feel free to try again in a moment!"
     return create_error_response(message)
 
 async def output_parser_exception_handler(request: Request, exc: OutputParserException):
-    message = load_error_message()
-    #message = "Sorry, I ran into a bit of an issue while processing your request. I've logged the details, so feel free to try again in a moment!"
+    #message = load_error_message()
+    message = "Sorry, I ran into a bit of an issue while processing your request. I've logged the details, so feel free to try again in a moment!"
     return create_error_response(message)
 
 async def global_exception_handler(request: Request, exc: Exception):
-    message = load_error_message()
-    #message = "Sorry, I ran into a bit of an issue while processing your request. I've logged the details, so feel free to try again in a moment!"
+    #message = load_error_message()
+    message = "Sorry, I ran into a bit of an issue while processing your request. I've logged the details, so feel free to try again in a moment!"
     return create_error_response(message)
 
