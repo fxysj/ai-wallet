@@ -37,7 +37,7 @@ async def analysis_task(state: AgentState) -> AgentState:
     if data:
         form = data.get("form")
         if form:
-          missField = data.get("missFields")
+          missField = form.get("missFields")
           # 这里进行分析
           if missField:
             return state.copy(update={"result": data})
