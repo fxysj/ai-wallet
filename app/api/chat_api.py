@@ -3,13 +3,11 @@ import uuid
 from json import JSONDecodeError
 from  app.agents.lib.llm.llm import  LLMFactory
 from app.agents.tasks.analysis_task import parse_complex_intent
-from .exceptions.exceptions import BusinessException
 from app.agents.utils import chain_data_util
-from ..agents.form.form import TaskState
 from ..agents.lib.aiNodeJsSDk.tools.AgentStateResponseWrape import stream_text_agent_state, generate_chat_responses, \
     stream_text_agent_state_transfor
 from ..agents.lib.redisManger.redisManager import RedisDictManager
-from ..agents.lib.session.TranSession import TransactionSystem
+from ..agents.lib.session.redis_history import update_session_history
 from ..agents.response.Response import SystemResponse
 from ..agents.stateToolBindingFactory.StateStrategyFactory import StateStrategyFactory
 from ..agents.tasks.fallback_task import fallback_task
@@ -30,10 +28,6 @@ from app.agents.tools import *
 from app.config import settings
 from app.agents.lib.redisManger.redisManager import redis_dict_manager
 from fastapi.responses import StreamingResponse
-# from app.agents.lib.session.sessionManager import  dict_manager
-# from langgraph.checkpoint.memory import MemorySaver
-# 配置 LangSmith 追踪器
-# from langsmith.wrappers import wrap_openai
 # ------------------------------------------------------------------------------
 # 日志与应用初始化
 # ------------------------------------------------------------------------------
@@ -41,23 +35,14 @@ from ..utuls.FieldCheckerUtil import FieldChecker
 from ..utuls.Messages import Session
 
 # 实例化 RedisDictManager
-from ..utuls.prompt import convert_to_openai_messages
-
 redis_dict_manager = redis_dict_manager
 #实例化日志模块
-# logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 #初始化路由
 router = APIRouter()
 #初始化大模型
 llm = LLMFactory.getOpenAI(open_key=settings.OPENAI_API_KEY,url=settings.OPENAI_API_BASE_URL)
-#初始化构建Session内存的模式
 # 构建工作流
-
-# 初始化 LangSmith 客户端（自动读取环境变量）
-# client = Client()
-# # 初始化跟踪器
-# tracer = LangChainTracer(client=client)
 workflow = StateGraph(AgentState)
 
 workflow.add_node("user_langguage",userLangGuageAnaysic) #分析用户的语言类型
@@ -118,68 +103,6 @@ display_and_save_graph(app=app,filename="graph.png",output_dir="graphs")
 # ------------------------------------------------------------------------------
 # API 接口
 # ------------------------------------------------------------------------------
-@router.get("/test",summary="测试接口")
-async def test(request:Request):
-    initial_state = AgentState(
-        user_input="我想转账",  # 用户输入信息
-        attached_data={"indent":Intention.unclear.value},  # 用户保存的数据信息
-        session_id="sdsadsadsad",  # 会话信息
-        history="",  # 历史上下文信息
-        chain_data={},  # 链数据
-        messages=[],  # 历史信息
-        langguage=settings.LanGuage,  # 语言配置
-        isAsync=settings.ISLangGuageAynsNIS,  # 是否进行配置
-        detected_intent=Intention.unclear,  # 默认不知道
-        thinking_info=""
-    )
-    result = await app.ainvoke(initial_state)
-    print("DEBUG - result 类型:", type(result))
-    print("result:", result)
-    # ✅ 将其挂载到 request 上，供中间件后续使用
-    request.state.agent_state = result
-    return BaseResponse.success(result)
-
-#测试业务异常
-@router.get("/ex")
-async def test_error():
-    raise BusinessException(code=1001,msg="测试业务异常")
-
-
-@router.get("/parser")
-async def test_parser():
-    from langchain_core.exceptions import OutputParserException
-    raise OutputParserException("这是一个输出解析错误")
-
-
-@router.post("/research/result")
-async def getResarchResult(request:Request):
-        projectId = ""
-        request_data = await request.json()
-        user_input_object = Session.get_last_user_message(request_data)
-        id = request_data.get("id")
-        session_id = request_data.get("session_id")
-        if id:
-            session_id = id
-
-        data = user_input_object.data
-        print(data)
-        if data:
-            if data.get("form"):
-                selectedProject = data.get("form").get("selectedProject")
-                if selectedProject:
-                    projectId = selectedProject.get("id")
-
-        key = f"research:{session_id}:projectId:{data.get('form', {}).get('selectedProject', {}).get('id')}"
-        defultData = {"progress": 0, "message": "deepSearchProjectData...", "data": {}}
-        res = redis_dict_manager.get(key)
-        if not res:
-            return defultData
-        return res
-
-
-
-
-
 # API端点
 @router.post("/chat",summary="大模型统一入口")
 async def analyze_request(request: Request):
@@ -191,15 +114,9 @@ async def analyze_request(request: Request):
        """
     try:
         request_data = await request.json()
-        #从头部获取 id信息
-        # user_id_info = get_user_id_from_authorization(request)
-        # user_id = user_id_info["user_id"]
-        # user_id = str(user_id)
-
         session_id = request_data.get("session_id")
         id= request_data.get("id")
         messages = request_data.get("messages")
-        print(session_id)
         if id:
             session_id  = id
         if not session_id:
@@ -210,7 +127,6 @@ async def analyze_request(request: Request):
 
         session = redis_dict_manager.get(session_id)
         print("--------session-------------")
-        print(session)
         print("---------id:"+id)
         #如果没有找到则返回一个空的信息
         if session == None:
@@ -254,18 +170,16 @@ async def analyze_request(request: Request):
 
         # 如果 session["history"] 为 None，则初始化为一个空列表
         # 确保 session["history"] 不是 None
-        if session.get("history") is None:
-            session["history"] = []
-
-        session["history"].extend([
-            {"role": "user", "content": user_input_object.content,"data":user_input_object.data},
-            {"role": "system", "content": get_nested_description(result),"data":result}
-        ])
-        #更新session中的数据
-        #session["data"] = get_nested_description(result,"data","result")
-        #dict_manager.update(session_id,session)
-        #下面最好使用异步的方式进行构建
-        redis_dict_manager.update(session_id,session)
+        # if session.get("history") is None:
+        #     session["history"] = []
+        #
+        # session["history"].extend([
+        #     {"role": "user", "content": user_input_object.content,"data":user_input_object.data},
+        #     {"role": "system", "content": get_nested_description(result),"data":result}
+        # ])
+        #
+        # redis_dict_manager.update(session_id,session)
+        update_session_history(session, user_input_object, result, session_id, redis_dict_manager)
 
         state = FieldChecker.get_field_info(
             data=result.get("result", {}),  # 如果 result["result"] 不存在，返回空字典 {}

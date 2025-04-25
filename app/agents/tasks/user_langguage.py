@@ -15,8 +15,13 @@ class UserAnalysisResult(BaseModel):
     total_score: int
 
 async def  userLangGuageAnaysic(state: AgentState)->AgentState:
-    #如果需要分析才调用大模型
+    #直接从缓存中获取即可
+    language = getUserLanguage(state.session_id)
+    if language:
+        return state.copy(update={"langguage": language})
+
     if state.isAsync:
+        #需要从Redis获取信息
         llm = LLMFactory.getDefaultOPENAI()
         prompt = PromptTemplate(
             template=UserLangguageAnasicTemplate,
@@ -29,6 +34,8 @@ async def  userLangGuageAnaysic(state: AgentState)->AgentState:
         })
         #显示返回
         userLanggurage = UserAnalysisResult(**response)
+        print("语言分析的结果：")
+        print(userLanggurage)
         updateUserLanguage(state.session_id,userLanggurage.language)
         return state.copy(update={"langguage":userLanggurage.language})
     return state.copy()
@@ -36,6 +43,8 @@ async def  userLangGuageAnaysic(state: AgentState)->AgentState:
 def  updateUserLanguage(session_id:str,langguage:str)->bool:
     redis_dict_manager.add(session_id,langguage)
     return True
+def getUserLanguage(session_id:str)->str:
+    return redis_dict_manager.get(session_id)
 
 
 

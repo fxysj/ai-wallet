@@ -34,17 +34,17 @@ Output:Hello, the issue you mentioned may involve sensitive terms, and therefore
 
 
 【要求】
-如果命中上面俩个Case情况 输出对应的Output  根据用户输入的语言自动返回对应的回复
+如果命中上面俩个Case情况 输出对应的Output  根据{language}的语言自动返回对应的回复
     """
 
     data = {"description": state.result.get("description")}
     llm = LLMFactory.getDefaultOPENAI()
     p = PromptTemplate(
         template=FALLBACK_PROMPT,
-        input_variables=["user_input"],
+        input_variables=["user_input","language"],
     )
     chain = p | llm | StrOutputParser()
-    response = chain.invoke({"user_input": state.user_input})
+    response = chain.invoke({"user_input": state.user_input,"language":state.langguage})
     print(response)
     data["description"] = response
     data["intent"] = "fallback"

@@ -1,0 +1,230 @@
+openapi: 3.0.0
+info:
+  title: Blockchain API
+  description: API for various blockchain - related operations
+  version: 1.0.0
+servers:
+  - url: https://ai.testtikee.com/api/v1/chat
+    description: Test environment
+
+paths:
+  /:
+    post:
+      summary: Perform blockchain - related operations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: Wallet address information
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                      content:
+                        type: string
+                      data:
+                        type: object
+                        additionalProperties: true
+                session_id:
+                  type: string
+                  description: User's session information
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              examples:
+                # 通用请求示例
+                general_request:
+                  summary: General request example
+                  value:
+                    id: "HxFZ2BIL2hwW2E6z1113"
+                    messages:
+                      - role: "user"
+                        content: "分析BCB"
+                        data:
+                          intent: "deep_research"
+                          form:
+                            selectedType:
+                              id: 4129
+                              title: "Background information of the BCB Group"
+                              logo: "https://public.rootdata.com/images/b56/1740219787082.jpg"
+                              type: 2
+                              detail: "BCB Group is Europe's leading provider of business accounts and trading services for the digital asset economy. They are regulated in the UK and Switzerland, and provide accounts and payments processing for industry pillars such as Bitstamp, Kraken, Gemini, Galaxy, BitPay, and Circle."
+                              chain_id: 1
+                              contract_addresses: []
+                              symbol: ""
+                    session_id: "0x22223"
+                # 转账功能
+                transfer_1:
+                  summary: Transfer - initial request
+                  value:
+                    id: "HxFZ2BIL2hwW2E6z1113"
+                    messages:
+                      - role: "user"
+                        content: "我要转账"
+                        data: {}
+                    session_id: "0x22223"
+                transfer_2:
+                  summary: Transfer - provide sender address
+                  value:
+                    id: "HxFZ2BIL2hwW2E6z1113"
+                    messages:
+                      - role: "user"
+                        content: "我的地址是0x1212"
+                        data:
+                          intent: "send"
+                          state: "SEND_TASK_NEED_MORE_INFO"
+                          timestamp: 1745547475.4127545
+                          form:
+                            chainId: 56
+                            fromAddress: ""
+                            toAddress: ""
+                            amount: ""
+                            slippage: 0.01
+                            tokenAddress: ""
+                            rawTx: ""
+                            signedTx: ""
+                    session_id: "0x22223"
+                transfer_3:
+                  summary: Transfer - provide complete information
+                  value:
+                    id: "HxFZ2BIL2hwW2E6z1113"
+                    messages:
+                      - role: "user"
+                        content: "我想给0x12123 转3个ETH 我的地址是0x121213 "
+                        data:
+                          intent: "send"
+                          state: "SEND_TASK_NEED_MORE_INFO"
+                          timestamp: 1745547475.4127545
+                          form:
+                            chainId: 56
+                            fromAddress: "0x121213"
+                            toAddress: "0x12123"
+                            amount: "3"
+                            slippage: 0.01
+                            tokenAddress: ""
+                            rawTx: ""
+                            signedTx: ""
+                    session_id: "0x22223"
+                # 收款
+                receive:
+                  summary: Receive funds
+                  value:
+                    id: "HxFZ2BIL2hwW2E6z1113"
+                    messages:
+                      - role: "user"
+                        content: "收款"
+                        data: {}
+                    session_id: "0x22223"
+                # 新闻资讯
+                news_1:
+                  summary: News - initial request
+                  value:
+                    id: "HxFZ2BIL2hwW2E6z1113"
+                    messages:
+                      - role: "user"
+                        content: "新闻资讯"
+                        data: {}
+                    session_id: "0x22223"
+                news_2:
+                  summary: News - request daily news
+                  value:
+                    id: "HxFZ2BIL2hwW2E6z1113"
+                    messages:
+                      - role: "user"
+                        content: "新闻资讯 最新的 当天的"
+                        data: {}
+                    session_id: "0x22223"
+                # 账号分析
+                account_analysis:
+                  summary: Account analysis
+                  value:
+                    id: "HxFZ2BIL2hwW2E6z1113"
+                    messages:
+                      - role: "user"
+                        content: "账号进行分析"
+                        data:
+                          accounts:
+                            - id: "HxFZ2BIL2hwW2E6z1113"
+                              address: "0x08***e5b9b7"
+                            - id: "HxFZ2BIL2hwW2E6z1113"
+                              address: "0x08***e5b9b7"
+                    session_id: "0x22223"
+                # 深度搜索
+                deep_search_1:
+                  summary: Deep search - initial request
+                  value:
+                    id: "HxFZ2BIL2hwW2E6z1113"
+                    messages:
+                      - role: "user"
+                        content: "ETH"
+                        data: {}
+                    session_id: "0x22223"
+                deep_search_2:
+                  summary: Deep search - select type
+                  value:
+                    id: "HxFZ2BIL2hwW2E6z1113"
+                    messages:
+                      - role: "user"
+                        content: "ETH"
+                        data:
+                          intent: "deep_research"
+                          state: "RESEARCH_TASK_DISPLAY_PROMPTED_PROJECT"
+                          form:
+                            query: "ETH"
+                            selectedType:
+                              id: 12
+                              type: 2
+                              chain_id: 1
+                              contract_addresses: []
+                              symbol: "ETH"
+                    session_id: "0x22223"
+                # 跨链兑换
+                cross_chain_swap:
+                  summary: Cross - chain swap
+                  value:
+                    id: "HxFZ2BIL2hwW2E6z1113"
+                    messages:
+                      - role: "user"
+                        content: "I want to exchange my USDT for BNB on the BSC chain"
+                        data: {}
+                    session_id: "0x22223"
+                # 购买法币
+                buy_fiat:
+                  summary: Buy cryptocurrency with fiat
+                  value:
+                    id: "HxFZ2BIL2hwW2E6z1113"
+                    messages:
+                      - role: "user"
+                        content: "I want to buy ETH with RMB"
+                        data: {}
+                    session_id: "0x22223"
+                # 敏感词汇
+                sensitive_word:
+                  summary: Request with sensitive word
+                  value:
+                    id: "HxFZ2BIL2hwW2E6z1113"
+                    messages:
+                      - role: "user"
+                        content: "特朗普"
+                        data: {}
+                    session_id: "0x22223"
+                # 语义不明确
+                unclear_semantics:
+                  summary: Request with unclear semantics
+                  value:
+                    id: "HxFZ2BIL2hwW2E6z1113"
+                    messages:
+                      - role: "user"
+                        content: "283y2y438y243y4r4gr74gr734rg4r234r"
+                        data: {}
+                    session_id: "0x22223"
