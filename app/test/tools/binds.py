@@ -1,5 +1,5 @@
 import json
-from typing import TypedDict, Annotated
+from typing import TypedDict, Annotated, Dict, Any
 
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import ToolMessage
@@ -11,25 +11,40 @@ from app.agents.tools import display_and_save_graph
 
 
 @tool
-def getWearcher():
-    """获取天气信息"""
-    print("Get Wearcher")
-    return  "sss"
+def getWeatherInfo(city: str) -> Dict[str, Any]:
+    """根据城市名称获取当前城市的天气情况"""
+    print(f"Fetching weather for city: {city}")
+    # 这里你可以调用真实天气API，比如高德天气API、OpenWeatherMap等
+    # 为了示例，这里模拟返回
+    mock_weather_data = {
+        "Shanghai": {"temperature": "22°C", "condition": "Cloudy"},
+        "Beijing": {"temperature": "19°C", "condition": "Sunny"},
+        "Guangzhou": {"temperature": "28°C", "condition": "Thunderstorm"},
+    }
+    weather = mock_weather_data.get(city, {"temperature": "Unknown", "condition": "Unknown"})
+    return {
+        "city": city,
+        "temperature": weather["temperature"],
+        "condition": weather["condition"]
+    }
 
 
-def init_chat_modle_consutom(model:str,tootls=None):
+def init_chat_modle_consutom(model: str, tootls=None):
     return init_chat_model(
         model=model,
         api_key=settings.OPENAI_API_KEY,
         base_url=settings.OPENAI_API_BASE_URL
     ).bind_tools(tootls)
 
+
 from app.config import settings
+
+
 class State(TypedDict):
-    #Messages have the type list The add_messages function
-    #in the annotation defines how this state key should be updated
+    # Messages have the type list The add_messages function
+    # in the annotation defines how this state key should be updated
     # (in this case, it appends messages to the list, rather than overwrtting them)
-    messages:Annotated[list,add_messages]
+    messages: Annotated[list, add_messages]
 
 
 class BasicToolNode:
@@ -39,6 +54,7 @@ class BasicToolNode:
         self.tools_by_name = {tool.name: tool for tool in tools}
 
     def __call__(self, inputs: dict):
+        print("BasicToolNode 收到 inputs:", inputs)
         if messages := inputs.get("messages", []):
             message = messages[-1]
         else:
@@ -57,11 +73,14 @@ class BasicToolNode:
             )
         return {"messages": outputs}
 
+
 def chatbot(state: State):
-    return {"messages": [init_chat_modle_consutom("gpt-4o",tools).invoke(state["messages"])]}
+    print("当前 State:", state)
+    return {"messages": [init_chat_modle_consutom("gpt-4o", tools).invoke(state["messages"])]}
+
 
 def stream_graph_updates(user_input: str):
-    config = {"configurable": {"thread_id": "1"}}
+    config = {"configurable": {"thread_id": "0x1w2121212"}}
     events = graph.stream(
         {"messages": [{"role": "user", "content": user_input}]},
         config=config,
@@ -71,17 +90,17 @@ def stream_graph_updates(user_input: str):
         event["messages"][-1].pretty_print()
 
 
-
-
 from langchain_tavily import TavilySearch
+
 tra = TavilySearch(max_results=2)
-tools=[tra]
+tools = [getWeatherInfo]
 tool_node = BasicToolNode(tools=tools)
 
 memory = MemorySaver()
 
+
 def route_tools(
-    state: State,
+        state: State,
 ):
     """
     Use in the conditional_edge to route to the ToolNode if the last message
@@ -97,12 +116,13 @@ def route_tools(
         return "tools"
     return END
 
+
 if __name__ == '__main__':
     graph_builder = StateGraph(State)
-    #the first argument is the unique node name
-    #the second argument is the function or object that will be called whenever
-    #the node is used.
-    graph_builder.add_node("chatbot",chatbot)
+    # the first argument is the unique node name
+    # the second argument is the function or object that will be called whenever
+    # the node is used.
+    graph_builder.add_node("chatbot", chatbot)
     graph_builder.add_node("tools", tool_node)
     graph_builder.add_conditional_edges(
         "chatbot",
