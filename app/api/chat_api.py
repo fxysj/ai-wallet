@@ -86,7 +86,7 @@ workflow.add_conditional_edges(
 )
 for node in [
     "handle_send", "handle_receive", "handle_swap",
-    "handle_buy", "handle_research", "handle_analysis",
+    "handle_research", "handle_analysis",
     "handle_news","fallback"
 ]:
     workflow.add_edge(node, END)
