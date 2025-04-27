@@ -50,7 +50,6 @@ workflow.add_node("intent_parser", parse_complex_intent) #意图智能体
 workflow.add_node("handle_send", send_task) #转账智能体
 workflow.add_node("handle_receive", receive_task) #收款智能体
 workflow.add_node("handle_swap", swap_task) #兑换跨链智能体
-workflow.add_node("handle_buy", buy_task) #购买法币智能体
 workflow.add_node("handle_research", research_task) #深度搜索智能体
 workflow.add_node("handle_analysis", analysis_task) #账号深度分析智能体
 workflow.add_node("handle_news", news_task) #新闻投资资讯智能体
@@ -65,7 +64,6 @@ workflow.add_conditional_edges(
         Intention.send.value: "handle_send",
         Intention.receive.value: "handle_receive",
         Intention.swap.value: "handle_swap",
-        Intention.buy.value: "handle_buy",
         Intention.deep_research.value: "handle_research",
         Intention.account_analysis.value: "handle_analysis",
         Intention.newsletter.value: "handle_news",
@@ -80,7 +78,6 @@ workflow.add_conditional_edges(
         Intention.send.value: "handle_send",
         Intention.receive.value: "handle_receive",
         Intention.swap.value: "handle_swap",
-        Intention.buy.value: "handle_buy",
         Intention.deep_research.value: "handle_research",
         Intention.account_analysis.value: "handle_analysis",
         Intention.newsletter.value: "handle_news",

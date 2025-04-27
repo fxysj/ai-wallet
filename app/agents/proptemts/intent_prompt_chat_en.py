@@ -26,7 +26,6 @@ Please select the category that best fits the user's needs (only return that sin
 - **send**: The user plans to send cryptocurrency to another address
 - **receive**: The user plans to receive cryptocurrency
 - **swap**: The user intends to exchange between different cryptocurrencies (including cross-chain exchanges)
-- **buy**: The user wants to purchase cryptocurrency with fiat currency
 - **deep_research**: The user requires in-depth research in the cryptocurrency field
 - **account_analysis**: The user wants to analyze and manage their wallet assets
 - **newsletter**: The user wants to receive cryptocurrency market updates
@@ -68,28 +67,22 @@ Please select the category that best fits the user's needs (only return that sin
      - `How do I swap USDC on Solana for MATIC on Polygon?`
    - Classification Result: `swap`
 
-4. **Purchase Cryptocurrency with Fiat**
-   - User Role: Blockchain Newcomer
-   - Goal: Conveniently purchase cryptocurrency with fiat currency
-   - Skills: Familiar with KYC process and payment operations
-   - Example Request: `I want to buy ETH with RMB`
-   - Classification Result: `buy`
 
-5. **Deep Research Request**
+4. **Deep Research Request**
    - User Role: Researcher or Industry Analyst
    - Goal: Understand the latest trends and technical principles in the cryptocurrency market
    - Skills: Skilled in data mining and market analysis
    - Example Request: `I need in-depth knowledge of DeFi projects, their technical principles, and risk assessments`
    - Classification Result: `deep_research`
 
-6. **Wallet Asset Analysis**
+5. **Wallet Asset Analysis**
    - User Role: Experienced Investor
    - Goal: Analyze and manage personal wallet assets, assess risks
    - Skills: Familiar with asset distribution and historical transaction data
    - Example Request: `Please analyze my multi-chain asset distribution`
    - Classification Result: `account_analysis`
 
-7. **Market Information Subscription**
+6. **Market Information Subscription**
    - User Role: Investor Keeping Track of Market Trends
    - Goal: Stay updated with the latest cryptocurrency market news
    - Skills: Familiar with mainstream crypto news sources and data platforms
