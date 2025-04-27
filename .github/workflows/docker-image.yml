@@ -7,9 +7,9 @@ on:
 env:
   REGISTRY: registry.cn-hangzhou.aliyuncs.com
   REPO: sinrpc/ai-wallet
-  SSH_HOST: 120.26.250.150
-  SSH_USER: root
-  DEPLOY_DIR: /root/ai-wallet  # 服务器部署路径
+  SSH_HOST: 52.77.48.131
+  SSH_USER: ubuntu
+  DEPLOY_DIR: /home/ubuntu/ai-wallet  # 服务器部署路径
   GIT_REPO: https://github.com/fxysj/ai-wallet.git  # 你的 GitHub 仓库地址
 
 jobs:
@@ -63,15 +63,15 @@ jobs:
         with:
           host: ${{ env.SSH_HOST }}
           username: ${{ env.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             echo "🚀 开始部署新版本"
 
-            # 直接切换到 /root/ai-wallet 目录
+            # 直接切换到 /home/ubuntu/ai-wallet 目录
             cd ${{ env.DEPLOY_DIR }}
 
             # 登录阿里云镜像仓库（服务器端）
-            mkdir -p ~/.docker
+            sudo mkdir -p ~/.docker
             echo '{
               "auths": {
                 "registry.cn-hangzhou.aliyuncs.com": {
@@ -80,19 +80,19 @@ jobs:
               }
             }' > ~/.docker/config.json
 
-            docker login -u "986244259@qq.com" -p "${{ secrets.ACR_PASSWORD }}" registry.cn-hangzhou.aliyuncs.com
+            sudo docker login -u "986244259@qq.com" -p "${{ secrets.ACR_PASSWORD }}" registry.cn-hangzhou.aliyuncs.com
 
             # 拉取新镜像
-            docker rmi  ${{ env.REGISTRY }}/${{ env.REPO }}:latest
-            docker pull  ${{ env.REGISTRY }}/${{ env.REPO }}:latest
+            sudo docker rmi  ${{ env.REGISTRY }}/${{ env.REPO }}:latest
+            sudo docker pull  ${{ env.REGISTRY }}/${{ env.REPO }}:latest
             #docker pull ${{ env.REGISTRY }}/${{ env.REPO }}:${{ env.TAG }}
 
             # 使用 docker-compose 部署应用
-            docker-compose down         # 停止并移除旧容器
-            docker-compose up -d       # 启动新版本
-            docker image prune -f      # 清理旧镜像，避免占用过多磁盘空间
+            sudo docker-compose down         # 停止并移除旧容器
+            sudo docker-compose up -d       # 启动新版本
+            sudo docker image prune -f      # 清理旧镜像，避免占用过多磁盘空间
             #删除其他镜像
             # 保留特定镜像并删除其他镜像
-            docker images --format "{{.Repository}}:{{.Tag}} {{.ID}}" | grep -v "registry.cn-hangzhou.aliyuncs.com/sinrpc/ai-wallet:latest" | awk '{print $2}' | xargs docker rmi
+            sudo docker images --format "{{.Repository}}:{{.Tag}} {{.ID}}" | grep -v "registry.cn-hangzhou.aliyuncs.com/sinrpc/ai-wallet:latest" | awk '{print $2}' | xargs docker rmi
             
             echo "✅ 部署完成"
