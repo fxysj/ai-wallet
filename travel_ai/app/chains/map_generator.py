@@ -8,11 +8,9 @@ prompt = PromptTemplate.from_template("""
 关键词：{keywords}
 性格：{persona}
 历史上下文信息:{context}
-返回结果严格参考如下:
 返回结构严格按照JSON 不要其他格式的结果
 返回结果严格参考如下:
 ```json
-生成的地图信息
 {{
   "generate_map": {{
     "map_url": "https://example.com/maps/sanya-trip.png"
