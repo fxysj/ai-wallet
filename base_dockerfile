@@ -1,6 +1,11 @@
 # 使用 Python 3.10 官方镜像
 FROM python:3.10-slim-buster AS base
 
+
+# Create a directory under the working directory to ensure permissions
+RUN mkdir -p /tmp/langchain_qdrant && chmod 777 /tmp/langchain_qdrant
+
+
 # 设置环境变量
 ENV PYTHONUNBUFFERED=1 \
     PIP_CACHE_DIR=/root/.cache/pip

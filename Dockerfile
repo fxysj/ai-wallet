@@ -7,7 +7,6 @@ ENV PYTHONPATH=/tikeAgent \
 # 设置工作目录
 WORKDIR /tikeAgent
 # Create the necessary directory with correct permissions
-RUN mkdir -p /tmp/langchain_qdrant && chmod 777 /tmp/langchain_qdrant
 
 # Alternatively, if you are using a non-root user, set the permissions correctly
 # RUN mkdir -p /tmp/langchain_qdrant && chown user:user /tmp/langchain_qdrant
