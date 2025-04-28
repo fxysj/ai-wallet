@@ -7,8 +7,6 @@ from app.api.exceptions.register import register_exception_handlers
 from app.api.middleware.agentState_middleware import AgentStateSaveMiddleware
 from app.api.middleware.cores_middleware import setup_cors_middleware
 from fastapi import FastAPI
-
-from app.api.routers.rag_router import router as rag_router
 from app.db.database import engine, Base
 
 @asynccontextmanager
