@@ -28,6 +28,7 @@ from app.agents.tools import *
 from app.config import settings
 from app.agents.lib.redisManger.redisManager import redis_dict_manager
 from fastapi.responses import StreamingResponse
+#注入对应的RAG的模块信息
 # ------------------------------------------------------------------------------
 # 日志与应用初始化
 # ------------------------------------------------------------------------------
