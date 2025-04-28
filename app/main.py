@@ -43,7 +43,7 @@ app = FastAPI(title="区块链智能助手 Pro",
 app = setup_cors_middleware(app)
 # 注册 API
 app.include_router(chat_router, prefix="/api/v1")
-#app.include_router(rag_router, prefix="/rag")
+app.include_router(rag_router, prefix="/rag")
 #注册异常拦截器
 register_exception_handlers(app)
 

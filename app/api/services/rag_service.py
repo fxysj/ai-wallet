@@ -17,7 +17,7 @@ class RagService:
         if not os.path.exists(self.path):
             os.makedirs(self.path)
         print("Initializing RagService")
-        self.embeddings = OpenAIEmbeddings(model="text-embedding-3-large",api_key=settings.OPENAI_API_KEY,base_url=settings.OPENAI_API_BASE_URL)
+        self.embeddings = OpenAIEmbeddings(model="nomic-embed-text-v1.5",api_key=settings.OPENAI_API_KEY,base_url=settings.OPENAI_API_BASE_URL)
         self.client = QdrantClient(path=self.path)
         self.collection_name = "rag_tikee_collection"
 
