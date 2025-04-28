@@ -3,12 +3,19 @@ from typing import TypedDict, Annotated, Dict, Any
 
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import ToolMessage
+from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
+from langchain_core.prompts import PromptTemplate
 from langgraph.constants import START, END
 from langgraph.graph import add_messages, StateGraph
 from langchain.tools import tool
 from langgraph.checkpoint.memory import MemorySaver
 from app.agents.tools import display_and_save_graph
-
+#案例进演示了多个工具进行插入到不同的大模型
+# query->RAG+MEMORY+ProtemPlate+context+chatHistory
+# LLM->tools->functions-call
+# toolsNode
+# toolsRoute
+# toolsNode
 
 @tool
 def getWeatherInfo(city: str) -> Dict[str, Any]:
@@ -76,11 +83,13 @@ class BasicToolNode:
 
 def chatbot(state: State):
     print("当前 State:", state)
-    return {"messages": [init_chat_modle_consutom("gpt-4o", tools).invoke(state["messages"])]}
+    llm = init_chat_modle_consutom("gpt-4o", tools)
+    return {"messages": [llm.invoke(state["messages"])]}
 
 
 def stream_graph_updates(user_input: str):
     config = {"configurable": {"thread_id": "0x1w2121212"}}
+    print(graph.get_prompts(config=config))
     events = graph.stream(
         {"messages": [{"role": "user", "content": user_input}]},
         config=config,
@@ -117,6 +126,41 @@ def route_tools(
     return END
 
 
+
+#在定义一个大模型信息大模型绑定搜索的工具
+def mainHanlerSend(state:State):
+    print("State=====:",state)
+    tool= TavilySearch(max_results=2)
+    tools=[tool]
+    #实例化大模型
+    #绑定搜索到这个大模型上面
+    llm = init_chat_modle_consutom("gpt-4o",tools)
+    #定义提示词信息
+    p=PromptTemplate(
+        template="""你是一个区块链交易大师
+        你能够精确识别出用户的意图,并且准确捕获用户的有用信息
+        当你不知道的时候 根据下面的上下文进行回答
+        {history}
+        messages:{messages}
+        收集用户的信息 并且引导用户 下一步应该做什么
+        根据messages history 信息 揣测用户的性格 
+        返回
+        ```json
+        {{"data":
+              {{
+              "form":{{更新收集到的用户信息}}
+              }}
+        }}
+        ```
+        """,
+        input_variables=["history","messages"],
+    )
+    chain = p | llm | JsonOutputParser()
+    print(graph.get_state_history(config={"configurable": {"thread_id": "0x1w2121212"}}))
+    res = chain.invoke({"history":graph.get_state_history(config={"configurable": {"thread_id": "0x1w2121212"}}),"messages":state["messages"]})
+    return  {"messages":json.dumps(res)}
+
+
 if __name__ == '__main__':
     graph_builder = StateGraph(State)
     # the first argument is the unique node name
@@ -124,6 +168,7 @@ if __name__ == '__main__':
     # the node is used.
     graph_builder.add_node("chatbot", chatbot)
     graph_builder.add_node("tools", tool_node)
+    graph_builder.add_node("send",mainHanlerSend)
     graph_builder.add_conditional_edges(
         "chatbot",
         route_tools,
@@ -132,8 +177,9 @@ if __name__ == '__main__':
         # want to use a node named something else apart from "tools",
         # You can update the value of the dictionary to something else
         # e.g., "tools": "my_tools"
-        {"tools": "tools", END: END},
+        {"tools": "tools", END: "send"},
     )
+    graph_builder.add_edge("send",END)
     # Any time a tool is called, we return to the chatbot to decide the next step
     graph_builder.add_edge("tools", "chatbot")
     graph_builder.add_edge(START, "chatbot")
