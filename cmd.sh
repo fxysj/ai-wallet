@@ -41,3 +41,5 @@ OPENAI_API_BASE_URL=https://www.dmxapi.cn/v1
 docker-compose -f docker-compose-test.yaml up --build
 
 sudo docker logs  ai-wallet-python-app-1
+
+docker rmi $(docker images -f "dangling=true" -q)
