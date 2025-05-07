@@ -58,8 +58,7 @@ def extract_filltopic(state: UserState):
 def review_and_summary(state: UserState):
     # 这里需要将结果和数据保存到向量数据库中
     # 如果没有向量库命中，则保存
-    if not state.retrieved:
-        save_vector(state)
+    save_vector(state)
     return {
         "cute_summary": ReviewSummaryChain.invoke({
             "keywords": state.keywords,
