@@ -1,16 +1,50 @@
 # FastAPI 入口
 from contextlib import asynccontextmanager
+
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from sqlalchemy import inspect
 import uvicorn
 from app.api.chat_api import router as chat_router
+from app.api.routers.agent_router import router as agent_router
 from app.api.exceptions.register import register_exception_handlers
 from app.api.middleware.agentState_middleware import AgentStateSaveMiddleware
 from app.api.middleware.cores_middleware import setup_cors_middleware
 from fastapi import FastAPI
 from app.db.database import engine, Base
+from psycopg_pool import AsyncConnectionPool
+from app.graphs.virtual_assistant_graph import workflow
+# 全局变量存放组件（避免多次初始化）
+pool = None
+checkpointer = None
+travel_graph = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    DB_URI = "postgresql://postgres:postgres@pgsql:5432/postgres?sslmode=disable"
+    connection_kwargs = {
+        "autocommit": True,
+        "prepare_threshold": 0,
+    }
+
+    pool = AsyncConnectionPool(
+        conninfo=DB_URI,
+        max_size=20,
+        kwargs=connection_kwargs,
+    )
+    await pool.__aenter__()
+
+    checkpointer = AsyncPostgresSaver(pool)
+    await checkpointer.setup()
+    travel_graph = workflow.compile(checkpointer=checkpointer)
+
+    # ✅ 将 travel_graph 和其他资源注入 app.state
+    app.state.pool = pool
+    app.state.checkpointer = checkpointer
+    app.state.travel_graph = travel_graph
+    yield
+    await pool.__aexit__(None, None, None)
+
+
     # ✅ 在服务启动时初始化数据库表
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -41,7 +75,7 @@ app = FastAPI(title="区块链智能助手 Pro",
 app = setup_cors_middleware(app)
 # 注册 API
 app.include_router(chat_router, prefix="/api/v1")
-#app.include_router(rag_router, prefix="/rag")
+app.include_router(agent_router,prefix="/api/v1/travel")
 #注册异常拦截器
 register_exception_handlers(app)
 

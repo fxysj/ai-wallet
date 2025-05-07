@@ -18,6 +18,7 @@ services:
       - tike-agent-net
     depends_on:
       - redis
+      - pgsql
 
   redis:
     image: redis:alpine
@@ -25,6 +26,21 @@ services:
       - "6380:6379"
     volumes:
       - ./redis/data:/data  # 将本地 ./redis/data 挂载到 redis 容器的 /data 目录
+    networks:
+      - tike-agent-net
+
+
+  pgsql:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pgsql:/var/lib/postgresql/data
     networks:
       - tike-agent-net
 

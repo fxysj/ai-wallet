@@ -72,6 +72,16 @@ class LLMFactory():
         agent = create_react_agent(llm, tools, prompt=prompt,debug=debug,state_schema=state,response_format=response_format) if prompt else create_react_agent(llm, tools)
         return agent
 
+    @staticmethod
+    def getDefaultOPENAIZERO():
+        llm = ChatOpenAI(
+            model="gpt-4o",
+            temperature=0,
+            api_key=settings.OPENAI_API_KEY,
+            base_url=settings.OPENAI_API_BASE_URL,
+        )
+        return llm
+
 
 if __name__ == '__main__':
     initial_state = {}

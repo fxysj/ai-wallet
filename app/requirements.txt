@@ -37,3 +37,7 @@ numpy==2.2.5
 portalocker==2.10.1
 qdrant-client==1.14.2
 beautifulsoup4
+langgraph-checkpoint-postgres==2.0.21
+psycopg==3.2.7
+psycopg-pool==3.2.6
+psycopg-binary==3.2.7
