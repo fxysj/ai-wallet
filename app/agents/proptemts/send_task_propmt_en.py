@@ -59,7 +59,7 @@ json
     }}",
     "timestamp": "A UTC timestamp from Python",
     "form": {{
-      "chainId": "Updated or default chainId (56)",
+      "chainId": "Updated or default chainId (60)",
       "fromAddress": "Updated or original fromAddress",
       "toAddress": "Updated toAddress",
       "amount": "Updated amount",
