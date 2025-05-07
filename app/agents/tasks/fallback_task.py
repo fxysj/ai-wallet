@@ -3,7 +3,7 @@ from langchain_core.output_parsers import StrOutputParser
 from app.agents.lib.llm.llm import LLMFactory
 from app.agents.schemas import AgentState
 from langchain.prompts import PromptTemplate
-
+from app.agents.lib.redisManger.redisManager import redis_dict_manager
 
 def fallback_task(state: AgentState) -> AgentState:
     """
@@ -20,6 +20,10 @@ def fallback_task(state: AgentState) -> AgentState:
     用户输入如下：
     "{user_input}"
     
+    用户历史信息: {chat_history}
+    
+    
+    
     请输出：
     （一句人性化、区块链相关的引导语句）
     
@@ -35,17 +39,19 @@ Output:Hello, the issue you mentioned may involve sensitive terms, and therefore
 
 【要求】
 如果命中上面俩个Case情况 输出对应的Output  根据{language}的语言自动返回对应的回复
+回答用户的信息 可以根据用户提供的历史信息进行上下文回复 并且根据{language}的语言进行翻译
+
     """
 
     data = {"description": state.result.get("description")}
     llm = LLMFactory.getDefaultOPENAI()
     p = PromptTemplate(
         template=FALLBACK_PROMPT,
-        input_variables=["user_input","language"],
+        input_variables=["user_input","language","chat_history"],
     )
     chain = p | llm | StrOutputParser()
-    response = chain.invoke({"user_input": state.user_input,"language":state.langguage})
-    print(response)
+    print(state.langguage)
+    response = chain.invoke({"user_input": state.user_input,"language":state.langguage,"chat_history":state.history})
     data["description"] = response
     data["intent"] = "fallback"
     return state.copy(update={"result": data})

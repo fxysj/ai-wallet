@@ -36,10 +36,10 @@ async def  userLangGuageAnaysic(state: AgentState)->AgentState:
     return state.copy()
 
 def  updateUserLanguage(session_id:str,langguage:str)->bool:
-    redis_dict_manager.add(session_id,langguage)
+    redis_dict_manager.add(session_id+":language",langguage)
     return True
 def getUserLanguage(session_id:str)->str:
-    return redis_dict_manager.get(session_id)
+    return redis_dict_manager.get(session_id+":language")
 
 
 

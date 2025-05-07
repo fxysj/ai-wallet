@@ -1,9 +1,13 @@
 import logging
 import uuid
 from json import JSONDecodeError
+
+from langgraph.checkpoint.memory import MemorySaver
+
 from  app.agents.lib.llm.llm import  LLMFactory
 from app.agents.tasks.analysis_task import parse_complex_intent
 from app.agents.utils import chain_data_util
+from ..agents.const.APPServiceContext import AppServiceContext
 from ..agents.lib.aiNodeJsSDk.tools.AgentStateResponseWrape import stream_text_agent_state, generate_chat_responses, \
     stream_text_agent_state_transfor
 from ..agents.lib.redisManger.redisManager import RedisDictManager
@@ -94,10 +98,14 @@ for node in [
 
 workflow.set_entry_point("user_langguage")
 
+#添加内存
+checkpointer = MemorySaver()
 # 添加追踪器
-app = workflow.compile()
+app = workflow.compile(checkpointer=checkpointer)
 #保存对应的流图片
 display_and_save_graph(app=app,filename="graph.png",output_dir="graphs")
+#注入到上下中
+AppServiceContext(app=app)
 # ------------------------------------------------------------------------------
 # API 接口
 # ------------------------------------------------------------------------------
@@ -122,24 +130,25 @@ async def analyze_request(request: Request):
                 message="请先进行授权登录钱包",
             )
 
-
+        #使用配置的方式进行用户会话隔离
+        thread_config = {"configurable": {"thread_id": session_id}}
         session = redis_dict_manager.get(session_id)
-        print("--------session-------------")
-        print("---------id:"+id)
         #如果没有找到则返回一个空的信息
         if session == None:
-            user_seession = {"history":[],"data":{},"session_id": str(uuid.uuid4())}
+            user_seession = {"history":[]}
             redis_dict_manager.add(session_id,user_seession)
 
-
         user_input_object = Session.get_last_user_message(request_data)
-
         current_data = user_input_object.data
         user_attached_data = current_data
-
         # 组装最近的对话历史（取最新5条记录）
         history = Session.get_recent_history(request_data,10)
         chain_data = chain_data_util.DEFAULT_CHAIN_DATA
+        #这里进行处理
+        if session:
+            history = Session.getSessionHistory(session,limit=20)
+
+        print("=====historu=====",history)
 
         # 在调用 LangChain 完成后，记录思考信息
         thinking_info = "模型正在进行思考..."  # 你可以在这里插入模型推理过程中的中间信息
@@ -157,7 +166,7 @@ async def analyze_request(request: Request):
             thinking_info=thinking_info
         )
 
-        result = await app.ainvoke(initial_state)
+        result = await app.ainvoke(initial_state,config=thread_config)
         print("DEBUG - result 类型:", type(result))
         print("result:",result)
         # ✅ 将其挂载到 request 上，供中间件后续使用
@@ -166,17 +175,7 @@ async def analyze_request(request: Request):
         if session is None:
             session = {}
 
-        # 如果 session["history"] 为 None，则初始化为一个空列表
-        # 确保 session["history"] 不是 None
-        # if session.get("history") is None:
-        #     session["history"] = []
-        #
-        # session["history"].extend([
-        #     {"role": "user", "content": user_input_object.content,"data":user_input_object.data},
-        #     {"role": "system", "content": get_nested_description(result),"data":result}
-        # ])
-        #
-        # redis_dict_manager.update(session_id,session)
+        print("============session=======")
         update_session_history(session, user_input_object, result, session_id, redis_dict_manager)
 
         state = FieldChecker.get_field_info(
