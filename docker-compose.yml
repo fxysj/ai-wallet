@@ -6,7 +6,6 @@ services:
     working_dir: /tikeAgent
     volumes:
       - .env:/tikeAgent/.env
-      - /tmp/langchain_qdrant:/tmp/langchain_qdrant
     ports:
       - "8000:8000"
     environment:
