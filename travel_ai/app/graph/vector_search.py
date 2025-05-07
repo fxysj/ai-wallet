@@ -6,18 +6,18 @@ from travel_ai.app.config import llm
 # 初始化 Chroma 向量库（持久化路径为 ./chroma_db）
 CHROMA_DB_PATH = "./chroma_db"
 embedding_model = OpenAIEmbeddings()
-vectorstore = Chroma(persist_directory=CHROMA_DB_PATH, embedding_function=embedding_model)
+vectorstore = Chroma(persist_directory=CHROMA_DB_PATH, embedding_function=embedding_model,collection_name="rag_travel")
 
 
 def search_vector(state: UserState):
     user_id = state.user_id
     user_input = state.user_input
-    search_query = user_id + ":" + user_input
+    search_query = user_input
 
     print("search_query :"+search_query)
 
     # 使用返回分数的搜索方法
-    results = vectorstore.similarity_search_with_score(search_query, k=3)
+    results = vectorstore.similarity_search_with_score(search_query, k=1,filter={"user_id":user_id})
     print(results)
     if results:
         # results 是 (Document, score) 的元组列表
@@ -68,9 +68,25 @@ def save_vector(state: UserState):
    # ✅ 无需 persist()，Chroma 自动持久化
 
 if __name__ == '__main__':
+    # 👤 创建用户状态并填入数据
+    state = UserState(
+        user_id="123",
+        user_input="我想去三亚旅游5天",
+        keywords="三亚,旅游",
+        persona="喜欢海边，喜欢晒太阳",
+        plan={"day1": "到达三亚，入住酒店", "day2": "亚龙湾一日游"},
+        hotels={"name": "三亚湾红树林", "rating": 4.5},
+        flights={"flight_number": "CA123", "from": "北京", "to": "三亚"},
+        map={"spots": ["天涯海角", "亚龙湾", "南山寺"]},
+        cute_summary={"tips": "多带防晒霜哦，三亚很晒！"}
+    )
+
+    # ✅ 先保存
+    save_vector(state)
+
     state= UserState(
-        user_input="我想去看极光",
-        user_id="10011"
+        user_input="我想去三亚旅游5天",
+        user_id="123"
     )
     resource= search_vector(state)
     print(resource)
