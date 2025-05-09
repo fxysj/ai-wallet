@@ -9,7 +9,7 @@ from app.agents.tasks.analysis_task import parse_complex_intent
 from app.agents.utils import chain_data_util
 from ..agents.const.APPServiceContext import AppServiceContext
 from ..agents.lib.aiNodeJsSDk.tools.AgentStateResponseWrape import stream_text_agent_state, generate_chat_responses, \
-    stream_text_agent_state_transfor
+    stream_text_agent_state_transfor, stream_text_agent_state_transfor_annotations
 from ..agents.lib.redisManger.redisManager import RedisDictManager
 from ..agents.lib.session.redis_history import update_session_history
 from ..agents.response.Response import SystemResponse
@@ -208,13 +208,10 @@ async def analyze_request(request: Request):
             message="ok",
             content=get_nested_description(result)
         )
-        res = stream_text_agent_state_transfor(content=get_nested_description(result),
-                                data=response_data.to_dict()
-                                )
-
+        res = stream_text_agent_state_transfor_annotations(data=response_data.to_dict())
         response =  StreamingResponse(res,media_type="text/event-stream")
         response.headers["x-vercel-ai-data-stream"] = "v1"
-        #return response_data
+        #return res
         return response
     except KeyError:
         response_data= SystemResponse.errorWrap(

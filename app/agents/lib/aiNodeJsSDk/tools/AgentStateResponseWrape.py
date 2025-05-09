@@ -83,6 +83,17 @@ def stream_text_agent_state_sin(content: str, data: any):
         formatted_data = json.dumps(output_data)
         yield f'2:{formatted_data}\n'
 
+def stream_text_agent_state_transfor_annotations(data: dict):
+    # 如果 data 是字典格式，将其转换为列表包含字典
+    annotations = data if isinstance(data, list) else [data]
+    # 2. 处理 annotations 部分，转换为 JSON 格式并输出 8: 格式
+    if isinstance(annotations, list):
+        formatted_annotations = json.dumps(annotations, ensure_ascii=False)
+        yield f'8:{formatted_annotations}\n'  # 输出 annotations 部分
+
+    yield f'd:{{"finishReason":"stop", "usage":{{"promptTokens":100, "completionTokens":100}}}}\n'
+
+
 def stream_text_agent_state_transfor(content: str, data: dict):
     # 如果 data 是字典格式，将其转换为列表包含字典
     annotations = data if isinstance(data, list) else [data]
