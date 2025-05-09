@@ -6,7 +6,7 @@ from langchain_core.prompts import PromptTemplate
 
 from app.agents.lib.llm.llm import LLMFactory
 from app.agents.proptemts.news_form_prompt_en import NEWS_TEMPLATE
-from app.agents.schemas import AgentState
+from app.agents.schemas import AgentState, Intention
 
 
 def newsLetter(attached_data):
@@ -68,7 +68,7 @@ async def news_task(state: AgentState) -> AgentState:
     print(chain_response)
     response_data = chain_response
     data = response_data.get("data")
-    data["intent"] = state.detected_intent.value
+    data["intent"] = Intention.newsletter.value
     # 使用 time 模块获取当前时间戳
     timestamp_time = time.time()
     print("使用 time 模块获取的 UTC 时间戳:", timestamp_time)

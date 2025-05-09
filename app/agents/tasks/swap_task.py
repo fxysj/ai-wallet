@@ -48,7 +48,7 @@ async def swap_task(state: AgentState) -> AgentState:
     response_data = chain_response
     print(response_data)
     data = response_data.get("data")
-    data["intent"] = state.detected_intent.value
+    data["intent"] = Intention.swap.value
     print("data====")
     print(data)
     return state.copy(update={"result": data})

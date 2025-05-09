@@ -904,7 +904,7 @@ async def research_task(state: AgentState) -> AgentState:
             data = response_data.get("data", {})
             print("deep_search_data:", data)
             if data.get("missFields"):
-                data["intent"] = state.detected_intent.value
+                data["intent"] = Intention.deep_research.value
                 timestamp_time = time.time()
                 data["timestamp"] = state.attached_data.get("timestamp", timestamp_time)
                 return state.copy(update={"result": data})
@@ -920,7 +920,7 @@ async def research_task(state: AgentState) -> AgentState:
     data = response_data.get("data", {})
     print("deep_search_data:",data)
     if data.get("missFields"):
-        data["intent"] = state.detected_intent.value
+        data["intent"] = Intention.deep_research.value
         timestamp_time = time.time()
         data["timestamp"] = time.time()
         return state.copy(update={"result": data})

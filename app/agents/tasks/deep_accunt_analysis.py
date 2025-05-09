@@ -7,7 +7,9 @@ from langchain_core.prompts import PromptTemplate
 
 from app.agents.lib.llm.llm import LLMFactory
 from app.agents.proptemts.deep_account_asnis_form_prompt_en import AccountASNYC_PROPMT
-from app.agents.schemas import AgentState
+from app.agents.schemas import AgentState, Intention
+
+
 async def analysis_task(state: AgentState) -> AgentState:
     print("analysis_task")
     print("DEBUG - attached_data 类型:", type(state.attached_data))
@@ -36,7 +38,7 @@ async def analysis_task(state: AgentState) -> AgentState:
     if data is None:
       data = {}
 
-    data["intent"] = state.detected_intent.value
+    data["intent"] = Intention.account_analysis.value
     if data:
         form = data.get("form")
         if form:

@@ -50,7 +50,7 @@ async def send_task(state: AgentState) -> AgentState:
     print(chain_response)
     response_data = chain_response
     data = response_data.get("data")
-    data["intent"] = state.detected_intent.value
+    data["intent"] = Intention.send.value
     # 使用 time 模块获取当前时间戳
     timestamp_time = time.time()
     print("使用 time 模块获取的 UTC 时间戳:", timestamp_time)
