@@ -3,7 +3,6 @@ from langchain_core.output_parsers import StrOutputParser
 from app.agents.lib.llm.llm import LLMFactory
 from app.agents.schemas import AgentState
 from langchain.prompts import PromptTemplate
-from app.agents.lib.redisManger.redisManager import redis_dict_manager
 
 def fallback_task(state: AgentState) -> AgentState:
     """
@@ -40,14 +39,13 @@ Output:Hello, the issue you mentioned may involve sensitive terms, and therefore
 如果命中上面俩个Case情况 输出对应的Output  根据{language}的语言自动返回对应的回复
     """
 
-    data = {"description": state.result.get("description")}
+    data = {}
     llm = LLMFactory.getDefaultOPENAI()
     p = PromptTemplate(
         template=FALLBACK_PROMPT,
         input_variables=["user_input","language"],
     )
     chain = p | llm | StrOutputParser()
-    print(state.langguage)
     response = chain.invoke({"user_input": state.user_input,"language":state.langguage})
     data["description"] = response
     data["intent"] = "fallback"
