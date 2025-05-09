@@ -41,8 +41,8 @@ async def lifespan(app: FastAPI):
     app.state.pool = pool
     app.state.checkpointer = checkpointer
     app.state.travel_graph = travel_graph
-    yield
-    await pool.__aexit__(None, None, None)
+
+
 
 
     # ✅ 在服务启动时初始化数据库表
@@ -60,6 +60,8 @@ async def lifespan(app: FastAPI):
 
     yield  # 应用运行期间
 
+    # ✅ 退出时释放资源
+    await pool.__aexit__(None, None, None)
     # 👇 可选：在服务关闭前执行清理
     print("🛑 FastAPI 应用即将关闭")
 
