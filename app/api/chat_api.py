@@ -208,7 +208,7 @@ async def analyze_request(request: Request):
             message="ok",
             content=get_nested_description(result)
         )
-        res = stream_text_agent_state_transfor_annotations(data=response_data.to_dict())
+        res = stream_text_agent_state_transfor_annotations(content=get_nested_description(result),data=response_data.to_dict())
         response =  StreamingResponse(res,media_type="text/event-stream")
         response.headers["x-vercel-ai-data-stream"] = "v1"
         #return res

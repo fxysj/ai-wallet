@@ -8,7 +8,8 @@ from starlette.responses import StreamingResponse
 from app.api.exceptions.exceptions import BusinessException, ModelOutputException
 from langchain_core.exceptions import OutputParserException
 
-from app.agents.lib.aiNodeJsSDk.tools.AgentStateResponseWrape import stream_text_agent_state_transfor
+from app.agents.lib.aiNodeJsSDk.tools.AgentStateResponseWrape import stream_text_agent_state_transfor, \
+    stream_text_agent_state_transfor_annotations
 from app.agents.response.Response import SystemResponse
 
 # Function to load the message from the configuration file
@@ -28,7 +29,7 @@ def create_error_response(message: str):
         message=message,
         prompt_next_action=[],
     )
-    res = stream_text_agent_state_transfor(message, response_data.to_dict())
+    res = stream_text_agent_state_transfor_annotations(message, response_data.to_dict())
     response = StreamingResponse(res, media_type="text/event-stream")
     response.headers["x-vercel-ai-data-stream"] = "v1"
     return response

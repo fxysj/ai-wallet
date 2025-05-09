@@ -83,7 +83,20 @@ def stream_text_agent_state_sin(content: str, data: any):
         formatted_data = json.dumps(output_data)
         yield f'2:{formatted_data}\n'
 
-def stream_text_agent_state_transfor_annotations(data: dict):
+def stream_text_agent_state_transfor_annotations(content: str,data: dict):
+    try:
+        if not isinstance(content, str):
+            raise TypeError("Content must be a string")
+
+        yield f'0:"{content}"\n'
+
+    except Exception as e:
+        print(f"Error processing content: {e}")
+        yield None
+
+
+
+
     # 如果 data 是字典格式，将其转换为列表包含字典
     annotations = data if isinstance(data, list) else [data]
     # 2. 处理 annotations 部分，转换为 JSON 格式并输出 8: 格式
