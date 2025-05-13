@@ -89,20 +89,21 @@ def GoPlusAPISearch(chain_id, contract_addresses):
 
     # 发起 GET 请求（使用你封装的工具函数）
     res =  send_get_request(url)
-    result = res.get("result")
     if not res.get("error"):
-        if result is not None and contract_addresses:
-            contract_address = contract_addresses[0]
-            if contract_address in result:
-                return result.get(contract_address)
-            else:
-                # 处理合约地址未找到的情况
-                return {}
-        else:
-            # 处理 res.get("result") 为 None 或 contract_addresses 为空的情况
-            return {}
+        result = res.get("result")
+        print("goplusrusult:===", result)
+        contract_address = contract_addresses[0]
+        print("contract_address:===", contract_address)
+        print("type(goplusrusult):===", type(result))
+        #0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE
+        print("你请求的地址（小写）:", contract_address.lower())
+        response = result.get(contract_address.lower())
+        print("response:===", response)
+        return response
+    else:
+        return {}
 
-    return  {}
+
 
 
 
@@ -502,7 +503,10 @@ def api_extra_asnyc(selectedType,type_value):
     goPlusResult = GoPlusAPISearch(chain_id, contract_addresses)
     #symbolResult
     symbolResult = SymbolAPISearch(symbol)
-    if goPlusResult and symbolResult:
+
+    print("symbolResult:", symbolResult)
+    print("goPlusResult:", goPlusResult)
+    if goPlusResult is not None and symbolResult is not None:
         symbolResult = symbolResult[0]  # 只取第一个数组数据
         response["overview"] = uniongoPlusResultAndsymbolResultOverView(goPlusResult, symbolResult, contract_addresses)
         response["details"] = uniongoPlusResultAndsymbolResultDetails(goPlusResult, symbolResult, contract_addresses)
