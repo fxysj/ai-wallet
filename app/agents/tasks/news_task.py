@@ -1,12 +1,96 @@
 #新闻资讯任务处理器
+import json
 import time
 
-from langchain_core.output_parsers import JsonOutputParser
+from langchain.agents import create_openai_functions_agent, AgentExecutor
+from langchain_core.output_parsers import JsonOutputParser, PydanticOutputParser
 from langchain_core.prompts import PromptTemplate
+from pydantic.v1 import BaseModel
+from typing_extensions import TypedDict, List
 
 from app.agents.lib.llm.llm import LLMFactory
+from app.agents.lib.redisManger.redisManager import RedisDictManager
 from app.agents.proptemts.news_form_prompt_en import NEWS_TEMPLATE
+from app.agents.proptemts.news_search_test import NEWS_SEARCH_PROMPT
 from app.agents.schemas import AgentState, Intention
+from langchain_tavily import TavilySearch
+from langchain.tools import tool
+class Article(TypedDict):
+    title: str  # 文章标题
+    summary: str  # 文章摘要或内容简述
+    url: str  # 文章的原始链接
+    source: str  # 新闻来源，比如媒体名称
+    published: str  # 发布时间，格式为 YYYY-MM-DD
+
+class Articles(BaseModel):
+    articles: List[Article] #文章列表
+
+@tool(args_schema=Articles)
+def return_articles(articles: List[Article]):
+    """模型在完成搜索后调用此工具，将结果结构化返回"""
+    return {"articles": articles}
+
+
+
+#根据类型进行搜索
+def getNewSearch(timeframe:str):
+    try:
+        redis = RedisDictManager()
+        response = redis.get("news_" + timeframe)
+        if response:
+            return response
+
+        llm = LLMFactory.getDefaultOPENAI()
+        prompt = PromptTemplate(
+            template="""你是新闻助手，只调用一次 TavilySearch 工具检索区块链新闻，然后返回文章列表。
+            关键词：{input}
+            要包含如下:
+            class Article(TypedDict):
+            title: str  # 文章标题
+            summary: str  # 文章摘要或内容简述
+            url: str  # 文章的原始链接
+            source: str  # 新闻来源，比如媒体名称
+            published: str  # 发布时间，格式为 YYYY-MM-DD
+            {agent_scratchpad}""",
+            input_variables=["input", "agent_scratchpad"],
+        )
+        tools = [TavilySearch(max_retries=2)]
+        agent = create_openai_functions_agent(llm=llm, tools=tools, prompt=prompt)
+        # 包装为 AgentExecutor 后才能调用 invoke
+        executor = AgentExecutor(agent=agent, tools=tools, verbose=False, max_iterations=3, max_execution_time=30,
+                                 return_intermediate_steps=False)
+        result = executor.invoke({"input": timeframe})
+        output = result["output"]
+        p = PromptTemplate(
+            template="""
+                上下文{context}
+                根即上下文内容提取信息 返回结果如下 严格按照JSON返回
+                ```json
+                  [
+          {{
+            "title": "标题",
+            "summary": "简要内容",
+            "source": "信息来源",
+            "url": "新闻链接",
+            "published": "发布日期（YYYY-MM-DD）"
+          }}
+        ]
+                ```
+                """,
+            input_variables=["context"],
+        )
+        c = p | LLMFactory.getDefaultOPENAI() | JsonOutputParser()
+        response = c.invoke({"context": output})
+        redis.add("news_" + timeframe, response)
+        return response
+    except Exception:
+        return newsLetter([])
+    finally:
+        return newsLetter([])
+
+
+
+
 
 
 def newsLetter(attached_data):
@@ -79,3 +163,12 @@ async def news_task(state: AgentState) -> AgentState:
         return state.copy(update={"result": data})
     data["newsletter"] = newsLetter(state.attached_data)
     return state.copy(update={"result": data})
+
+if __name__ == '__main__':
+    article: Article = {
+        "title": "Mastercard Develops Crypto Payment Network",
+        "summary": "Mastercard is building a blockchain-based network to facilitate digital asset transactions among consumers, merchants, and financial institutions, aiming to replicate its card network's scale in the crypto space.",
+        "url": "https://www.businessinsider.com/mastercard-building-venmo-crypto-blockchain-digital-assets-2025-3",
+        "source": "Business Insider",
+        "published": "2025-03-31"
+    }
