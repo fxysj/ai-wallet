@@ -33,7 +33,7 @@ RECEIVETASKS_TEMPLATE = """
 json
 {{
   "data": {{
-    "description": "系统生成的人性化自然语言回复",
+    "description": "系统生成的人性化自然语言回复 需要根据 {language}进行翻译",
     "chainId": 区块链索引（必须为数字类型）
   }}
 }}
