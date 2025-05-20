@@ -27,13 +27,13 @@ RECEIVETASKS_TEMPLATE = """
 - 当前数据：{current_data}
 
 【返回格式】
-请仅输出以下 JSON 格式，不添加任何额外内容（注意：布尔值必须是 true/false，不能加引号）：
+请严格仅输出以下 JSON 格式，不添加任何额外内容（注意：布尔值必须是 true/false，不能加引号）：
 当前语言: {{language}}
 
 json
 {{
   "data": {{
-    "description": "系统生成的人性化自然语言回复 需要根据 {language}进行翻译",
+    "description": "OK！The wallet receiving address is displayed below. You may copy the address, scan the QR code to retrieve the address, or save it for future reference.（按照 {{language}}进行翻译",
     "chainId": 区块链索引（必须为数字类型）
   }}
 }}
@@ -45,7 +45,7 @@ json
 输出：
 {{
   "data": {{
-    "description": "好的，您选择的是 BNB Chain（币安智能链），请确认您的收款地址是否为该链格式，我们马上就能愉快收款啦！",
+    "description": "OK！The wallet receiving address is displayed below. You may copy the address, scan the QR code to retrieve the address, or save it for future reference.",
     "chainId": 56
   }}
 }}
@@ -54,7 +54,7 @@ json
 输出：
 {{
   "data": {{
-    "description": "太棒了，您选择的是 TRON（波场链），请提供您的 TRON 地址，我们准备好接收资金啦～",
+    "description": "OK！The wallet receiving address is displayed below. You may copy the address, scan the QR code to retrieve the address, or save it for future reference.",
     "chainId": 195
   }}
 }}
@@ -63,7 +63,7 @@ json
 输出：
 {{
   "data": {{
-    "description": "明白了，您选择的是 Solana 网络，请提供您的 Solana 收款地址，我们将为您处理后续收款流程。",
+    "description": "OK！The wallet receiving address is displayed below. You may copy the address, scan the QR code to retrieve the address, or save it for future reference.",
     "chainId": 501
   }}
 }}
@@ -72,7 +72,7 @@ json
 输出：
 {{
   "data": {{
-    "description": "好的，您选择的是 Ethereum（以太坊）网络，请提供您的 ETH 地址，即可顺利完成收款流程。",
+    "description": "OK！The wallet receiving address is displayed below. You may copy the address, scan the QR code to retrieve the address, or save it for future reference.",
     "chainId": 60
   }}
 }}
@@ -80,10 +80,9 @@ json
 输出：
 {{
   "data": {{
-    "description": "好的",
+    "description": "OK！Your transfer request has been received.
+You may need to provide additional information, such as which blockchain wallet address you would like to display.",
     "chainId": 60
   }}
 }}
-#需要注意
-data.description 需要根据 {language}进行翻译
 """

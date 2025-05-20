@@ -4,7 +4,7 @@ from app.agents.tasks.receive_task import receive_task
 
 def callState():
     return AgentState(
-        user_input="显示我的收款地址",
+        user_input="给我收款地址",
         messages=[],
         attached_data={},
         history="",
