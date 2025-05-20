@@ -3,7 +3,7 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 
 from app.agents.lib.llm.llm import LLMFactory
-from app.agents.proptemts.receiveTasks_en import RECEIVETASKS_TEMPLATE
+from app.agents.proptemts.receiveTasks import RECEIVETASKS_TEMPLATE
 from app.agents.schemas import AgentState, Intention
 from app.agents.tools import GetWrapResponse
 from app.agents.toolnode.crossChainTool  import cross_chain_swap
@@ -24,7 +24,7 @@ async def receive_task(state: AgentState) -> AgentState:
 
     prompt = PromptTemplate(
         template=RECEIVETASKS_TEMPLATE,
-        input_variables=["current_data", "history", "input", "langguage","chain_data"],
+        input_variables=["current_data", "history", "input", "language"],
     )
     llm = LLMFactory.getDefaultOPENAI().bind_tools([cross_chain_swap])
     # 使用新版输出解析器
@@ -41,8 +41,7 @@ async def receive_task(state: AgentState) -> AgentState:
         "current_data": str(state.attached_data),
         "history": state.history,
         "input": state.user_input,
-        "langguage": state.langguage,
-        "chain_data":state.chain_data
+        "language": state.langguage,
     })
     print(chain_response)
 
