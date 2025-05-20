@@ -76,6 +76,14 @@ json
     "chainId": 60
   }}
 }}
+5. 用户输入："显示我的收款地址"
+输出：
+{{
+  "data": {{
+    "description": "好的",
+    "chainId": 60
+  }}
+}}
 #需要注意
 data.description 需要根据 {language}进行翻译
 """
