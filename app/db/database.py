@@ -13,13 +13,13 @@ MYSQL_DB = MYSQL_CONFIG["database"]
 
 # ✅ 构造标准 MySQL 数据库 URL（使用 aiomysql 驱动）
 DATABASE_URL = (
-    f"mysql+aiomysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DB}"
+    f"mysql+aiomysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DB}?charset=utf8mb4"
 )
 
 print("✅ 使用数据库连接:", DATABASE_URL)
 
 # 创建异步引擎
-engine = create_async_engine(DATABASE_URL, echo=True)
+engine = create_async_engine(DATABASE_URL, echo=True, future=True,)
 
 # 创建异步 Session 工厂
 async_session_maker = async_sessionmaker(
