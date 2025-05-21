@@ -41,3 +41,4 @@ langgraph-checkpoint-postgres==2.0.21
 psycopg==3.2.7
 psycopg-pool==3.2.6
 psycopg-binary==3.2.7
+cryptography

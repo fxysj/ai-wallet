@@ -3,12 +3,11 @@ version: '3.8'
 services:
   python-app:
     build:
-      context: .              # 当前目录包含 Dockerfile
-      dockerfile: Dockerfile  # 默认可以省略
+      context: .
+      dockerfile: Dockerfile
     working_dir: /tikeAgent
     volumes:
       - .env:/tikeAgent/.env
-      - /tmp/langchain_qdrant:/tmp/langchain_qdrant
     ports:
       - "8000:8000"
     environment:
@@ -16,11 +15,17 @@ services:
       - ENV_FILE=/tikeAgent/.env
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=I5xlwT2025
+      - MYSQL_DB=ai_wallet_db
     networks:
       - tike-agent-net
     depends_on:
       - redis
       - pgsql
+      - mysql
 
   redis:
     image: redis:alpine
@@ -42,6 +47,19 @@ services:
       - "5432:5432"
     volumes:
       - ./pgsql:/var/lib/postgresql/data
+    networks:
+      - tike-agent-net
+
+  mysql:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: I5xlwT2025
+      MYSQL_DATABASE: ai_wallet_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql:/var/lib/mysql
     networks:
       - tike-agent-net
 

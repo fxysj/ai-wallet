@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   python-app:
-    image: registry.cn-hangzhou.aliyuncs.com/sinrpc/ai-wallet:latest  # 使用推送到阿里云的镜像
+    build:
+      context: .
+      dockerfile: Dockerfile
     working_dir: /tikeAgent
     volumes:
       - .env:/tikeAgent/.env
@@ -13,21 +15,26 @@ services:
       - ENV_FILE=/tikeAgent/.env
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=I5xlwT2025
+      - MYSQL_DB=ai_wallet_db
     networks:
       - tike-agent-net
     depends_on:
       - redis
       - pgsql
+      - mysql
 
   redis:
     image: redis:alpine
     ports:
       - "6380:6379"
     volumes:
-      - ./redis/data:/data  # 将本地 ./redis/data 挂载到 redis 容器的 /data 目录
+      - ./redis/data:/data
     networks:
       - tike-agent-net
-
 
   pgsql:
     image: postgres:15
@@ -43,9 +50,19 @@ services:
     networks:
       - tike-agent-net
 
+  mysql:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: I5xlwT2025
+      MYSQL_DATABASE: ai_wallet_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql:/var/lib/mysql
+    networks:
+      - tike-agent-net
+
 networks:
   tike-agent-net:
     driver: bridge
-
-volumes:
-  redis_data:  # 如果您不希望使用数据卷，可以删除这个定义

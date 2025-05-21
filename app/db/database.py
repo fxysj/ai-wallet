@@ -2,17 +2,21 @@
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import declarative_base
-import os
-# 项目根目录
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from app.config import MYSQL_CONFIG
 
-# 拼接 SQLite 路径
-db_path = os.path.join(BASE_DIR, "agent_state.db")
+# 从环境变量获取 MySQL 配置（推荐），或者你可以直接写死测试用
+MYSQL_USER = MYSQL_CONFIG["user"]
+MYSQL_PASSWORD = MYSQL_CONFIG["password"]
+MYSQL_HOST = MYSQL_CONFIG["host"]
+MYSQL_PORT = MYSQL_CONFIG["port"]
+MYSQL_DB = MYSQL_CONFIG["database"]
 
-# ✅ 构造标准 SQLite 数据库 URL（无需判断平台）
-DATABASE_URL = f"sqlite+aiosqlite:///{db_path}"
+# ✅ 构造标准 MySQL 数据库 URL（使用 aiomysql 驱动）
+DATABASE_URL = (
+    f"mysql+aiomysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DB}"
+)
 
-print("✅ 使用数据库路径:", db_path)
+print("✅ 使用数据库连接:", DATABASE_URL)
 
 # 创建异步引擎
 engine = create_async_engine(DATABASE_URL, echo=True)

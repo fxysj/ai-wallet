@@ -4,11 +4,11 @@ from app.agents.tasks.receive_task import receive_task
 
 def callState():
     return AgentState(
-        user_input="给我收款地址",
+        user_input="Give me the receiving address.",
         messages=[],
         attached_data={},
         history="",
-        langguage="cn",
+        langguage="en",
     )
 
 async def main():

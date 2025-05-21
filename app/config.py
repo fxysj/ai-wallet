@@ -55,6 +55,7 @@ MYSQL_CONFIG = {
     "user": settings.MYSQL_USER,
     "password": settings.MYSQL_PASSWORD,
     "database": settings.MYSQL_DATABASE,
+    "port": 3306,
 }
 
 REDIS_CONFIG = {
