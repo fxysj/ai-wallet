@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query,Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing_extensions import Optional
 from fastapi.responses import StreamingResponse
 
+from app.agents.agent.sql_agent import get_sql_agent
 from app.db.database import get_db_session
 from app.agents.services.agent_record_service import AgentRecordService
 
@@ -93,3 +94,19 @@ async def download_excel(
     """
     service = AgentRecordService(db)
     return await service.export_to_excel(user_id)
+
+@router.get("/agent_record/agent/query", summary="通过 Agent 查询", description="通过自然语言调用 SQL Agent 执行查询任务。")
+async def agent_query(
+    q: str = Query(..., description="自然语言查询指令，例如：'导出 user_id 为 xxx 的记录为 CSV'"),
+):
+    """
+    使用 LangChain SQL Agent，通过自然语言进行智能查询。
+
+    - **q**: 自然语言输入，例如 “查找 user_id 为 xxx 的记录并导出为 Excel”。
+    """
+    try:
+        agent_executor = get_sql_agent()
+        result = await agent_executor.ainvoke( {"messages": [{"role": "user", "content": q}]})
+        return {"success": True, "result":result["structured_response"]}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
