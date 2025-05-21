@@ -875,7 +875,7 @@ async def research_task(state: AgentState) -> AgentState:
 
     def update_result_with_handling(data: dict, state: AgentState) -> AgentState:
         data["intent"] = Intention.deep_research.value #这里已经进来了为什么还要继承
-        data["detected_intent"] = Intention.deep_research.value #这里需要进行重新验证
+        # data["detected_intent"] = Intention.deep_research.value #这里需要进行重新验证
         timestamp_time = time.time()
         print("使用 time 模块获取的 UTC 时间戳:", timestamp_time)
         data["timestamp"] = state.attached_data.get("timestamp", timestamp_time)
@@ -895,7 +895,7 @@ async def research_task(state: AgentState) -> AgentState:
             "state": handled_result.get("state", ""),
             "type":handled_result.get("type")
         })
-        return state.copy(update={"result": data})
+        return state.copy(update={"result": data,"detected_intent":Intention.deep_research.value})
 
     # 情况一：attached_data 存在
     if state.attached_data:
