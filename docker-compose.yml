@@ -2,9 +2,7 @@ version: '3.8'
 
 services:
   python-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: registry.cn-hangzhou.aliyuncs.com/sinrpc/ai-wallet:latest  # 使用阿里云镜像
     working_dir: /tikeAgent
     volumes:
       - .env:/tikeAgent/.env

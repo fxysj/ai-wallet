@@ -31,7 +31,10 @@ async_session_maker = async_sessionmaker(
 # ✅ 获取异步 DB Session（可用于 Depends）
 async def get_db_session() -> AsyncSession:
     async with async_session_maker() as session:
-        yield session
+        try:
+            yield session
+        finally:
+            print("🔚 数据库会话自动关闭")
 
 # ✅ 所有模型继承此 Base
 Base = declarative_base()
