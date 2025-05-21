@@ -6,6 +6,7 @@ from sqlalchemy import inspect
 import uvicorn
 from app.api.chat_api import router as chat_router
 from app.api.routers.agent_router import router as agent_router
+from app.api.routers.agent_db_router import router as agent_db_router
 from app.api.exceptions.register import register_exception_handlers
 from app.api.middleware.agentState_middleware import AgentStateSaveMiddleware
 from app.api.middleware.cores_middleware import setup_cors_middleware
@@ -78,6 +79,7 @@ app = setup_cors_middleware(app)
 # 注册 API
 app.include_router(chat_router, prefix="/api/v1")
 app.include_router(agent_router,prefix="/api/v1/travel")
+app.include_router(agent_db_router,prefix="/db/v1")
 #注册异常拦截器
 register_exception_handlers(app)
 
