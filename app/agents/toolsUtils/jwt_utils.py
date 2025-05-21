@@ -28,6 +28,8 @@ def decode_and_validate_jwt_header(header) -> Optional[Dict]:
     - 校验成功返回 payload
     - 校验失败或缺失返回 None
     """
+    if not header:
+        return None
     auth_header = header
     token = auth_header.removeprefix("Bearer ").strip()
     return decode_and_validate_jwt(token, SECRET_KEY, [ALGORITHM])
