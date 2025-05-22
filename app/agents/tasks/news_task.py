@@ -10,7 +10,7 @@ from typing_extensions import TypedDict, List
 
 from app.agents.lib.llm.llm import LLMFactory
 from app.agents.lib.redisManger.redisManager import RedisDictManager
-from app.agents.proptemts.news_form_prompt_en import NEWS_TEMPLATE
+from app.agents.proptemts.news_prompt_0522 import NEWS_TEMPLATE
 from app.agents.proptemts.news_search_test import NEWS_SEARCH_PROMPT
 from app.agents.schemas import AgentState, Intention
 from langchain_tavily import TavilySearch
