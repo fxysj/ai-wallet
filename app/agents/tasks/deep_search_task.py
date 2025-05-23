@@ -233,8 +233,12 @@ def uniongoPlusResultAndsymbolResultOverView(goPlusResult, CMCResult,Contract_Ad
     #计算前十holders信息余额信息
     top10Banlance = sum_top_10_balances(safe_get(goPlusResult,"holders"))
     top10_holders_ratio = sum_top10_holders_ratio(safe_get(goPlusResult,"holders"))
+    #引入格式化TokenPrice 进行展示的人物
+    from app.utuls.format_price_display import format_price_display
+    calute_price = format_price_display(price)
+    #展示价格方式
     basic_info = {
-         "Token_Price": f"{price:.2f}",
+         "Token_Price": calute_price,
          "FDV": format_number(fdv),
          "M.Cap": format_number(mcap),
          "Max_Supply": format_number(max_supply),
@@ -245,7 +249,7 @@ def uniongoPlusResultAndsymbolResultOverView(goPlusResult, CMCResult,Contract_Ad
         "Contract_Owner":format_string(owner_address),#按照前四后六进行展示
         "Toker_Holders":holder_count,#统计风险项和注意项的总数。
         "Token_Supply": str(top10Banlance),#保留小数点后两位展示。直接展示真实数字，不需要进行k m b单位换算。
-        "Top10_Holders_Ratio": str(top10_holders_ratio*100),#保留小数点后两位并采用百分比展示。
+        "Top10_Holders_Ratio": str(top10_holders_ratio*100)+"%",#保留小数点后两位并采用百分比展示。
     }
     #组织返回基础信息
     return format_and_convert_keys(basic_info)
@@ -445,8 +449,11 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
 
     Dex_And_Liquidity=safe_get(goPlusResult,"dex")
     Social_Media=[{}] #暂时是空的
+    # 引入格式化TokenPrice 进行展示的人物
+    from app.utuls.format_price_display import format_price_display
+    calute_price = format_price_display(price)
     detail_info = {
-        "Token_Price": f"{price:.2f}",
+        "Token_Price": calute_price,
         "FDV": format_number(fdv),
         "M.Cap": format_number(mcap),
         "Max_Supply": format_number(max_supply),
