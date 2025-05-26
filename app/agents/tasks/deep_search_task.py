@@ -261,9 +261,9 @@ def sum_top10_holders_ratio(data):
 
 def format_number(num):
     if not isinstance(num, (int, float)):
-        return str(num)  # 非数字直接返回原始值或抛出异常
+        return str(num)  # 非数字直接返回原始值
 
-    abs_num = abs(num)  # 保证负数也能正确处理前缀
+    abs_num = abs(num)
 
     if abs_num < 1_000:
         return f"{num:.2f}"
@@ -271,8 +271,10 @@ def format_number(num):
         return f"{num / 1_000:.2f}K"
     elif abs_num < 1_000_000_000:
         return f"{num / 1_000_000:.2f}M"
-    else:
+    elif abs_num < 1_000_000_000_000_000:
         return f"{num / 1_000_000_000:.2f}B"
+    else:
+        return f"{num / 1_000_000_000_000_000:.2f}P"
 
 def format_string(s):
     if len(s) <= 10:
@@ -337,7 +339,7 @@ def uniongoPlusResultAndsymbolResultOverView(goPlusResult, CMCResult,Contract_Ad
         "Contract_Creator": format_string(creator_address),  # 按照前四后六进行展示
         "Contract_Owner": format_string(owner_address),  # 按照前四后六进行展示
         "Toker_Holders": holder_count,  # 统计风险项和注意项的总数。
-        "Token_Supply": str(top10Banlance),  # 保留小数点后两位展示。直接展示真实数字，不需要进行k m b单位换算。
+        "Token_Supply": format_number(float(top10Banlance)),  # 保留小数点后两位展示。直接展示真实数字，不需要进行k m b单位换算。
         "Top10_Holders_Ratio": str(top10_holders_ratio * 100) + "%",  # 保留小数点后两位并采用百分比展示。
         "AttentionItem": 0,  # 注意事项
         "RiskyItem": 0,  # 风险事项
@@ -401,14 +403,16 @@ def format_percentage(value, decimals=0):
 def format_liquidity_data(data):
     def format_liquidity(value):
         num = round(float(value), 2)
-        if num < 1000:
+        if num < 1_000:
             return f"{num:.2f}"
         elif num < 1_000_000:
-            return f"{round(num / 1_000, 2):.2f}K"
+            return f"{num / 1_000:.2f}K"
         elif num < 1_000_000_000:
-            return f"{round(num / 1_000_000, 2):.2f}M"
+            return f"{num / 1_000_000:.2f}M"
+        elif num < 1_000_000_000_000_000:
+            return f"{num / 1_000_000_000:.2f}B"
         else:
-            return f"{round(num / 1_000_000_000, 2):.2f}B"
+            return f"{num / 1_000_000_000_000_000:.2f}P"
 
     def shorten_address(addr):
         if len(addr) < 20:
@@ -627,7 +631,7 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
         "Contract_Creator": format_string(creator_address),  # 按照前四后六进行展示
         "Contract_Owner": format_string(owner_address),  # 按照前四后六进行展示
         "Toker_Holders": holder_count,  # 统计风险项和注意项的总数。
-        "Token_Supply": str(top10Banlance),  # 保留小数点后两位展示。直接展示真实数字，不需要进行k m b单位换算。
+        "Token_Supply": format_number(float(top10Banlance)),  # 保留小数点后两位展示。直接展示真实数字，不需要进行k m b单位换算。
         "Top10_Holders_Ratio": str(top10_holders_ratio * 100) + "%",  # 保留小数点后两位并采用百分比展示。
         "AttentionItem":0,#注意事项
         "RiskyItem":0,#风险事项
