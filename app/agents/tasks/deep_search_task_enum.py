@@ -62,18 +62,7 @@ if __name__ == '__main__':
     registry = EnumValueRegistry()
 
     # 注册字段 is_open_source 和 status
-    registry \
-        .register("is_open_source") \
-            .on("0", title="is_open_source", description="该合约未开源，有潜在风险。") \
-            .on(1, title="is_open_source", description="该合约已开源，可查看源码。") \
-    .on("",title="111",description="ss")\
-        .register("status") \
-            .on("0", title="无效", description="该状态无效") \
-            .on("1", title="有效", description="该状态有效")
-
-    # 测试
-    print(registry.format("is_open_source", 1))         # ✅ 命中
-    print(registry.format("status", "0"))               # ✅ 命中
-    print(registry.format("is_open_source", ""))        # ❌ 未命中值 -> 返回 ""
-    print(registry.format("is_open_source", "2"))       # ❌ 未命中值 -> 返回 ""
-    print(registry.format("unknown_field", 1))          # ❌ 未注册字段 -> 返回 ""
+    registry.register("gas_abuse") \
+        .on("1", title="This Token Is A Gas Abuser", description="Gas abuse activity has been found.") \
+        .on("0", title="This Token Is Not A Gas Abuser", description="No gas abuse activity has been found.")
+    print(registry.format("gas_abuse", "0"))
