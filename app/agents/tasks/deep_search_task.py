@@ -627,9 +627,9 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
         "Max_Supply": format_number(max_supply),
         "Circulation": format_number(circulating_supply),
         "Token_Symbol": token_symbol,
-        "Contract_Address": format_string(Contract_Address),  # 按照前四后六进行展示
-        "Contract_Creator": format_string(creator_address),  # 按照前四后六进行展示
-        "Contract_Owner": format_string(owner_address),  # 按照前四后六进行展示
+        "Contract_Address": Contract_Address,  # 按照前四后六进行展示
+        "Contract_Creator": creator_address,  # 按照前四后六进行展示
+        "Contract_Owner": owner_address,  # 按照前四后六进行展示
         "Toker_Holders": holder_count,  # 统计风险项和注意项的总数。
         "Token_Supply": format_number(float(top10Banlance)),  # 保留小数点后两位展示。直接展示真实数字，不需要进行k m b单位换算。
         "Top10_Holders_Ratio": str(top10_holders_ratio * 100) + "%",  # 保留小数点后两位并采用百分比展示。
@@ -668,7 +668,7 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
         "basic_info":deep_research_report_basic,#基础信息
         "contract_security":deep_contract_security_array,#安全信息
         "honeypot_risk":deep_honeypot_risk,#其他风险信息
-        "Dex_And_Liquidity":format_liquidity_data(Dex_And_Liquidity)#其他信息
+        "Dex_And_Liquidity":Dex_And_Liquidity#其他信息
     }
     # 组织返回基础信息
     return format_and_convert_keys(detail_info)
