@@ -309,6 +309,36 @@ def format_percentage(value, decimals=0):
     except (ValueError, TypeError):
         return ""
 
+def format_liquidity_data(data):
+    def format_liquidity(value):
+        num = round(float(value), 2)
+        if num < 1000:
+            return f"{num:.2f}"
+        elif num < 1_000_000:
+            return f"{round(num / 1_000, 2):.2f}K"
+        elif num < 1_000_000_000:
+            return f"{round(num / 1_000_000, 2):.2f}M"
+        else:
+            return f"{round(num / 1_000_000_000, 2):.2f}B"
+
+    def shorten_address(addr):
+        if len(addr) < 20:
+            return addr
+        return addr[:10] + "..." + addr[-10:]
+
+    result = []
+    for item in data:
+        formatted = {
+            "liquidity_type": item.get("liquidity_type", ""),
+            "name": item.get("name", ""),
+            "liquidity": format_liquidity(item.get("liquidity", "0")),
+            "pair": shorten_address(item.get("pair", ""))
+        }
+        result.append(formatted)
+
+    return result
+
+
 #需要进行根据 goPlusResult  symbolResult 按照目的对象VO进行整合
 #VODetails
 # 🔍 字段解释说明
@@ -545,7 +575,7 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
         "basic_info":deep_research_report_basic,#基础信息
         "contract_security":deep_contract_security_array,#安全信息
         "honeypot_risk":deep_honeypot_risk,#其他风险信息
-        "Dex_And_Liquidity":Dex_And_Liquidity#其他信息
+        "Dex_And_Liquidity":format_liquidity_data(Dex_And_Liquidity)#其他信息
     }
     # 组织返回基础信息
     return format_and_convert_keys(detail_info)
