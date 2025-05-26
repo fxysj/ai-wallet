@@ -38,11 +38,13 @@ def wrap_del_with_detail(detail_data):
     if not followers:
         followers = 0
 
+    from app.utuls.format_price_display import format_price_display
+    calute_price = format_price_display(price)
     return format_and_convert_keys({
         "Project_Name": detail_data.get("project_name", ""),
         "logo": detail_data.get("logo", ""),
         "Token_Symbol": detail_data.get("token_symbol", ""),
-        "Token_Price": str(round(price, 2)),
+        "Token_Price": calute_price,
         "FDV": format_number(fdv),
         "M.Cap": format_number(MCap),
         "Brief": detail_data.get("one_liner", ""),
@@ -665,11 +667,13 @@ def wrap_del_with_OverView(detail_data):
     if not  followers:
         followers=0
 
+    from app.utuls.format_price_display import format_price_display
+    calute_price = format_price_display(price)
     res = format_and_convert_keys({
         "Project_Name": detail_data.get("project_name", ""),
         "logo": detail_data.get("logo", ""),
         "Token_Symbol": detail_data.get("token_symbol", ""),
-        "Token_Price": str(round(price,2)),
+        "Token_Price": calute_price,
         "FDV": format_number(fdv),
         "M.Cap": format_number(MCap),
         "Brief": detail_data.get("one_liner", ""),
