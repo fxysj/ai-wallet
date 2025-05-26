@@ -465,7 +465,7 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
         "Contract_Owner": format_string(owner_address),  # 按照前四后六进行展示
         "Toker_Holders": holder_count,  # 统计风险项和注意项的总数。
         "Token_Supply": str(top10Banlance),  # 保留小数点后两位展示。直接展示真实数字，不需要进行k m b单位换算。
-        "Top10_Holders_Ratio": str(top10_holders_ratio * 100),  # 保留小数点后两位并采用百分比展示。
+        "Top10_Holders_Ratio": str(top10_holders_ratio * 100)+"%",  # 保留小数点后两位并采用百分比展示。
         "Contract_Source_Code_Verified":registry.format("is_open_source",is_open_source),
         "No_Proxy":registry.format("is_proxy",is_proxy),
         "No_Mint_Function":registry.format("is_mintable",is_mintable),
