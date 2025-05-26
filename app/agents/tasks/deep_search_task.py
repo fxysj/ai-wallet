@@ -261,6 +261,25 @@ def uniongoPlusResultAndsymbolResultOverView(goPlusResult, CMCResult,Contract_Ad
     return format_and_convert_keys(basic_info)
 
 
+def count_risks_filtered(security_list):
+    """
+    过滤掉非 dict 的无效项，并统计 value 为 "0" 的风险项数量。
+
+    :param security_list: 合约安全项列表
+    :return: (filtered_list, risk_count)
+    """
+    filtered_list = []
+    risk_count = 0
+
+    for item in security_list:
+        if isinstance(item, dict):
+            filtered_list.append(item)
+            value = str(item.get("value", "")).strip()
+            if value == "0":
+                risk_count += 1
+
+    return filtered_list, risk_count
+
 def filter_valid_security_items(security_list):
     """
     过滤掉非字典类型的项，以及缺少 title/description/value 的字典。
@@ -494,7 +513,7 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
         "AttentionItem":0,#注意事项
         "RiskyItem":0,#风险事项
     }
-    deep_contract_security_array=  filter_valid_security_items([
+    deep_contract_security_array,risk_count=  count_risks_filtered([
         registry.format("is_open_source", is_open_source),
         registry.format("is_proxy", is_proxy),
         registry.format("is_mintable", is_mintable),
@@ -503,11 +522,8 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
         registry.format("selfdestruct", selfdestruct),
         registry.format("external_call", external_call),
         registry.format("gas_abuse", gs_tooken)])
-    deep_honeypot_risk = {
-        "Buy_Tax": format_percentage(buy_tax, decimals=2),
-        "Sell_Tax": format_percentage(sell_tax, decimals=2),
-        "description":"Above 10% may be considered a high tax rate. More than 50% tax rate means may not be tradable.",
-        "list":[
+
+    list_array,risk_count_hot=count_risks_filtered([
            registry.format("is_honeypot", is_honeypot),
            registry.format("transfer_pausable", transfer_pausable),
            registry.format("trading_cooldown", trading_cooldown),
@@ -517,13 +533,19 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
            registry.format("is_whitelisted", is_whitelisted),
           {'title': 'Tax Cannot Be Modified', 'description': "The contract owner may not contain the authority to modify the transaction tax. If the transaction tax is increased to more than 49%, the tokens will not be able to be traded (honeypot risk).", 'value': '1'},
             {"title":"No Tax Changes For Personal Addresses","description":"No tax changes were found for every assigned address.If it exists, the contract owner may set a very outrageous tax rate for assigned address to block it from trading.","value":"1"}
-        ]
+        ])
+    deep_honeypot_risk = {
+        "Buy_Tax": format_percentage(buy_tax, decimals=2),
+        "Sell_Tax": format_percentage(sell_tax, decimals=2),
+        "description":"Above 10% may be considered a high tax rate. More than 50% tax rate means may not be tradable.",
+        "list": list_array
     }
+    deep_research_report_basic.update({"RiskyItem":risk_count+risk_count_hot})
     detail_info = {
         "basic_info":deep_research_report_basic,#基础信息
         "contract_security":deep_contract_security_array,#安全信息
-        "honeypot_risk":deep_honeypot_risk,
-        "Dex_And_Liquidity":Dex_And_Liquidity
+        "honeypot_risk":deep_honeypot_risk,#其他风险信息
+        "Dex_And_Liquidity":Dex_And_Liquidity#其他信息
     }
     # 组织返回基础信息
     return format_and_convert_keys(detail_info)
