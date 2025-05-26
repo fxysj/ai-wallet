@@ -260,14 +260,19 @@ def sum_top10_holders_ratio(data):
 
 
 def format_number(num):
-    if num < 1000:
+    if not isinstance(num, (int, float)):
+        return str(num)  # 非数字直接返回原始值或抛出异常
+
+    abs_num = abs(num)  # 保证负数也能正确处理前缀
+
+    if abs_num < 1_000:
         return f"{num:.2f}"
-    elif 1000 <= num < 1000000:
-        return f"{round(num / 1000, 2):.2f}K"
-    elif 1000000 <= num < 1000000000:
-        return f"{round(num / 1000000, 2):.2f}M"
+    elif abs_num < 1_000_000:
+        return f"{num / 1_000:.2f}K"
+    elif abs_num < 1_000_000_000:
+        return f"{num / 1_000_000:.2f}M"
     else:
-        return f"{round(num / 1000000000, 2):.2f}B"
+        return f"{num / 1_000_000_000:.2f}B"
 
 def format_string(s):
     if len(s) <= 10:
