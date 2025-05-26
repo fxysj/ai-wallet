@@ -124,10 +124,11 @@ def SymbolAPISearch(symbol):
     }
 
     res = send_get_request(url, headers=headers)
+    symbol_upper = symbol.upper()
     print("res:")
     print(res)
     if not res.get("error"):
-        return res.get("data").get(symbol)
+        return res.get("data").get(symbol_upper)
     return {}
 
 #验证数据完整性
