@@ -64,8 +64,8 @@ if __name__ == '__main__':
     # 注册字段 is_open_source 和 status
     registry \
         .register("is_open_source") \
-            .on("0", title="未开源", description="该合约未开源，有潜在风险。") \
-            .on(1, title="已开源", description="该合约已开源，可查看源码。") \
+            .on("0", title="is_open_source", description="该合约未开源，有潜在风险。") \
+            .on(1, title="is_open_source", description="该合约已开源，可查看源码。") \
     .on("",title="111",description="ss")\
         .register("status") \
             .on("0", title="无效", description="该状态无效") \

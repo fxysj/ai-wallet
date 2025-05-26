@@ -237,20 +237,25 @@ def uniongoPlusResultAndsymbolResultOverView(goPlusResult, CMCResult,Contract_Ad
     #引入格式化TokenPrice 进行展示的人物
     from app.utuls.format_price_display import format_price_display
     calute_price = format_price_display(price)
+    deep_research_report_basic = {
+        "Token_Price": calute_price,
+        "FDV": format_number(fdv),
+        "M.Cap": format_number(mcap),
+        "Max_Supply": format_number(max_supply),
+        "Circulation": format_number(circulating_supply),
+        "Token_Symbol": token_symbol,
+        "Contract_Address": format_string(Contract_Address),  # 按照前四后六进行展示
+        "Contract_Creator": format_string(creator_address),  # 按照前四后六进行展示
+        "Contract_Owner": format_string(owner_address),  # 按照前四后六进行展示
+        "Toker_Holders": holder_count,  # 统计风险项和注意项的总数。
+        "Token_Supply": str(top10Banlance),  # 保留小数点后两位展示。直接展示真实数字，不需要进行k m b单位换算。
+        "Top10_Holders_Ratio": str(top10_holders_ratio * 100) + "%",  # 保留小数点后两位并采用百分比展示。
+        "AttentionItem": 0,  # 注意事项
+        "RiskyItem": 0,  # 风险事项
+    }
     #展示价格方式
     basic_info = {
-         "Token_Price": calute_price,
-         "FDV": format_number(fdv),
-         "M.Cap": format_number(mcap),
-         "Max_Supply": format_number(max_supply),
-         "Circulation": format_number(circulating_supply),
-        "Token_Symbol":token_symbol,
-        "Contract_Address":format_string(Contract_Address),#按照前四后六进行展示
-        "Contract_Creator":format_string(creator_address),#按照前四后六进行展示
-        "Contract_Owner":format_string(owner_address),#按照前四后六进行展示
-        "Toker_Holders":holder_count,#统计风险项和注意项的总数。
-        "Token_Supply": str(top10Banlance),#保留小数点后两位展示。直接展示真实数字，不需要进行k m b单位换算。
-        "Top10_Holders_Ratio": str(top10_holders_ratio*100)+"%",#保留小数点后两位并采用百分比展示。
+        "basic_info": deep_research_report_basic,  # 基础信息
     }
     #组织返回基础信息
     return format_and_convert_keys(basic_info)
@@ -453,7 +458,8 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
     # 引入格式化TokenPrice 进行展示的人物
     from app.utuls.format_price_display import format_price_display
     calute_price = format_price_display(price)
-    detail_info = {
+    #基础信息
+    deep_research_report_basic = {
         "Token_Price": calute_price,
         "FDV": format_number(fdv),
         "M.Cap": format_number(mcap),
@@ -465,27 +471,41 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
         "Contract_Owner": format_string(owner_address),  # 按照前四后六进行展示
         "Toker_Holders": holder_count,  # 统计风险项和注意项的总数。
         "Token_Supply": str(top10Banlance),  # 保留小数点后两位展示。直接展示真实数字，不需要进行k m b单位换算。
-        "Top10_Holders_Ratio": str(top10_holders_ratio * 100)+"%",  # 保留小数点后两位并采用百分比展示。
-        "Contract_Source_Code_Verified":registry.format("is_open_source",is_open_source),
-        "No_Proxy":registry.format("is_proxy",is_proxy),
-        "No_Mint_Function":registry.format("is_mintable",is_mintable),
-        "No_Function_Found_That_Retrieves_Ownership":registry.format("can_take_back_ownership",can_take_back_ownership),
-        "Owner_Cant_Change_Balance":registry.format("owner_change_balance",owner_change_balance),
-        "No_Hidden_Owner":registry.format("hidden_owner",hidden_owner),
-        "This_Token_Can_Not_Self_Destruct":registry.format("selfdestruct",selfdestruct),
-        "No_External_Call_Risk_Found":registry.format("external_call",external_call),
-        "This_Token_Is_Not_A_Gas_Abuser":registry.format("gas_abuse",gs_tooken),
-        "Buy_Tax":format_percentage(buy_tax,decimals=2),
-        "Sell_Tax":format_percentage(sell_tax,decimals=2),
-        "This_Does_Not_Appear_To_Be_A_Honeypot":registry.format("is_honeypot",is_honeypot),
-        "No_Codes_Found_To_Suspend_Trading":registry.format("transfer_pausable",transfer_pausable),
-        "No_Trading_Cooldown_Function":registry.format("trading_cooldown",trading_cooldown),
-        "No_Anti_Whale_Unlimited_Number_Of_Transactions":registry.format("is_anti_whale",is_anti_whale),
-        "Anti_Whale_Cannot_Be_Modified":registry.format("anti_whale_modifiable",anti_whale_modifiable),
-        "Tax_Cannot_Be_Modified":tax_Cannot_Be_Modified,
-        "No_Blacklist":registry.format("is_blacklisted",is_blacklisted),
-        "No_Whitelist":registry.format("is_whitelisted",is_whitelisted),
-        "No_Tax_Changes_Found_For_Personal_Addresses":personal_Addresses,
+        "Top10_Holders_Ratio": str(top10_holders_ratio * 100) + "%",  # 保留小数点后两位并采用百分比展示。
+        "AttentionItem":0,#注意事项
+        "RiskyItem":0,#风险事项
+    }
+    deep_contract_security={
+        "Contract_Source_Code_Verified": registry.format("is_open_source", is_open_source),
+        "No_Proxy": registry.format("is_proxy", is_proxy),
+        "No_Mint_Function": registry.format("is_mintable", is_mintable),
+        "No_Function_Found_That_Retrieves_Ownership": registry.format("can_take_back_ownership",                                                                can_take_back_ownership),
+        "Owner_Cant_Change_Balance": registry.format("owner_change_balance", owner_change_balance),
+        "No_Hidden_Owner": registry.format("hidden_owner", hidden_owner),
+        "This_Token_Can_Not_Self_Destruct": registry.format("selfdestruct", selfdestruct),
+        "No_External_Call_Risk_Found": registry.format("external_call", external_call),
+        "This_Token_Is_Not_A_Gas_Abuser": registry.format("gas_abuse", gs_tooken),
+    }#风险
+    deep_honeypot_risk = {
+        "Buy_Tax": format_percentage(buy_tax, decimals=2),
+        "Sell_Tax": format_percentage(sell_tax, decimals=2),
+        "description":"Above 10% may be considered a high tax rate. More than 50% tax rate means may not be tradable.",
+        "list":{
+            "This_Does_Not_Appear_To_Be_A_Honeypot": registry.format("is_honeypot", is_honeypot),
+            "No_Codes_Found_To_Suspend_Trading": registry.format("transfer_pausable", transfer_pausable),
+            "No_Trading_Cooldown_Function": registry.format("trading_cooldown", trading_cooldown),
+            "No_Anti_Whale_Unlimited_Number_Of_Transactions": registry.format("is_anti_whale", is_anti_whale),
+            "Anti_Whale_Cannot_Be_Modified": registry.format("anti_whale_modifiable", anti_whale_modifiable),
+            "Tax_Cannot_Be_Modified": tax_Cannot_Be_Modified,
+            "No_Blacklist": registry.format("is_blacklisted", is_blacklisted),
+            "No_Whitelist": registry.format("is_whitelisted", is_whitelisted),
+            "No_Tax_Changes_Found_For_Personal_Addresses": personal_Addresses,
+        }
+    }
+    detail_info = {
+        "basic_info":deep_research_report_basic,#基础信息
+        "contract_security":deep_contract_security,#安全信息
+        "honeypot_risk":deep_honeypot_risk,
         "Dex_And_Liquidity":Dex_And_Liquidity
     }
     # 组织返回基础信息
