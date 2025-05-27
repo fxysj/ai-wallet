@@ -5,6 +5,7 @@ from typing import Optional, Dict, Any
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 
+from app.agents.emun.LanguageEnum import LanguageEnum
 from app.agents.schemas import AgentState
 from app.agents.lib.llm.llm import LLMFactory
 from app.agents.form.form import *
@@ -53,7 +54,8 @@ async def send_task(state: AgentState) -> AgentState:
     data["intent"] = Intention.send.value
     #如果确实字段存在
     if data["missFields"]:
-        data["description"] = "Hello, I’ve prepared the transaction page you need. Please fill in the necessary transfer details, and I will assist you with the remaining steps. Once you're ready, feel free to proceed."
+        if state.langguage==LanguageEnum.EN.value:
+            data["description"] = "Hello, I’ve prepared the transaction page you need. Please fill in the necessary transfer details, and I will assist you with the remaining steps. Once you're ready, feel free to proceed."
 
     # 使用 time 模块获取当前时间戳
     timestamp_time = time.time()
