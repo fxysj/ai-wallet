@@ -13,7 +13,7 @@ from app.agents.schemas import AgentState, Intention
 from app.agents.tools import send_post_request, send_get_request
 from app.agents.lib.redisManger.redisManager import redis_dict_manager
 from app.test.deepSearchProject.deepSearchTask_prompt_test import DEEPSEARCHTASK_PROMPT_TEST
-from app.agents.tasks.deep_search_task_enum import EnumValueRegistry
+from app.agents.tasks.deep_search_task_value_registry import EnumValueRegistry
 
 def truncate_link(link):
     """
@@ -352,11 +352,16 @@ def uniongoPlusResultAndsymbolResultOverView(goPlusResult, CMCResult,Contract_Ad
     return format_and_convert_keys(basic_info)
 
 
-def count_risks_filtered(security_list):
+def count_risks_filtered(security_list, *, risk_level="Risky"):
     """
-    过滤掉非 dict 的无效项，并统计 value 为 "0" 的风险项数量。
+    过滤掉非 dict 的无效项，并统计指定 riskLevel 中 risked 为 True 的项数量。
+    同时根据条件添加 color_type 字段：
+        - riskLevel == "Risky" 且 risked=True -> color_type = 1（红色）
+        - riskLevel == "Attention" 且 risked=True -> color_type = 2（黄色）
+        - 其他情况 -> color_type = 3（默认）
 
     :param security_list: 合约安全项列表
+    :param risk_level: 指定要统计的风险等级，默认为 "Risky"
     :return: (filtered_list, risk_count)
     """
     filtered_list = []
@@ -364,12 +369,24 @@ def count_risks_filtered(security_list):
 
     for item in security_list:
         if isinstance(item, dict):
+            # 判断 color_type
+            if item.get("risked") is True and item.get("riskLevel") == "Risky":
+                item["color_type"] = 1  # 红色
+            elif item.get("risked") is True and item.get("riskLevel") == "Attention":
+                item["color_type"] = 2  # 黄色
+            else:
+                item["color_type"] = 3  # 默认
+
             filtered_list.append(item)
-            value = str(item.get("value", "")).strip()
-            if value == "0":
+
+            # 统计指定 risk_level 中 risked 为 True 的数量
+            if item.get("risked") is True and item.get("riskLevel") == risk_level:
                 risk_count += 1
 
     return filtered_list, risk_count
+
+
+
 
 def filter_valid_security_items(security_list):
     """
@@ -536,55 +553,152 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
     registry = EnumValueRegistry()
     registry.register("is_open_source") \
         .on("1", title="Contract Source Code Verified",
+            riskLevel="Risky",
+            risked=False,
             description="This token contract is open source. You can check the contract code for details. Unsourced token contracts are likely to have malicious functions to defraud their users of their assets") \
         .on("0", title="Contract Source Code Can't Verified",
+            riskLevel="Risky",
+            risked=True,
             description="This token contract is not open source. Unsourced token contracts are likely to have malicious functions to defraud their users of their assets.")\
     .register("is_proxy")\
-    .on("1",title="In This Contract, There Is A Proxy Contract.",description="The proxy contract means contract owner can modifiy the function of the token and possibly effect the price.")\
-    .on("0",title="No Proxy",description="There is no proxy in the contract. The proxy contract means contract owner can modifiy the function of the token and possibly effect the price.")\
+    .on("1",title="In This Contract, There Is A Proxy Contract.",
+        riskLevel="Risky",
+        risked=True,
+        description="The proxy contract means contract owner can modifiy the function of the token and possibly effect the price.")\
+    .on("0",title="No Proxy",
+        riskLevel="Risky",
+        risked=False,
+        description="There is no proxy in the contract. The proxy contract means contract owner can modifiy the function of the token and possibly effect the price.")\
     .register("is_mintable")\
-    .on("1",title="Mint function",description="The contract may contain additional issuance functions, which could maybe generate a large number of tokens, resulting in significant fluctuations in token prices. It is recommended to confirm with the project team whether it complies with the token issuance instructions.")\
-    .on("0",title="No Mint Function",description="Mint function is transparent or non-existent. Hidden mint functions may increase the amount of tokens in circulation and effect the price of the token.")\
+    .on("1",title="Mint function",
+        riskLevel="Attention",
+        risked=True,
+        description="The contract may contain additional issuance functions, which could maybe generate a large number of tokens, resulting in significant fluctuations in token prices. It is recommended to confirm with the project team whether it complies with the token issuance instructions.")\
+    .on("0",title="No Mint Function",
+        riskLevel="Attention",
+        risked=False,
+        description="Mint function is transparent or non-existent. Hidden mint functions may increase the amount of tokens in circulation and effect the price of the token.")\
     .register("can_take_back_ownership")\
-    .on("1",title="Function Has Been Found That Can Revoke Ownership",description="If this function exists, it is possible for the project owner to regain ownership even after relinquishing it")\
-    .on("0",title="No Function Found That Retrieves Ownership",description="If this function exists, it is possible for the project owner to regain ownership even after relinquishing it")\
+    .on("1",title="Function Has Been Found That Can Revoke Ownership",
+        riskLevel="Attention",
+        risked=True,
+        description="If this function exists, it is possible for the project owner to regain ownership even after relinquishing it")\
+    .on("0",title="No Function Found That Retrieves Ownership",
+        riskLevel="Attention",
+        risked=False,
+        description="If this function exists, it is possible for the project owner to regain ownership even after relinquishing it")\
     .register("owner_change_balance")\
-    .on("1",title="Owner Can Change Balance",description="The contract owner is found to have the authority to modify the token balances of other addresses.")\
-    .on("0",title="Owner Can't Change Balance",description="The contract owner is not found to have the authority to modify the balance of tokens at other addresses.")\
+    .on("1",title="Owner Can Change Balance",
+        riskLevel="Risky",
+        risked=True,
+        description="The contract owner is found to have the authority to modify the token balances of other addresses.")\
+    .on("0",title="Owner Can't Change Balance",
+        riskLevel="Risky",
+        risked=False,
+        description="The contract owner is not found to have the authority to modify the balance of tokens at other addresses.")\
     .register("hidden_owner")\
-    .on("1",title="Hidden Ownership Detected",description="Hidden owner address was found for the token. For contracts with hidden owner, developer can still manipulate the contract even if the ownership has been abandoned")\
-    .on("0",title="No Hidden Owner",description="No hidden owner address was found for the token. For contract with a hidden owner, developer can still manipulate the contract even if the ownership has been abandoned.")\
+    .on("1",title="Hidden Ownership Detected",
+        riskLevel="Attention",
+        risked=True,
+        description="Hidden owner address was found for the token. For contracts with hidden owner, developer can still manipulate the contract even if the ownership has been abandoned")\
+    .on("0",title="No Hidden Owner",
+        riskLevel="Attention",
+        risked=False,
+        description="No hidden owner address was found for the token. For contract with a hidden owner, developer can still manipulate the contract even if the ownership has been abandoned.")\
     .register("selfdestruct")\
-    .on("1",title="This Token Can  Self Destruct",description="Self-destruct function found. If triggered, the contract will be destroyed, all functions will become unavailable, and all related assets will be erased.")\
-    .on("0",title="This Token Can Not Self Destruct",description="No self-destruct function found. If this function exists and is triggered, the contract will be destroyed, all functions will be unavailable, and all related assets will be erased.")\
+    .on("1",title="This Token Can  Self Destruct",
+        riskLevel="Risky",
+        risked=True,
+        description="Self-destruct function found. If triggered, the contract will be destroyed, all functions will become unavailable, and all related assets will be erased.")\
+    .on("0",title="This Token Can Not Self Destruct",
+        riskLevel="Risky",
+        risked=False,
+        description="No self-destruct function found. If this function exists and is triggered, the contract will be destroyed, all functions will be unavailable, and all related assets will be erased.")\
     .register("external_call")\
-    .on("1",title="External Call Risk Found",description="External calls would cause this token contract to be highly dependent on other contracts, which may be a potential risk.")\
-    .on("0",title="No External Call Risk found",description="External calls would cause this token contract to be highly dependent on other contracts, which may be a potential risk.")\
+    .on("1",title="External Call Risk Found",
+        riskLevel="Attention",
+        risked=True,
+        description="External calls would cause this token contract to be highly dependent on other contracts, which may be a potential risk.")\
+    .on("0",title="No External Call Risk found",
+        riskLevel="Attention",
+        risked=False,
+        description="External calls would cause this token contract to be highly dependent on other contracts, which may be a potential risk.")\
     .register("gas_abuse")\
-    .on("1",title="This Token Is A Gas Abuser",description="Gas abuse activity has been found.")\
-    .on("0",title="This Token Is Not A Gas Abuser",description="No gas abuse activity has been found.")\
-    .on("",title="This token Is Not A Gas Abuser",description="No gas abuse activity has been found.")\
+    .on("1",title="This Token Is A Gas Abuser",
+        riskLevel="Attention",
+        risked=True,
+        description="Gas abuse activity has been found.")\
+    .on("0",title="This Token Is Not A Gas Abuser",
+        riskLevel="Attention",
+        risked=False,
+        description="No gas abuse activity has been found.")\
+    .on("",title="This token Is Not A Gas Abuser",
+        riskLevel="Attention",
+        risked=False,
+        description="No gas abuse activity has been found.")\
     .register("is_honeypot")\
-    .on("1",title="This Appears To Be A Honeypot",description="We are aware of malicious code.")\
-    .on("0",title="This Does Not Appear To Be A Honeypot",description="We are not aware of any malicious code.")\
+    .on("1",title="This Appears To Be A Honeypot",
+        riskLevel="Risky",
+        risked=True,
+        description="We are aware of malicious code.")\
+    .on("0",title="This Does Not Appear To Be A Honeypot",
+        riskLevel="Risky",
+        risked=False,
+        description="We are not aware of any malicious code.")\
     .register("transfer_pausable")\
-    .on("1",title="Functions That Can Suspend Trading",description="If a suspendable code is included, the token maybe neither be bought nor sold (honeypot risk).")\
-    .on("0",title="NO Codes Found To Suspend Trading",description="If a suspendable code is included, the token maybe neither be bought nor sold (honeypot risk).")\
+    .on("1",title="Functions That Can Suspend Trading",
+        riskLevel="Attention",
+        risked=True,
+        description="If a suspendable code is included, the token maybe neither be bought nor sold (honeypot risk).")\
+    .on("0",title="NO Codes Found To Suspend Trading",
+        riskLevel="Attention",
+        risked=False,
+        description="If a suspendable code is included, the token maybe neither be bought nor sold (honeypot risk).")\
     .register("trading_cooldown")\
-    .on("1",title="Trading Cooldown Function Exists",description="The token contract has  trading cooldown function. If there is a trading cooldown function, the user will not be able to sell the token within a certain time or block after buying.")\
-    .on("0",title="No Trading Cooldown Function",description="The token contract has no trading cooldown function. If there is a trading cooldown function, the user will not be able to sell the token within a certain time or block after buying.")\
+    .on("1",title="Trading Cooldown Function Exists",
+        riskLevel="Attention",
+        risked=True,
+        description="The token contract has  trading cooldown function. If there is a trading cooldown function, the user will not be able to sell the token within a certain time or block after buying.")\
+    .on("0",title="No Trading Cooldown Function",
+        riskLevel="Attention",
+        risked=False,
+        description="The token contract has no trading cooldown function. If there is a trading cooldown function, the user will not be able to sell the token within a certain time or block after buying.")\
     .register("is_anti_whale")\
-    .on("1",title="Anti-Whale Mechanism Exists (Limited Number Of Transactions)",description="There is a limit to the number of token transactions. The number of scam token transactions may be limited (honeypot risk).")\
-    .on("0",title="No Anti_Whale(Unlimited Number Of Transactions)",description="There is no limit to the number of token transactions. The number of scam token transactions may be limited (honeypot risk).")\
+    .on("1",title="Anti-Whale Mechanism Exists (Limited Number Of Transactions)",
+        riskLevel="Attention",
+        risked=True,
+        description="There is a limit to the number of token transactions. The number of scam token transactions may be limited (honeypot risk).")\
+    .on("0",title="No Anti_Whale(Unlimited Number Of Transactions)",
+        riskLevel="Attention",
+        risked=False,
+        description="There is no limit to the number of token transactions. The number of scam token transactions may be limited (honeypot risk).")\
     .register("anti_whale_modifiable")\
-    .on("1",title="Anti Whale Can  Be Modified",description="The maximum trading amount or maximum position can  be modified.")\
-    .on("0",title="Anti Whale Can Not Be modified",description="The maximum trading amount or maximum position can not be modified")\
+    .on("1",title="Anti Whale Can  Be Modified",
+        riskLevel="Attention",
+        risked=True,
+        description="The maximum trading amount or maximum position can  be modified.")\
+    .on("0",title="Anti Whale Can Not Be modified",
+        riskLevel="Attention",
+        risked=False,
+        description="The maximum trading amount or maximum position can not be modified")\
     .register("is_blacklisted")\
-    .on("1",title="Blacklist Function",description="The blacklist function is included. Some addresses may not be able to trade normally (honeypot risk).")\
-    .on("0",title="NO Blacklist",description="The blacklist function is not included. If there is a blacklist, some addresses may not be able to trade normally (honeypot risk).")\
+    .on("1",title="Blacklist Function",
+        riskLevel="Risky",
+        risked=True,
+        description="The blacklist function is included. Some addresses may not be able to trade normally (honeypot risk).")\
+    .on("0",title="NO Blacklist",
+        riskLevel="Risky",
+        risked=False,
+        description="The blacklist function is not included. If there is a blacklist, some addresses may not be able to trade normally (honeypot risk).")\
     .register("is_whitelisted")\
-    .on("1",title="Whitelist Function",description="Having a whitelist function means that, for this contract, some privileged users may have greater advantages in transactions, such as bypassing transaction limits, being exempt from taxes, trading earlier than others, or not being affected by transaction cooldown restrictions.")\
-    .on("0",title="No Whitelist",description="The whitelist function is not included. If there is a whitelist, some addresses may not be able to trade normally (honeypot risk).")
+    .on("1",title="Whitelist Function",
+        riskLevel="Risky",
+        risked=True,
+        description="Having a whitelist function means that, for this contract, some privileged users may have greater advantages in transactions, such as bypassing transaction limits, being exempt from taxes, trading earlier than others, or not being affected by transaction cooldown restrictions.")\
+    .on("0",title="No Whitelist",
+        riskLevel="Risky",
+        risked=False,
+        description="The whitelist function is not included. If there is a whitelist, some addresses may not be able to trade normally (honeypot risk).")
 
 
 
@@ -644,7 +758,17 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
         registry.format("hidden_owner", hidden_owner),
         registry.format("selfdestruct", selfdestruct),
         registry.format("external_call", external_call),
-        registry.format("gas_abuse", gs_tooken)])
+        registry.format("gas_abuse", gs_tooken)],risk_level="Risky")
+
+    _, attention_count = count_risks_filtered([
+        registry.format("is_open_source", is_open_source),
+        registry.format("is_proxy", is_proxy),
+        registry.format("is_mintable", is_mintable),
+        registry.format("can_take_back_ownership", can_take_back_ownership),
+        registry.format("hidden_owner", hidden_owner),
+        registry.format("selfdestruct", selfdestruct),
+        registry.format("external_call", external_call),
+        registry.format("gas_abuse", gs_tooken)], risk_level="Attention")
 
     list_array,risk_count_hot=count_risks_filtered([
            registry.format("is_honeypot", is_honeypot),
@@ -654,9 +778,31 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
            registry.format("anti_whale_modifiable", anti_whale_modifiable),
            registry.format("is_blacklisted", is_blacklisted),
            registry.format("is_whitelisted", is_whitelisted),
-          {'title': 'Tax Cannot Be Modified', 'description': "The contract owner may not contain the authority to modify the transaction tax. If the transaction tax is increased to more than 49%, the tokens will not be able to be traded (honeypot risk).", 'value': '1'},
-            {"title":"No Tax Changes For Personal Addresses","description":"No tax changes were found for every assigned address.If it exists, the contract owner may set a very outrageous tax rate for assigned address to block it from trading.","value":"1"}
-        ])
+          {'title': 'Tax Cannot Be Modified',
+           "riskLevel" : "Attention","risked" :False,
+           'description': "The contract owner may not contain the authority to modify the transaction tax. If the transaction tax is increased to more than 49%, the tokens will not be able to be traded (honeypot risk).", 'value': '1'},
+            {"title":"No Tax Changes For Personal Addresses",
+             "riskLevel": "Attention", "risked": False,
+             "description":"No tax changes were found for every assigned address.If it exists, the contract owner may set a very outrageous tax rate for assigned address to block it from trading.","value":"1"}
+        ],risk_level="Risky")
+
+    _,attention_count_hot = count_risks_filtered([
+        registry.format("is_honeypot", is_honeypot),
+        registry.format("transfer_pausable", transfer_pausable),
+        registry.format("trading_cooldown", trading_cooldown),
+        registry.format("is_anti_whale", is_anti_whale),
+        registry.format("anti_whale_modifiable", anti_whale_modifiable),
+        registry.format("is_blacklisted", is_blacklisted),
+        registry.format("is_whitelisted", is_whitelisted),
+        {'title': 'Tax Cannot Be Modified',
+         "riskLevel": "Attention", "risked": False,
+         'description': "The contract owner may not contain the authority to modify the transaction tax. If the transaction tax is increased to more than 49%, the tokens will not be able to be traded (honeypot risk).",
+         'value': '1'},
+        {"title": "No Tax Changes For Personal Addresses",
+         "riskLevel": "Attention", "risked": False,
+         "description": "No tax changes were found for every assigned address.If it exists, the contract owner may set a very outrageous tax rate for assigned address to block it from trading.",
+         "value": "1"}
+    ], risk_level="Attention")
     deep_honeypot_risk = {
         "Buy_Tax": format_percentage(buy_tax, decimals=2),
         "Sell_Tax": format_percentage(sell_tax, decimals=2),
@@ -664,6 +810,7 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
         "list": list_array
     }
     deep_research_report_basic.update({"RiskyItem":risk_count+risk_count_hot})
+    deep_research_report_basic.update({"AttentionItem":attention_count+attention_count_hot})
     detail_info = {
         "basic_info":deep_research_report_basic,#基础信息
         "contract_security":deep_contract_security_array,#安全信息
