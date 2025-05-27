@@ -269,8 +269,11 @@ def sum_top10_holders_ratio(data):
 
 
 def format_number(num):
-    if not isinstance(num, (int, float)):
-        return str(num)  # 非数字直接返回原始值
+    try:
+        num = float(num)
+    except (ValueError, TypeError):
+        # 不能转换成浮点数的，直接返回字符串形式
+        return str(num)
 
     abs_num = abs(num)
 
@@ -284,6 +287,7 @@ def format_number(num):
         return f"{num / 1_000_000_000:.2f}B"
     else:
         return f"{num / 1_000_000_000_000_000:.2f}P"
+
 
 def format_string(s):
     if len(s) <= 10:
