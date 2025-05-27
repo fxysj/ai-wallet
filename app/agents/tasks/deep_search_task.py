@@ -1,5 +1,6 @@
 #深度搜索分析
 import asyncio
+import json
 import time
 from decimal import Decimal, getcontext
 
@@ -34,11 +35,8 @@ def format_team_links(team_members):
         if not isinstance(member, dict):
             continue  # 跳过非法格式
 
-        if 'X' in member:
-            member['X'] = truncate_link(member['X'])
-
-        if 'linkedin' in member:
-            member['linkedin'] = truncate_link(member['linkedin'])
+        if "linkedin" not in member:
+            member['linkedin'] = "--"
 
     return team_members
 
@@ -95,6 +93,17 @@ def sort_events(events):
 
     return result
 
+def add_discord_if_missing(info_dict):
+    if not isinstance(info_dict, dict):
+        return info_dict
+    # 空字典直接返回
+    if len(info_dict) == 0:
+        return info_dict
+    # 不存在discord字段则添加
+    if "discord" not in info_dict:
+        info_dict["discord"] = "--"
+    return info_dict
+
 #获取rawData数据s
 #根据详情信息返回OverView数据
 def wrap_del_with_detail(detail_data):
@@ -118,8 +127,8 @@ def wrap_del_with_detail(detail_data):
     if not followers:
         followers = 0
 
-    from app.utuls.format_price_display import format_price_display
-    calute_price = format_price_display(price)
+    from app.utuls.format_price_display import format_price_display_project
+    calute_price = format_price_display_project(float(price))
     return format_and_convert_keys({
         "Project_Name": detail_data.get("project_name", ""),
         "logo": detail_data.get("logo", ""),
@@ -136,7 +145,7 @@ def wrap_del_with_detail(detail_data):
         "Events":sort_events(detail_data.get("event",[])),
         "investors":detail_data.get("investors",[]),
         "Team_Member":format_team_links(detail_data.get("team_members",[])),
-        "Social_Media":detail_data.get("social_media",[])
+        "Social_Media":add_discord_if_missing(filter_empty_values(detail_data.get("social_media",{})))
     })
 
 
@@ -884,7 +893,6 @@ def format_and_convert_keys(data: dict) -> dict:
 #新增类型处理
 def wrap_del_with_OverView(detail_data):
     #默认初始化为项目信息
-
     price = detail_data.get("price", "")
     if not price:
         price = 0.0
@@ -905,8 +913,9 @@ def wrap_del_with_OverView(detail_data):
     if not  followers:
         followers=0
 
-    from app.utuls.format_price_display import format_price_display
-    calute_price = format_price_display(price)
+    from app.utuls.format_price_display import format_price_display_project
+    print(price)
+    calute_price = format_price_display_project(float(price))
     res = format_and_convert_keys({
         "Project_Name": detail_data.get("project_name", ""),
         "logo": detail_data.get("logo", ""),
@@ -998,7 +1007,7 @@ def getDetailRowdata(selectedType):
         return {}
     id = selectedType.get('id')  # 项目id
     headers = {
-        "apikey": "UvO5c6tLGHZ3a5ipkPZsXDbOUYRiKUgQ",
+        "apikey": "TIvihog4hNGbhNWpuaRUR4NMW0hDfyoZ",
         "language": "en",
         "Content-Type": "application/json"
     }
