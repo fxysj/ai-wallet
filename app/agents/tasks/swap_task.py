@@ -21,7 +21,7 @@ async def swap_task(state: AgentState) -> AgentState:
         txtId = swapIdData.get("txId")
         if txtId:
             print("业务进行存档处理")
-            formData["description"] = "success"
+            formData["description"] = "Alright, I will continue to monitor the transaction status for you."
             formData["state"] = TaskState.SWAP_TASK_BROADCASTED
             formData["intent"] = Intention.swap.value
             return state.copy(update={"result": formData})
