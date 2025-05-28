@@ -1539,6 +1539,15 @@ async def research_task(state: AgentState) -> AgentState:
         if state.langguage==LanguageEnum.ZH_HANT.value:
             description="我已經確認了要査詢的資訊。 請協助檢索相關資料"
 
+        if not handled_result.get("details"):
+            if state.langguage == LanguageEnum.ZH_HANS.value:
+                description = "报告暂未生成成功"
+            if state.langguage == LanguageEnum.ZH_HANT.value:
+                description = "報告尚未生成成功"
+            if state.language == LanguageEnum.EN.value:
+                description="Report generation is not complete yet"
+
+
         data.update({
             "description":description,
             "overview": handled_result.get("overview", {}),
