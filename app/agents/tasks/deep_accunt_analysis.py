@@ -46,11 +46,12 @@ async def analysis_task(state: AgentState) -> AgentState:
           # 这里进行分析
           if missField:
             return state.copy(update={"result": data})
-        else:
-          #否则的话要进行清空
-          data["missFields"] = []
-          data["description"] = "Congratulations, all the information is complete! Deep analysis is about to begin!"
-          data["state"] = "ANALYSIS_TASK_DISPLAY_ANALYSIS"
+          else:
+            # 否则的话要进行清空
+            data["missFields"] = []
+            data["description"] = "Congratulations, all the information is complete! Deep analysis is about to begin!"
+            data["state"] = "ANALYSIS_TASK_DISPLAY_ANALYSIS"
+
 
     data["overview"] = getMockData()["overview"]
     data["achievements"] = getMockData()["achievements"]
