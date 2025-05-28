@@ -1530,8 +1530,14 @@ async def research_task(state: AgentState) -> AgentState:
                 selectedType = {}
 
         handled_result = handle_type_based_data(selectedType, state.attached_data,state.langguage)
+        description = "I have confirmed the information to be queried. Kindly assist in retrieving the relevant data"
+        if state.langguage==LanguageEnum.ZH_HANS.value:
+            description="我已经确认了要查询的信息。请协助检索相关数据"
+        if state.langguage==LanguageEnum.ZH_HANT.value:
+            description="我已經確認了要査詢的資訊。 請協助檢索相關資料"
+
         data.update({
-            "description":"I have confirmed the information to be queried. Kindly assist in retrieving the relevant data",
+            "description":description,
             "overview": handled_result.get("overview", {}),
             "details": handled_result.get("details", {}),
             "state": handled_result.get("state", ""),
