@@ -26,7 +26,7 @@ async def send_task(state: AgentState) -> AgentState:
         if formData.get("transactionResult"):
             transactionResult = formData.get("transactionResult")
             if transactionResult:
-                formData["description"] = "success"
+                formData["description"] = "Alright, I will continue to monitor the transaction status for you."
                 formData["state"] = TaskState.SEND_TASK_BROADCASTED
                 formData["intent"] = Intention.send.value
                 return state.copy(update={"result": formData})
