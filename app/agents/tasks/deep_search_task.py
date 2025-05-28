@@ -1544,7 +1544,7 @@ async def research_task(state: AgentState) -> AgentState:
                 description = "报告暂未生成成功"
             if state.langguage == LanguageEnum.ZH_HANT.value:
                 description = "報告尚未生成成功"
-            if state.language == LanguageEnum.EN.value:
+            if state.langguage == LanguageEnum.EN.value:
                 description="Report generation is not complete yet"
 
 
