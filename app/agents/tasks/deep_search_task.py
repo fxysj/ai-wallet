@@ -185,15 +185,18 @@ def GoPlusAPISearch(chain_id, contract_addresses):
     res =  send_get_request(url)
     if not res.get("error"):
         result = res.get("result")
-        print("goplusrusult:===", result)
-        contract_address = contract_addresses[0]
-        print("contract_address:===", contract_address)
-        print("type(goplusrusult):===", type(result))
-        #0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE
-        print("你请求的地址（小写）:", contract_address.lower())
-        response = result.get(contract_address.lower())
-        print("response:===", response)
-        return response
+        if result:
+            print("goplusrusult:===", result)
+            contract_address = contract_addresses[0]
+            print("contract_address:===", contract_address)
+            print("type(goplusrusult):===", type(result))
+            # 0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE
+            print("你请求的地址（小写）:", contract_address.lower())
+            response = result.get(contract_address.lower())
+            print("response:===", response)
+            return response
+        else:
+            return {}
     else:
         return {}
 
