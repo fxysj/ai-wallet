@@ -1533,20 +1533,22 @@ async def research_task(state: AgentState) -> AgentState:
                 selectedType = {}
 
         handled_result = handle_type_based_data(selectedType, state.attached_data,state.langguage)
-        description = "I have confirmed the information to be queried. Kindly assist in retrieving the relevant data"
-        if state.langguage==LanguageEnum.ZH_HANS.value:
-            description="我已经确认了要查询的信息。请协助检索相关数据"
-        if state.langguage==LanguageEnum.ZH_HANT.value:
-            description="我已經確認了要査詢的資訊。 請協助檢索相關資料"
-
-        if not handled_result.get("details"):
+        description = data["description"]
+        #只有在选中的时候进行处理
+        if selectedType:
+            description = "I have confirmed the information to be queried. Kindly assist in retrieving the relevant data"
             if state.langguage == LanguageEnum.ZH_HANS.value:
-                description = "报告暂未生成成功"
+                description = "我已经确认了要查询的信息。请协助检索相关数据"
             if state.langguage == LanguageEnum.ZH_HANT.value:
-                description = "報告尚未生成成功"
-            if state.langguage == LanguageEnum.EN.value:
-                description="Report generation is not complete yet"
+                description = "我已經確認了要査詢的資訊。 請協助檢索相關資料"
 
+            if not handled_result.get("details"):
+                if state.langguage == LanguageEnum.ZH_HANS.value:
+                    description = "报告暂未生成成功"
+                if state.langguage == LanguageEnum.ZH_HANT.value:
+                    description = "報告尚未生成成功"
+                if state.langguage == LanguageEnum.EN.value:
+                    description = "Report generation is not complete yet"
 
         data.update({
             "description":description,
