@@ -1484,6 +1484,7 @@ def wrapListInfo(typelist):
                     "id": first_data.get("id"),
                     "title": add_title_prefix(item_type, first_data.get("name")),
                     "logo": first_data.get("logo"),
+                    "symbol":first_data.get("name"),
                     "detail": first_data.get("introduce")
                 })
 
@@ -1537,11 +1538,11 @@ async def research_task(state: AgentState) -> AgentState:
         #只有在选中的时候进行处理
         if selectedType:
             print("selectedType:=====", selectedType)
-            description = "I have confirmed the information to be queried. Kindly assist in retrieving the relevant data"
+            description = "I have confirmed the information to be queried. Kindly assist in retrieving the relevant data."
             if state.langguage == LanguageEnum.ZH_HANS.value:
-                description = "我已经确认了要查询的信息。请协助检索相关数据"
+                description = "我已确认待查询信息。请你协助检索相关数据。"
             if state.langguage == LanguageEnum.ZH_HANT.value:
-                description = "我已經確認了要査詢的資訊。 請協助檢索相關資料"
+                description = "我已確認待查詢資訊。請你協助檢索相關數據。"
 
             if not handled_result.get("details"):
                 if state.langguage == LanguageEnum.ZH_HANS.value:
