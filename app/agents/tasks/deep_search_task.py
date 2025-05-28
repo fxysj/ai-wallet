@@ -1149,7 +1149,7 @@ def api_extra_asnyc(selectedType,type_value,langguage):
 
     print("symbolResult:", symbolResult)
     print("goPlusResult:", goPlusResult)
-    if goPlusResult is not None and symbolResult is not None:
+    if goPlusResult and symbolResult :
         symbolResult = symbolResult[0]  # 只取第一个数组数据
         response["overview"] = uniongoPlusResultAndsymbolResultOverView(goPlusResult, symbolResult, contract_addresses,langguage)
         response["details"] = uniongoPlusResultAndsymbolResultDetails(goPlusResult, symbolResult, contract_addresses,langguage)
