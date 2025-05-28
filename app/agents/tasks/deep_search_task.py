@@ -7,6 +7,7 @@ from decimal import Decimal, getcontext
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 
+from app.agents.emun.LanguageEnum import LanguageEnum
 from app.agents.form.form import TaskState
 from app.agents.lib.llm.llm import LLMFactory
 from app.agents.proptemts.overview_asnsy_propmt import OVERVIEW_ASNYC_PROPMT
@@ -14,7 +15,7 @@ from app.agents.schemas import AgentState, Intention
 from app.agents.tools import send_post_request, send_get_request
 from app.agents.lib.redisManger.redisManager import redis_dict_manager
 from app.test.deepSearchProject.deepSearchTask_prompt_test import DEEPSEARCHTASK_PROMPT_TEST
-from app.agents.tasks.deep_search_task_value_registry import EnumValueRegistry
+from app.agents.tasks.deep_search_task_language import EnumValueRegistry
 
 def truncate_link(link):
     """
@@ -106,7 +107,7 @@ def add_discord_if_missing(info_dict):
 
 #获取rawData数据s
 #根据详情信息返回OverView数据
-def wrap_del_with_detail(detail_data):
+def wrap_del_with_detail(detail_data,langguage):
     price = detail_data.get("price", "")
     if not price:
         price = 0.0
@@ -151,7 +152,7 @@ def wrap_del_with_detail(detail_data):
 
 
 #账号深度分析
-def account_deep_asynic(selectedType,type_value):
+def account_deep_asynic(selectedType,type_value,langguage):
     return {
         "overview": {},
         "details": {},
@@ -300,7 +301,7 @@ def filter_empty_values(info_dict):
             info_dict[key] = "--"
     return info_dict
 
-def uniongoPlusResultAndsymbolResultOverView(goPlusResult, CMCResult,Contract_Address=""):
+def uniongoPlusResultAndsymbolResultOverView(goPlusResult, CMCResult,Contract_Address="",langguage=""):
     """
         合并goPlusResult与symbolResult的字典数据，并进行合理的数据类型转换与默认值处理
     """
@@ -520,7 +521,7 @@ def format_liquidity_data(data):
 # total_supply	代币总发行量
 # max_supply	最大供应量（如果有限制）
 # last_updated	数据更新时间戳
-def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Address=""):
+def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Address="",langguage=""):
     """
            合并goPlusResult与symbolResult的字典数据，并进行合理的数据类型转换与默认值处理
        """
@@ -565,153 +566,451 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
     #注册是否开源的枚举器
     registry = EnumValueRegistry()
     registry.register("is_open_source") \
-        .on("1", title="Contract Source Code Verified",
+        .on("1",
+            titles={
+                LanguageEnum.EN.value:"Contract Source Code Verified",
+                LanguageEnum.ZH_HANS.value:"合约已开源",
+                LanguageEnum.ZH_HANT.value:"合約已開源",
+            },
+            descriptions={
+                LanguageEnum.EN.value: "This token contract is open source. You can check the contract code for details. Unsourced token contracts are likely to have malicious functions to defraud their users of their assets",
+                LanguageEnum.ZH_HANS.value:"此代币合约已开源，可查询合约代码详情。未开源的代币合约更可能存在恶意机制，骗取用户资产。",
+                LanguageEnum.ZH_HANT.value:"此代幣合約已開源，可查詢合約代碼詳情。未開源的代幣合約更可能有惡意機制，騙用戶資產"
+            },
             riskLevel="Risky",
-            risked=False,
-            description="This token contract is open source. You can check the contract code for details. Unsourced token contracts are likely to have malicious functions to defraud their users of their assets") \
-        .on("0", title="Contract Source Code Can't Verified",
+            risked=False)\
+        .on("0",
+            titles={
+                LanguageEnum.EN.value: "Contract Source Code Can't Verified",
+                LanguageEnum.ZH_HANS.value: "合约未开源",
+                LanguageEnum.ZH_HANT.value: "合約未開源",
+            },
+            descriptions={
+                LanguageEnum.EN.value: "This token contract is not open source. Unsourced token contracts are likely to have malicious functions to defraud their users of their assets.",
+                LanguageEnum.ZH_HANS.value: "此代币合约未开源。未开源的代币合约更可能存在恶意机制，骗取用户资产。",
+                LanguageEnum.ZH_HANT.value: "此代幣合約未開源。未開源的代幣合約更可能存在惡意機制，可能騙取用戶資產。"
+            },
             riskLevel="Risky",
-            risked=True,
-            description="This token contract is not open source. Unsourced token contracts are likely to have malicious functions to defraud their users of their assets.")\
+            risked=True)\
     .register("is_proxy")\
-    .on("1",title="In This Contract, There Is A Proxy Contract.",
+    .on("1",
+        titles={
+            LanguageEnum.EN.value: "In This Contract, There Is A Proxy Contract.",
+            LanguageEnum.ZH_HANS.value: "有代理合约",
+            LanguageEnum.ZH_HANT.value: "有代理合約",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "The proxy contract means contract owner can modifiy the function of the token and possibly effect the price.",
+            LanguageEnum.ZH_HANS.value: "代理机制是指项目方通过代理合约可能替换此币的相关逻辑，进而对此币价格、机制产生影响",
+            LanguageEnum.ZH_HANT.value: "代理機制是指方透過代理合約可能替換此幣的相關邏輯，進而對此幣價格、機制產生影響。"
+        },
         riskLevel="Risky",
-        risked=True,
-        description="The proxy contract means contract owner can modifiy the function of the token and possibly effect the price.")\
-    .on("0",title="No Proxy",
+        risked=True)\
+    .on("0",
+        titles={
+            LanguageEnum.EN.value: "No Proxy",
+            LanguageEnum.ZH_HANS.value: "无代理合约",
+            LanguageEnum.ZH_HANT.value: "無代理合約",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "There is no proxy in the contract. The proxy contract means contract owner can modifiy the function of the token and possibly effect the price.",
+            LanguageEnum.ZH_HANS.value: "合约中不包含代理机制。代理机制是指项目方通过代理合约可能替换此币的相关逻辑，进而对此币价格、机制产生影响。",
+            LanguageEnum.ZH_HANT.value: "合約中不包含代理機制。代理機制是指項目方通過代理合約可能替換此幣的相關邏輯，進而對此幣價格、機制產生影響。"
+        },
         riskLevel="Risky",
         risked=False,
-        description="There is no proxy in the contract. The proxy contract means contract owner can modifiy the function of the token and possibly effect the price.")\
+        )\
     .register("is_mintable")\
-    .on("1",title="Mint function",
+    .on("1",
+        titles={
+            LanguageEnum.EN.value: "Mint function",
+            LanguageEnum.ZH_HANS.value: "可增发",
+            LanguageEnum.ZH_HANT.value: "可增發",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "The contract may contain additional issuance functions, which could maybe generate a large number of tokens, resulting in significant fluctuations in token prices. It is recommended to confirm with the project team whether it complies with the token issuance instructions.",
+            LanguageEnum.ZH_HANS.value: "合约疑似保留了增发功能，可能会生成大量代币，造成代币价格大幅波动。建议先与项目方确认是否符合代币发行说明",
+            LanguageEnum.ZH_HANT.value: "合約疑似保留了增發功能，可能會生成大量代幣，造成代幣價格大幅波動。建議先與項目方確認是否符合代幣發行說明。"
+        },
         riskLevel="Attention",
-        risked=True,
-        description="The contract may contain additional issuance functions, which could maybe generate a large number of tokens, resulting in significant fluctuations in token prices. It is recommended to confirm with the project team whether it complies with the token issuance instructions.")\
-    .on("0",title="No Mint Function",
+        risked=True)\
+    .on("0",
+        titles={
+            LanguageEnum.EN.value: "No Mint Function",
+            LanguageEnum.ZH_HANS.value: "未发现增发功能",
+            LanguageEnum.ZH_HANT.value: "未發現增發功能",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "Mint function is transparent or non-existent. Hidden mint functions may increase the amount of tokens in circulation and effect the price of the token.",
+            LanguageEnum.ZH_HANS.value: "此代币不存在不明增发机制。不明增发机制可能会增加市面上的该币数量，影响此币价格。",
+            LanguageEnum.ZH_HANT.value: "未發現代幣合約存在自毀功能。若存在該功能並被觸發，合約將會銷毀，所有功能不可用，相關資產也會被清除。"
+        },
         riskLevel="Attention",
-        risked=False,
-        description="Mint function is transparent or non-existent. Hidden mint functions may increase the amount of tokens in circulation and effect the price of the token.")\
+        risked=False)\
     .register("can_take_back_ownership")\
-    .on("1",title="Function Has Been Found That Can Revoke Ownership",
+    .on("1",
+        titles={
+            LanguageEnum.EN.value: "Function Has Been Found That Can Revoke Ownership",
+            LanguageEnum.ZH_HANS.value: "可取回所有权",
+            LanguageEnum.ZH_HANT.value: "可取回所有權",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "If this function exists, it is possible for the project owner to regain ownership even after relinquishing it",
+            LanguageEnum.ZH_HANS.value: "若存在取回所有权的逻辑，可能让项目方在放弃所有权后重新获取owner权限",
+            LanguageEnum.ZH_HANT.value: "若存在取回所有權的邏輯，可能讓項目方在放棄所有權後重新獲取 Owner 權限。"
+        },
         riskLevel="Attention",
-        risked=True,
-        description="If this function exists, it is possible for the project owner to regain ownership even after relinquishing it")\
-    .on("0",title="No Function Found That Retrieves Ownership",
+        risked=True)\
+    .on("0",
+        titles={
+            LanguageEnum.EN.value: "No Function Found That Retrieves Ownership",
+            LanguageEnum.ZH_HANS.value: "未发现可取回所有权",
+            LanguageEnum.ZH_HANT.value: "未發現可取回所有權",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "If this function exists, it is possible for the project owner to regain ownership even after relinquishing it",
+            LanguageEnum.ZH_HANS.value: "若存在取回所有权的逻辑，可能让项目方在放弃所有权后重新获取owner权限。",
+            LanguageEnum.ZH_HANT.value: "若存在取回所有權的邏輯，可能讓項目方在放棄所有權後重新獲取 Owner 權限。"
+        },
         riskLevel="Attention",
-        risked=False,
-        description="If this function exists, it is possible for the project owner to regain ownership even after relinquishing it")\
+        risked=False)\
     .register("owner_change_balance")\
-    .on("1",title="Owner Can Change Balance",
+    .on("1",
+        titles={
+            LanguageEnum.EN.value: "Owner Can Change Balance",
+            LanguageEnum.ZH_HANS.value: "Owner可修改余额",
+            LanguageEnum.ZH_HANT.value: "Owner 可修改餘額",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "The contract owner is found to have the authority to modify the token balances of other addresses.",
+            LanguageEnum.ZH_HANS.value: "合同owner有权修改其他地址的代币余额，这可能导致用户资产损失",
+            LanguageEnum.ZH_HANT.value: "合約 Owner 有權修改其他地址的代幣餘額，這可能導致用戶資產損失。"
+        },
         riskLevel="Risky",
-        risked=True,
-        description="The contract owner is found to have the authority to modify the token balances of other addresses.")\
-    .on("0",title="Owner Can't Change Balance",
+        risked=True)\
+    .on("0",
+        titles={
+            LanguageEnum.EN.value: "Owner Can't Change Balance",
+            LanguageEnum.ZH_HANS.value: "未发现Owner可改余额",
+            LanguageEnum.ZH_HANT.value: "未發現 Owner 可修改餘額",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "The contract owner is not found to have the authority to modify the balance of tokens at other addresses.",
+            LanguageEnum.ZH_HANS.value: "未发现合约owner有权修改其他地址的代币余额。",
+            LanguageEnum.ZH_HANT.value: "未發現合約 Owner 有權修改其他地址的代幣餘額。"
+        },
         riskLevel="Risky",
-        risked=False,
-        description="The contract owner is not found to have the authority to modify the balance of tokens at other addresses.")\
+        risked=False)\
     .register("hidden_owner")\
-    .on("1",title="Hidden Ownership Detected",
+    .on("1",
+        titles={
+            LanguageEnum.EN.value: "Hidden Ownership Detected",
+            LanguageEnum.ZH_HANS.value: "发现隐藏的owner",
+            LanguageEnum.ZH_HANT.value: "發現隱藏的 Owner",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "Hidden owner address was found for the token. For contracts with hidden owner, developer can still manipulate the contract even if the ownership has been abandoned",
+            LanguageEnum.ZH_HANS.value: "发现了代币的隐藏owner地址。对于隐藏所有者的合约，即使所有权已被放弃，开发者仍然可以操纵合约",
+            LanguageEnum.ZH_HANT.value: "發現了代幣的隱藏 Owner 地址。對於隱藏所有者的合約，即使所有權已被放棄，開發者仍然可以操縱合約。"
+        },
         riskLevel="Attention",
-        risked=True,
-        description="Hidden owner address was found for the token. For contracts with hidden owner, developer can still manipulate the contract even if the ownership has been abandoned")\
-    .on("0",title="No Hidden Owner",
+        risked=True)\
+    .on("0",
+        titles={
+            LanguageEnum.EN.value: "No Hidden Owner",
+            LanguageEnum.ZH_HANS.value: "未发现隐藏的owner",
+            LanguageEnum.ZH_HANT.value: "未發現隱藏的 Owner",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "No hidden owner address was found for the token. For contract with a hidden owner, developer can still manipulate the contract even if the ownership has been abandoned.",
+            LanguageEnum.ZH_HANS.value: "未发现该代币存在隐藏的owner地址。若存在隐藏owner，代币可能会名义上放弃所有权，实际上依然提供存在隐藏的owner控制代币。",
+            LanguageEnum.ZH_HANT.value: "未發現該代幣存在隱藏的 Owner 地址。若存在隱藏 Owner，代幣可能會名義上放棄所有權，實際上依然提供存在隱藏的 Owner 控制代幣。"
+        },
         riskLevel="Attention",
-        risked=False,
-        description="No hidden owner address was found for the token. For contract with a hidden owner, developer can still manipulate the contract even if the ownership has been abandoned.")\
+        risked=False)\
     .register("selfdestruct")\
-    .on("1",title="This Token Can  Self Destruct",
+    .on("1",
+        titles={
+            LanguageEnum.EN.value: "This Token Can  Self Destruct",
+            LanguageEnum.ZH_HANS.value: "该代币能自毁",
+            LanguageEnum.ZH_HANT.value: "該代幣能自毀",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "Self-destruct function found. If triggered, the contract will be destroyed, all functions will become unavailable, and all related assets will be erased",
+            LanguageEnum.ZH_HANS.value: "发现自毁功能。一旦触发，合约将被销毁，所有功能将不可用，所有相关资产也将被清除。",
+            LanguageEnum.ZH_HANT.value: "發現自毀功能。一旦觸發，合約將被銷毀，所有功能將不可用，所有相關資產也將被清除。"
+        },
         riskLevel="Risky",
-        risked=True,
-        description="Self-destruct function found. If triggered, the contract will be destroyed, all functions will become unavailable, and all related assets will be erased.")\
-    .on("0",title="This Token Can Not Self Destruct",
+        risked=True)\
+    .on("0",
+        titles={
+            LanguageEnum.EN.value: "This Token Can Not Self Destruct",
+            LanguageEnum.ZH_HANS.value: "该代币不能自毁",
+            LanguageEnum.ZH_HANT.value: "該代幣不能自毀",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "No self-destruct function found. If this function exists and is triggered, the contract will be destroyed, all functions will be unavailable, and all related assets will be erased.",
+            LanguageEnum.ZH_HANS.value: "未发现代币合约存在自毁功能。若存在该功能并被触发，合约将会销毁，所有功能不可用，相关资产也会被清除",
+            LanguageEnum.ZH_HANT.value: "未發現代幣合約存在自毀功能。若存在該功能並被觸發，合約將會銷毀，所有功能不可用，相關資產也會被清除。"
+        },
         riskLevel="Risky",
-        risked=False,
-        description="No self-destruct function found. If this function exists and is triggered, the contract will be destroyed, all functions will be unavailable, and all related assets will be erased.")\
+        risked=False)\
     .register("external_call")\
-    .on("1",title="External Call Risk Found",
+    .on("1",
+        titles={
+            LanguageEnum.EN.value: "External Call Risk Found",
+            LanguageEnum.ZH_HANS.value: "存在外部合约调用风险",
+            LanguageEnum.ZH_HANT.value: "存在外部合約調用風險",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "External calls would cause this token contract to be highly dependent on other contracts, which may be a potential risk.",
+            LanguageEnum.ZH_HANS.value: "当合约执行时会调用外部合约。这将导致该合约高度依赖其他合约，这可能是一个潜在的风险",
+            LanguageEnum.ZH_HANT.value: "當合約執行時會調用外部合約。這將導致該合約高度依賴其他合約，這可能是一個潛在的風險。"
+        },
         riskLevel="Attention",
-        risked=True,
-        description="External calls would cause this token contract to be highly dependent on other contracts, which may be a potential risk.")\
-    .on("0",title="No External Call Risk found",
+        risked=True)\
+    .on("0",
+        titles={
+            LanguageEnum.EN.value: "No External Call Risk found",
+            LanguageEnum.ZH_HANS.value: "未发现外部合约调用风险",
+            LanguageEnum.ZH_HANT.value: "未發現外部合約調用風險",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "External calls would cause this token contract to be highly dependent on other contracts, which may be a potential risk.",
+            LanguageEnum.ZH_HANS.value: "外部合约调用将导致代币合约高度依赖其他合约，这可能是一个潜在的风险。",
+            LanguageEnum.ZH_HANT.value: "外部合約調用將導致代幣合約高度依賴其他合約，這可能是一個潛在的風險。"
+        },
         riskLevel="Attention",
-        risked=False,
-        description="External calls would cause this token contract to be highly dependent on other contracts, which may be a potential risk.")\
+        risked=False)\
     .register("gas_abuse")\
-    .on("1",title="This Token Is A Gas Abuser",
+    .on("1",
+        titles={
+            LanguageEnum.EN.value: "This token is a gas abuser",
+            LanguageEnum.ZH_HANS.value: "发现gas滥用",
+            LanguageEnum.ZH_HANT.value: "發現 Gas 濫用",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "Gas abuse activity has been found.",
+            LanguageEnum.ZH_HANS.value: "发现了滥用gas的活动。",
+            LanguageEnum.ZH_HANT.value: "發現了濫用 Gas 的活動。"
+        },
         riskLevel="Attention",
-        risked=True,
-        description="Gas abuse activity has been found.")\
-    .on("0",title="This Token Is Not A Gas Abuser",
+        risked=True)\
+    .on("0",
+        titles={
+            LanguageEnum.EN.value: "This Token Is Not A Gas Abuser",
+            LanguageEnum.ZH_HANS.value: "未发现gas滥用",
+            LanguageEnum.ZH_HANT.value: "未發現 Gas 濫用",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "No gas abuse activity has been found.",
+            LanguageEnum.ZH_HANS.value: "没有证据表明该合约存在gas滥用行为",
+            LanguageEnum.ZH_HANT.value: "沒有證據表明該合約存在 Gas 濫用行為。"
+        },
         riskLevel="Attention",
-        risked=False,
-        description="No gas abuse activity has been found.")\
-    .on("",title="This token Is Not A Gas Abuser",
+        risked=False)\
+    .on("",
+        titles={
+            LanguageEnum.EN.value: "This Token Is Not A Gas Abuser",
+            LanguageEnum.ZH_HANS.value: "未发现gas滥用",
+            LanguageEnum.ZH_HANT.value: "未發現 Gas 濫用",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "No gas abuse activity has been found.",
+            LanguageEnum.ZH_HANS.value: "没有证据表明该合约存在gas滥用行为",
+            LanguageEnum.ZH_HANT.value: "沒有證據表明該合約存在 Gas 濫用行為。"
+        },
         riskLevel="Attention",
-        risked=False,
-        description="No gas abuse activity has been found.")\
+        risked=False)\
     .register("is_honeypot")\
-    .on("1",title="This Appears To Be A Honeypot",
+    .on("1",
+        titles={
+            LanguageEnum.EN.value: "This Appears To Be A Honeypot",
+            LanguageEnum.ZH_HANS.value: "可能是貔貅代币",
+            LanguageEnum.ZH_HANT.value: "可能是貔貅代幣。",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "We are aware of malicious code.",
+            LanguageEnum.ZH_HANS.value: "发现恶意代码",
+            LanguageEnum.ZH_HANT.value: "發現惡意代碼"
+        },
         riskLevel="Risky",
-        risked=True,
-        description="We are aware of malicious code.")\
-    .on("0",title="This Does Not Appear To Be A Honeypot",
+        risked=True)\
+    .on("0",
+        titles={
+            LanguageEnum.EN.value: "This Does Not Appear To Be A Honeypot",
+            LanguageEnum.ZH_HANS.value: "可能不是貔貅代币",
+            LanguageEnum.ZH_HANT.value: "可能不是貔貅代幣",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "We are not aware of any malicious code.",
+            LanguageEnum.ZH_HANS.value: "暂未发现该代币包含恶意代码。",
+            LanguageEnum.ZH_HANT.value: "沒有證據表明該合約存在 Gas 濫用行為。"
+        },
         riskLevel="Risky",
-        risked=False,
-        description="We are not aware of any malicious code.")\
+        risked=False)\
     .register("transfer_pausable")\
-    .on("1",title="Functions That Can Suspend Trading",
+    .on("1",
+        titles={
+            LanguageEnum.EN.value: "Functions That Can Suspend Trading",
+            LanguageEnum.ZH_HANS.value: "可暂停交易",
+            LanguageEnum.ZH_HANT.value: "可暫停交易",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "If a suspendable code is included, the token maybe neither be bought nor sold (honeypot risk)",
+            LanguageEnum.ZH_HANS.value: "合约存在可暂停交易的逻辑，可能导致该代币的买卖交易全部暂停（貔貅风险）。",
+            LanguageEnum.ZH_HANT.value: "合約存在可暫停交易的邏輯，可能導致該代幣的買賣交易全部暫停（貔貅風險）。"
+        },
         riskLevel="Attention",
-        risked=True,
-        description="If a suspendable code is included, the token maybe neither be bought nor sold (honeypot risk).")\
-    .on("0",title="NO Codes Found To Suspend Trading",
+        risked=True)\
+    .on("0",
+        titles={
+            LanguageEnum.EN.value: "NO Codes Found To Suspend Trading",
+            LanguageEnum.ZH_HANS.value: "无暂停交易功能",
+            LanguageEnum.ZH_HANT.value: "無暫停交易功能",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "If a suspendable code is included, the token maybe neither be bought nor sold (honeypot risk).",
+            LanguageEnum.ZH_HANS.value: "若存在暂停交易功能，可能导致该代币的买卖交易全部暂停（貔貅风险）。",
+            LanguageEnum.ZH_HANT.value: "若存在暫停交易功能，可能導致該代幣的買賣交易全部暫停（貔貅風險）。"
+        },
         riskLevel="Attention",
-        risked=False,
-        description="If a suspendable code is included, the token maybe neither be bought nor sold (honeypot risk).")\
+        risked=False)\
     .register("trading_cooldown")\
-    .on("1",title="Trading Cooldown Function Exists",
+    .on("1",
+        titles={
+            LanguageEnum.EN.value: "Trading Cooldown Function Exists",
+            LanguageEnum.ZH_HANS.value: "存在交易冷却功能",
+            LanguageEnum.ZH_HANT.value: "存在交易冷卻功能",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "The token contract has  trading cooldown function. If there is a trading cooldown function, the user will not be able to sell the token within a certain time or block after buying.",
+            LanguageEnum.ZH_HANS.value: "代币合约有交易冷却功能，若有交易冷却功能，则用户买入代币后，在一定时间或区块内将无法卖出。",
+            LanguageEnum.ZH_HANT.value: "代幣合約有交易冷卻功能，若有交易冷卻功能，則用戶買入代幣後，在一定時間或區塊內將無法賣出。"
+        },
         riskLevel="Attention",
-        risked=True,
-        description="The token contract has  trading cooldown function. If there is a trading cooldown function, the user will not be able to sell the token within a certain time or block after buying.")\
-    .on("0",title="No Trading Cooldown Function",
+        risked=True)\
+    .on("0",
+        titles={
+            LanguageEnum.EN.value: "No Trading Cooldown Function",
+            LanguageEnum.ZH_HANS.value: "无交易冷却功能",
+            LanguageEnum.ZH_HANT.value: "無交易冷卻功能",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "The token contract has no trading cooldown function. If there is a trading cooldown function, the user will not be able to sell the token within a certain time or block after buying.",
+            LanguageEnum.ZH_HANS.value: "该代币合约无交易冷却功能。若有交易冷却功能，用户在购买后的一定时间或区块内将不能出售代币。",
+            LanguageEnum.ZH_HANT.value: "該代幣合約無交易冷卻功能。若有交易冷卻功能，用戶在購買後的一定時間或區塊內將不能出售代幣。"
+        },
         riskLevel="Attention",
-        risked=False,
-        description="The token contract has no trading cooldown function. If there is a trading cooldown function, the user will not be able to sell the token within a certain time or block after buying.")\
+        risked=False)\
     .register("is_anti_whale")\
-    .on("1",title="Anti-Whale Mechanism Exists (Limited Number Of Transactions)",
+    .on("1",
+        titles={
+            LanguageEnum.EN.value: "Anti-Whale Mechanism Exists (Limited Number Of Transactions)",
+            LanguageEnum.ZH_HANS.value: "防巨鲸（限制交易数量）",
+            LanguageEnum.ZH_HANT.value: "防巨鯨（限制交易數量）",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "There is a limit to the number of token transactions. The number of scam token transactions may be limited (honeypot risk).",
+            LanguageEnum.ZH_HANS.value: "此代币卖出数量受到限制。很多项目的代币会限制买卖的数量，从而导致用户无法顺利变现。",
+            LanguageEnum.ZH_HANT.value: "此代幣賣出數量受到限制。很多項目的代幣會限制買賣的數量，從而導致用戶無法順利變現。"
+        },
         riskLevel="Attention",
-        risked=True,
-        description="There is a limit to the number of token transactions. The number of scam token transactions may be limited (honeypot risk).")\
-    .on("0",title="No Anti_Whale(Unlimited Number Of Transactions)",
+        risked=True)\
+    .on("0",
+        titles={
+            LanguageEnum.EN.value: "No Anti_Whale(Unlimited Number Of Transactions)",
+            LanguageEnum.ZH_HANS.value: "交易数量不限",
+            LanguageEnum.ZH_HANT.value: "交易數量不限",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "There is no limit to the number of token transactions. The number of scam token transactions may be limited (honeypot risk).",
+            LanguageEnum.ZH_HANS.value: "代币的交易数量不受限制。很多诈骗项目的代币可能会限制买卖的数量。",
+            LanguageEnum.ZH_HANT.value: "代幣的交易數量不受限制。許多詐騙項目的代幣可能會限制買賣的數量。"
+        },
         riskLevel="Attention",
-        risked=False,
-        description="There is no limit to the number of token transactions. The number of scam token transactions may be limited (honeypot risk).")\
+        risked=False)\
     .register("anti_whale_modifiable")\
-    .on("1",title="Anti Whale Can  Be Modified",
+    .on("1",
+        titles={
+            LanguageEnum.EN.value: "Anti Whale Can  Be Modified",
+            LanguageEnum.ZH_HANS.value: "防巨鲸可改",
+            LanguageEnum.ZH_HANT.value: "防巨鯨可改",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "The maximum trading amount or maximum position can  be modified.",
+            LanguageEnum.ZH_HANS.value: "交易最大额度或最大持仓量可被修改，这有可能导致交易暂停",
+            LanguageEnum.ZH_HANT.value: "交易最大額度或最大持倉量可被修改，這有可能導致交易暫停。"
+        },
         riskLevel="Attention",
-        risked=True,
-        description="The maximum trading amount or maximum position can  be modified.")\
-    .on("0",title="Anti Whale Can Not Be modified",
+        risked=True)\
+    .on("0",
+        titles={
+            LanguageEnum.EN.value: "Anti Whale Can Not Be modified",
+            LanguageEnum.ZH_HANS.value: "防巨鲸不可改",
+            LanguageEnum.ZH_HANT.value: "防巨鯨不可更改",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "The maximum trading amount or maximum position can not be modified",
+            LanguageEnum.ZH_HANS.value: "交易最大额度或最大持仓量不可被修改。",
+            LanguageEnum.ZH_HANT.value: "交易最大額度或最大持倉量不可被修改。"
+        },
         riskLevel="Attention",
-        risked=False,
-        description="The maximum trading amount or maximum position can not be modified")\
+        risked=False)\
     .register("is_blacklisted")\
-    .on("1",title="Blacklist Function",
+    .on("1",
+        titles={
+            LanguageEnum.EN.value: "Blacklist Function",
+            LanguageEnum.ZH_HANS.value: "可设置黑名单",
+            LanguageEnum.ZH_HANT.value: "可設置黑名單",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "The blacklist function is included. Some addresses may not be able to trade normally (honeypot risk).",
+            LanguageEnum.ZH_HANS.value: "交易最大额度或最大持仓量不可被修改。",
+            LanguageEnum.ZH_HANT.value: "交易最大額度或最大持倉量不可被修改。"
+        },
         riskLevel="Risky",
-        risked=True,
-        description="The blacklist function is included. Some addresses may not be able to trade normally (honeypot risk).")\
-    .on("0",title="NO Blacklist",
+        risked=True)\
+    .on("0",
+        titles={
+            LanguageEnum.EN.value: "NO Blacklist",
+            LanguageEnum.ZH_HANS.value: "不包含黑名单",
+            LanguageEnum.ZH_HANT.value: "不包含黑名單",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "The blacklist function is not included. If there is a blacklist, some addresses may not be able to trade normally (honeypot risk).",
+            LanguageEnum.ZH_HANS.value: "此合约中不包含黑名单机制，若存在黑名单，可能会有部分用户被限制交易（貔貅风险）。",
+            LanguageEnum.ZH_HANT.value: "此合約中不包含黑名單機制，若存在黑名單，可能會導致部分用戶被限制交易（貔貅風"
+        },
         riskLevel="Risky",
-        risked=False,
-        description="The blacklist function is not included. If there is a blacklist, some addresses may not be able to trade normally (honeypot risk).")\
+        risked=False)\
     .register("is_whitelisted")\
-    .on("1",title="Whitelist Function",
+    .on("1",
+        titles={
+            LanguageEnum.EN.value: "Whitelist Function",
+            LanguageEnum.ZH_HANS.value: "可设置白名单",
+            LanguageEnum.ZH_HANT.value: "可設置白名單",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "Having a whitelist function means that, for this contract, some privileged users may have greater advantages in transactions, such as bypassing transaction limits, being exempt from taxes, trading earlier than others, or not being affected by transaction cooldown restrictions.",
+            LanguageEnum.ZH_HANS.value: "对于本合约来说，拥有白名单功能意味着对一些特权用户可能在交易中拥有更大的优势，比如绕过交易限制、免税、比其他人更早交易、或者不受交易冷却时间限制的影响。",
+            LanguageEnum.ZH_HANT.value: "對於本合約來說，擁有白名單功能意味著對一些特權用戶可能在交易中擁有更大的優勢，比如繞過交易限制、免稅、比其他人更早交易、或者不受交易冷卻時間限制的影響。"
+        },
         riskLevel="Risky",
-        risked=True,
-        description="Having a whitelist function means that, for this contract, some privileged users may have greater advantages in transactions, such as bypassing transaction limits, being exempt from taxes, trading earlier than others, or not being affected by transaction cooldown restrictions.")\
-    .on("0",title="No Whitelist",
+        risked=True)\
+    .on("0",
+        titles={
+            LanguageEnum.EN.value: "No Whitelist",
+            LanguageEnum.ZH_HANS.value: "不包含白名单机制",
+            LanguageEnum.ZH_HANT.value: "不包含白名單機制",
+        },
+        descriptions={
+            LanguageEnum.EN.value: "The whitelist function is not included. If there is a whitelist, some addresses may not be able to trade normally (honeypot risk).",
+            LanguageEnum.ZH_HANS.value: "合约中不包含白名单机制。若存在白名单，那么会有一部分地址可能无法正常交易（貔貅风险）。",
+            LanguageEnum.ZH_HANT.value: "合約中不包含白名單機制。若存在白名單，那麼會有一部分地址可能無法正常交易（貔貅風險）。"
+        },
         riskLevel="Risky",
-        risked=False,
-        description="The whitelist function is not included. If there is a whitelist, some addresses may not be able to trade normally (honeypot risk).")
+        risked=False)
 
 
 
@@ -764,57 +1063,43 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
         "RiskyItem":0,#风险事项
     }
     deep_contract_security_array,risk_count=  count_risks_filtered([
-        registry.format("is_open_source", is_open_source),
-        registry.format("is_proxy", is_proxy),
-        registry.format("is_mintable", is_mintable),
-        registry.format("can_take_back_ownership", can_take_back_ownership),
-        registry.format("hidden_owner", hidden_owner),
-        registry.format("selfdestruct", selfdestruct),
-        registry.format("external_call", external_call),
-        registry.format("gas_abuse", gs_tooken)],risk_level="Risky")
+        registry.format("is_open_source", is_open_source,language=langguage),
+        registry.format("is_proxy", is_proxy,language=langguage),
+        registry.format("is_mintable", is_mintable,language=langguage),
+        registry.format("can_take_back_ownership", can_take_back_ownership,language=langguage),
+        registry.format("hidden_owner", hidden_owner,language=langguage),
+        registry.format("selfdestruct", selfdestruct,language=langguage),
+        registry.format("external_call", external_call,language=langguage),
+        registry.format("gas_abuse", gs_tooken,language=langguage)],risk_level="Risky")
 
     _, attention_count = count_risks_filtered([
-        registry.format("is_open_source", is_open_source),
-        registry.format("is_proxy", is_proxy),
-        registry.format("is_mintable", is_mintable),
-        registry.format("can_take_back_ownership", can_take_back_ownership),
-        registry.format("hidden_owner", hidden_owner),
-        registry.format("selfdestruct", selfdestruct),
-        registry.format("external_call", external_call),
-        registry.format("gas_abuse", gs_tooken)], risk_level="Attention")
+        registry.format("is_open_source", is_open_source,language=langguage),
+        registry.format("is_proxy", is_proxy,language=langguage),
+        registry.format("is_mintable", is_mintable,language=langguage),
+        registry.format("can_take_back_ownership", can_take_back_ownership,language=langguage),
+        registry.format("hidden_owner", hidden_owner,language=langguage),
+        registry.format("selfdestruct", selfdestruct,language=langguage),
+        registry.format("external_call", external_call,language=langguage),
+        registry.format("gas_abuse", gs_tooken,language=langguage)], risk_level="Attention")
 
     list_array,risk_count_hot=count_risks_filtered([
-           registry.format("is_honeypot", is_honeypot),
-           registry.format("transfer_pausable", transfer_pausable),
-           registry.format("trading_cooldown", trading_cooldown),
-           registry.format("is_anti_whale", is_anti_whale),
-           registry.format("anti_whale_modifiable", anti_whale_modifiable),
-           registry.format("is_blacklisted", is_blacklisted),
-           registry.format("is_whitelisted", is_whitelisted),
-          {'title': 'Tax Cannot Be Modified',
-           "riskLevel" : "Attention","risked" :False,
-           'description': "The contract owner may not contain the authority to modify the transaction tax. If the transaction tax is increased to more than 49%, the tokens will not be able to be traded (honeypot risk).", 'value': '1'},
-            {"title":"No Tax Changes For Personal Addresses",
-             "riskLevel": "Attention", "risked": False,
-             "description":"No tax changes were found for every assigned address.If it exists, the contract owner may set a very outrageous tax rate for assigned address to block it from trading.","value":"1"}
+           registry.format("is_honeypot", is_honeypot,language=langguage),
+           registry.format("transfer_pausable", transfer_pausable,language=langguage),
+           registry.format("trading_cooldown", trading_cooldown,language=langguage),
+           registry.format("is_anti_whale", is_anti_whale,language=langguage),
+           registry.format("anti_whale_modifiable", anti_whale_modifiable,language=langguage),
+           registry.format("is_blacklisted", is_blacklisted,language=langguage),
+           registry.format("is_whitelisted", is_whitelisted,language=langguage),
         ],risk_level="Risky")
 
     _,attention_count_hot = count_risks_filtered([
-        registry.format("is_honeypot", is_honeypot),
-        registry.format("transfer_pausable", transfer_pausable),
-        registry.format("trading_cooldown", trading_cooldown),
-        registry.format("is_anti_whale", is_anti_whale),
-        registry.format("anti_whale_modifiable", anti_whale_modifiable),
-        registry.format("is_blacklisted", is_blacklisted),
-        registry.format("is_whitelisted", is_whitelisted),
-        {'title': 'Tax Cannot Be Modified',
-         "riskLevel": "Attention", "risked": False,
-         'description': "The contract owner may not contain the authority to modify the transaction tax. If the transaction tax is increased to more than 49%, the tokens will not be able to be traded (honeypot risk).",
-         'value': '1'},
-        {"title": "No Tax Changes For Personal Addresses",
-         "riskLevel": "Attention", "risked": False,
-         "description": "No tax changes were found for every assigned address.If it exists, the contract owner may set a very outrageous tax rate for assigned address to block it from trading.",
-         "value": "1"}
+        registry.format("is_honeypot", is_honeypot,language=langguage),
+        registry.format("transfer_pausable", transfer_pausable,language=langguage),
+        registry.format("trading_cooldown", trading_cooldown,language=langguage),
+        registry.format("is_anti_whale", is_anti_whale,language=langguage),
+        registry.format("anti_whale_modifiable", anti_whale_modifiable,language=langguage),
+        registry.format("is_blacklisted", is_blacklisted,language=langguage),
+        registry.format("is_whitelisted", is_whitelisted,language=langguage),
     ], risk_level="Attention")
     deep_honeypot_risk = {
         "Buy_Tax": format_percentage(buy_tax, decimals=2),
@@ -822,6 +1107,11 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
         "description":"Above 10% may be considered a high tax rate. More than 50% tax rate means may not be tradable.",
         "list": list_array
     }
+    if langguage==LanguageEnum.ZH_HANS.value:
+        deep_honeypot_risk.update({"description":"税率若超过10%就算偏高；若超过50%可能会导致无法交易。"})
+    if langguage==LanguageEnum.ZH_HANT.value:
+        deep_honeypot_risk.update({"description":"稅率若超過 10% 就算偏高；若超過 50% 可能會導致無法交易。"})
+
     deep_research_report_basic.update({"RiskyItem":risk_count+risk_count_hot})
     deep_research_report_basic.update({"AttentionItem":attention_count+attention_count_hot})
     detail_info = {
@@ -834,7 +1124,7 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
     return format_and_convert_keys(detail_info)
 
 #其他类型API工具分析
-def api_extra_asnyc(selectedType,type_value):
+def api_extra_asnyc(selectedType,type_value,langguage):
     chain_id = selectedType.get("chain_id")
 
     # 检查 chain_id 是否为字符串，并且不是数字
@@ -858,15 +1148,15 @@ def api_extra_asnyc(selectedType,type_value):
     print("goPlusResult:", goPlusResult)
     if goPlusResult is not None and symbolResult is not None:
         symbolResult = symbolResult[0]  # 只取第一个数组数据
-        response["overview"] = uniongoPlusResultAndsymbolResultOverView(goPlusResult, symbolResult, contract_addresses)
-        response["details"] = uniongoPlusResultAndsymbolResultDetails(goPlusResult, symbolResult, contract_addresses)
+        response["overview"] = uniongoPlusResultAndsymbolResultOverView(goPlusResult, symbolResult, contract_addresses,langguage)
+        response["details"] = uniongoPlusResultAndsymbolResultDetails(goPlusResult, symbolResult, contract_addresses,langguage)
 
     response["type"] = type_value
     response["state"] =  TaskState.RESEARCH_TASK_DISPLAY_RESEARCH
     return response
 
 #默认返回处理函数
-def default_deal_with(selectedType,type_value):
+def default_deal_with(selectedType,type_value,langguage):
     return {
         "overview": {},
         "details": {},
@@ -895,7 +1185,7 @@ def format_and_convert_keys(data: dict) -> dict:
 
 
 #新增类型处理
-def wrap_del_with_OverView(detail_data):
+def wrap_del_with_OverView(detail_data,langguage):
     #默认初始化为项目信息
     price = detail_data.get("price", "")
     if not price:
@@ -952,7 +1242,7 @@ def wrap_del_with_OverView(detail_data):
 
 
 
-def handle_type_based_data(type_item, attached_data):
+def handle_type_based_data(type_item, attached_data,langguage):
     """
     根据项目类型处理不同逻辑
     """
@@ -968,8 +1258,8 @@ def handle_type_based_data(type_item, attached_data):
         detail_data = getDetailRowdata(type_item)
         if detail_data:
             return {
-                "overview": wrap_del_with_OverView(detail_data),
-                "details": wrap_del_with_detail(detail_data),
+                "overview": wrap_del_with_OverView(detail_data,langguage),
+                "details": wrap_del_with_detail(detail_data,langguage),
                 "state": state,
                 "type":type_value
             }
@@ -977,13 +1267,13 @@ def handle_type_based_data(type_item, attached_data):
     elif type_value == 3:
         # 调用其他API处理（示例逻辑）
         # 你可以定义自己的函数 fetch_type4_data()
-        return api_extra_asnyc(type_item,type_value)
+        return api_extra_asnyc(type_item,type_value,langguage)
     elif type_value == 1:
-        return account_deep_asynic(type_item,type_value)
+        return account_deep_asynic(type_item,type_value,langguage)
 
     else:
         # 默认：不支持的类型，清空数据结构
-        return default_deal_with(type_item,type_value)
+        return default_deal_with(type_item,type_value,langguage)
 
 
 # 封装后的searchResult函数
@@ -1239,7 +1529,7 @@ async def research_task(state: AgentState) -> AgentState:
             else:
                 selectedType = {}
 
-        handled_result = handle_type_based_data(selectedType, state.attached_data)
+        handled_result = handle_type_based_data(selectedType, state.attached_data,state.langguage)
         data.update({
             "description":"I have confirmed the information to be queried. Kindly assist in retrieving the relevant data",
             "overview": handled_result.get("overview", {}),
