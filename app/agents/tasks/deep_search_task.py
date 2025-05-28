@@ -1147,8 +1147,8 @@ def api_extra_asnyc(selectedType,type_value,langguage):
     #symbolResult
     symbolResult = SymbolAPISearch(symbol)
 
-    print("symbolResult:", symbolResult)
-    print("goPlusResult:", goPlusResult)
+    print("symbolResult:==============", symbolResult)
+    print("goPlusResult:=============", goPlusResult)
     if goPlusResult and symbolResult :
         symbolResult = symbolResult[0]  # 只取第一个数组数据
         response["overview"] = uniongoPlusResultAndsymbolResultOverView(goPlusResult, symbolResult, contract_addresses,langguage)
@@ -1520,7 +1520,6 @@ async def research_task(state: AgentState) -> AgentState:
 
     def update_result_with_handling(data: dict, state: AgentState) -> AgentState:
         data["intent"] = Intention.deep_research.value #这里已经进来了为什么还要继承
-        # data["detected_intent"] = Intention.deep_research.value #这里需要进行重新验证
         timestamp_time = time.time()
         print("使用 time 模块获取的 UTC 时间戳:", timestamp_time)
         data["timestamp"] = state.attached_data.get("timestamp", timestamp_time)
@@ -1533,9 +1532,11 @@ async def research_task(state: AgentState) -> AgentState:
                 selectedType = {}
 
         handled_result = handle_type_based_data(selectedType, state.attached_data,state.langguage)
-        description = data["description"]
+        print("handled_result:", handled_result)
+        description = data.get("description","")
         #只有在选中的时候进行处理
         if selectedType:
+            print("selectedType:=====", selectedType)
             description = "I have confirmed the information to be queried. Kindly assist in retrieving the relevant data"
             if state.langguage == LanguageEnum.ZH_HANS.value:
                 description = "我已经确认了要查询的信息。请协助检索相关数据"
@@ -1549,6 +1550,8 @@ async def research_task(state: AgentState) -> AgentState:
                     description = "報告尚未生成成功"
                 if state.langguage == LanguageEnum.EN.value:
                     description = "Report generation is not complete yet"
+        print("data:======")
+        print("description:", description)
 
         data.update({
             "description":description,
@@ -1557,6 +1560,7 @@ async def research_task(state: AgentState) -> AgentState:
             "state": handled_result.get("state", ""),
             "type":handled_result.get("type")
         })
+        print("data:", data)
         return state.copy(update={"result": data,"detected_intent":Intention.deep_research.value})
 
     # 情况一：attached_data 存在
