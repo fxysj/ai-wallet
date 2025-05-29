@@ -40,7 +40,7 @@ INTENT_PROMPT_TEMPLATE = """
 
 主流币种：BTC、ETH、USDT、BNB、SOL、ADA、DOT、XRP、Uni
 Meme代币：Doge、SHIB、Floki、DogeKing 等  
-公链平台：Ethereum、BSC、Polygon、Solana、Arbitrum、Optimism 等  
+公链平台：Ethereum、BSC、Polygon、Solana、Arbitrum、Optimism、Uniswap等  
 DeFi 协议：AAVE、Uniswap、SushiSwap、Curve 等  
 其他：以 `0x...` 开头的钱包地址、NFT、DAO、Layer2 技术等
 
