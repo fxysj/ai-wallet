@@ -2,6 +2,7 @@
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 
+from app.agents.emun.LanguageEnum import LanguageEnum
 from app.agents.lib.llm.llm import LLMFactory
 from app.agents.proptemts.swap_task_propmt_en import SWAPTASK_TEMPLATE
 from app.agents.schemas import AgentState, Intention
@@ -16,12 +17,21 @@ async def swap_task(state: AgentState) -> AgentState:
     print("信息========")
     formData= state.attached_data
     swapIdData = state.attached_data.get("swapId")
+    language = state.langguage
     if swapIdData:
         # 处理存档的逻辑
         txtId = swapIdData.get("txId")
         if txtId:
             print("业务进行存档处理")
-            formData["description"] = "Alright, I will continue to monitor the transaction status for you."
+            if language == LanguageEnum.EN.value:
+                formData["description"] = "Alright, I will continue to monitor the transaction status for you."
+            if language==LanguageEnum.ZH_HANS.value:
+                formData["description"] = "好的，我会继续为您监控交易状态。"
+
+            if language==LanguageEnum.ZH_HANT.value:
+                formData["description"] = "好的，我會繼續為你監控交易狀態。"
+
+
             formData["state"] = TaskState.SWAP_TASK_BROADCASTED
             formData["intent"] = Intention.swap.value
             return state.copy(update={"result": formData})

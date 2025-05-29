@@ -19,6 +19,7 @@ async def send_task(state: AgentState) -> AgentState:
     print("send_task")
     print("DEBUG - attached_data 类型:", type(state.attached_data))
     print("DEBUG - attached_data 内容:", state.attached_data)
+    language = state.langguage
     #先进行判断 如果返回了txHash则不再走大模型处理
     # formData = state.attached_data
     if state.attached_data:
@@ -26,7 +27,13 @@ async def send_task(state: AgentState) -> AgentState:
         if formData.get("transactionResult"):
             transactionResult = formData.get("transactionResult")
             if transactionResult:
-                formData["description"] = "Alright, I will continue to monitor the transaction status for you."
+                if language == LanguageEnum.EN.value:
+                    formData["description"] = "Alright, I will continue to monitor the transaction status for you."
+                if language == LanguageEnum.ZH_HANS.value:
+                    formData["description"] = "好的，我会继续为您监控交易状态。"
+                if language == LanguageEnum.ZH_HANT.value:
+                    formData["description"] = "好的，我會繼續為你監控交易狀態。"
+
                 formData["state"] = TaskState.SEND_TASK_BROADCASTED
                 formData["intent"] = Intention.send.value
                 return state.copy(update={"result": formData})
