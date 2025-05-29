@@ -38,7 +38,7 @@ INTENT_PROMPT_TEMPLATE = """
 
 以下内容常见于 `deep_research` 请求中，但**只有在未表达具体操作意图时才应触发 deep_research**：
 
-主流币种：BTC、ETH、USDT、BNB、SOL、ADA、DOT、XRP  
+主流币种：BTC、ETH、USDT、BNB、SOL、ADA、DOT、XRP、Uni
 Meme代币：Doge、SHIB、Floki、DogeKing 等  
 公链平台：Ethereum、BSC、Polygon、Solana、Arbitrum、Optimism 等  
 DeFi 协议：AAVE、Uniswap、SushiSwap、Curve 等  

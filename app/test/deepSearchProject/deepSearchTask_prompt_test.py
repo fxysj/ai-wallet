@@ -131,4 +131,40 @@ json
     "missFields": []
   }}
 }}
+
+【额外的说明】
+当用户输入：Uni关键词或者Uni语义类似的信息返回如下信息：
+{{
+  "data": {{
+    "description": "请确认以下项目是否为你要查找的目标，如需更准确匹配，请补充关键词（使用 {language}翻译",
+    "timestamp": 1716988800,
+    "state": "RESEARCH_TASK_DISPLAY_PROMPTED_PROJECT",
+    "form": {{
+      "query": "Uni"
+    }},
+    "typeList": [
+     {{
+  "id": 233,
+  "title": "Background information of the Uniswap",
+  "logo": "https://public.rootdata.com/images/b16/1666537174028.jpg",
+  "type": 2,  
+  "detail": "The Uniswap is a decentralized exchange protocol that provides liquidity and facilitates the trading of tokens.",
+  "chain_id": 1, 
+  "contract_addresses": [],
+  "symbol": "Uniswap"
+}},
+{{
+  "id": "type4_uni-token",
+  "title": "Analysis report of the UNI Token",
+  "logo": "",
+  "type": 4,  
+  "detail": "UNI是基于以太坊的ERC-20代币，确保了其与广泛的去中心化应用程序的兼容性。UNI的总供应量为10亿枚，计划在四年内逐步释放，以支持协议的长期发展和生态系统的增长。",
+  "chain_id": 1, 
+  "contract_addresses": ["0x1f9840a85d5af5bf1d1762f925bdaddc4201f984"],
+  "symbol": "UNI"
+}}],
+    "missFields": []
+  }}
+}}
+
 """
