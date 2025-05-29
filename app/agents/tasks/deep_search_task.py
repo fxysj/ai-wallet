@@ -12,6 +12,7 @@ from app.agents.form.form import TaskState
 from app.agents.lib.llm.llm import LLMFactory
 from app.agents.proptemts.overview_asnsy_propmt import OVERVIEW_ASNYC_PROPMT
 from app.agents.schemas import AgentState, Intention
+from app.agents.services.deep_research import transform_investors
 from app.agents.tools import send_post_request, send_get_request
 from app.agents.lib.redisManger.redisManager import redis_dict_manager
 from app.test.deepSearchProject.deepSearchTask_prompt_test import DEEPSEARCHTASK_PROMPT_TEST
@@ -144,7 +145,7 @@ def wrap_del_with_detail(detail_data,langguage):
         "Description": detail_data.get("description"),
         "Reports":process_reports(detail_data.get("reports",[])),
         "Events":sort_events(detail_data.get("event",[])),
-        "investors":detail_data.get("investors",[]),
+        "investors":transform_investors(detail_data.get("investors",[])),
         "Team_Member":format_team_links(detail_data.get("team_members",[])),
         "Social_Media":add_discord_if_missing(filter_empty_values(detail_data.get("social_media",{})))
     })
