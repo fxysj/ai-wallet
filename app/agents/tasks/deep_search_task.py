@@ -455,11 +455,15 @@ def format_liquidity_data(data):
 
     result = []
     for item in data:
+        liquidity_value = float(item.get("liquidity", "0"))
+        if round(liquidity_value, 2) == 0.00:
+            continue  # 过滤 liquidity 为 0.00 的项
+
         formatted = {
             "liquidity_type": item.get("liquidity_type", ""),
             "name": item.get("name", ""),
-            "liquidity": format_liquidity(item.get("liquidity", "0")),
-            "pair": shorten_address(item.get("pair", ""))
+            "liquidity": format_liquidity(liquidity_value),
+            "pair": item.get("pair", "")
         }
         result.append(formatted)
 
@@ -1121,7 +1125,7 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
         "basic_info":deep_research_report_basic,#基础信息
         "contract_security":deep_contract_security_array,#安全信息
         "honeypot_risk":deep_honeypot_risk,#其他风险信息
-        "Dex_And_Liquidity":Dex_And_Liquidity#其他信息
+        "Dex_And_Liquidity":format_liquidity_data(Dex_And_Liquidity)#其他信息
     }
     # 组织返回基础信息
     return format_and_convert_keys(detail_info)
