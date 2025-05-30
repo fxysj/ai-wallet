@@ -1540,6 +1540,17 @@ async def research_task(state: AgentState) -> AgentState:
         handled_result = handle_type_based_data(selectedType, state.attached_data,state.langguage)
         print("handled_result:", handled_result)
         description = data.get("description","")
+        #这里处理typeList为空的情况 需要根据我们的业务本身进行修正
+        #而不是简单的来源于业务的需求进行处理
+        typeList = data.get("typeList",[])
+        if not typeList:
+            if state.langguage==LanguageEnum.EN.value:
+                description="Sorry, the report could not be generated successfully or is temporarily unavailable"
+            if state.langguage == LanguageEnum.ZH_HANS.value:
+                description = "抱歉，未能成功生成报告，或报告暂时无法找到"
+            if state.langguage == LanguageEnum.ZH_HANT.value:
+                description = "抱歉，未能成功生成報告，或報告暫時無法找到"
+
         #只有在选中的时候进行处理
         if selectedType:
             print("selectedType:=====", selectedType)
