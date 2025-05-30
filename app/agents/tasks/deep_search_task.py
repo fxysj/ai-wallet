@@ -1123,7 +1123,7 @@ def uniongoPlusResultAndsymbolResultDetails(goPlusResult, CMCResult,Contract_Add
     deep_research_report_basic.update({"RiskyItem":risk_count+risk_count_hot})
     deep_research_report_basic.update({"AttentionItem":attention_count+attention_count_hot})
     detail_info = {
-        "basic_info":deep_research_report_basic,#基础信息
+        "basic_info":filter_empty_values(deep_research_report_basic),#基础信息
         "contract_security":deep_contract_security_array,#安全信息
         "honeypot_risk":deep_honeypot_risk,#其他风险信息
         "Dex_And_Liquidity":format_liquidity_data(Dex_And_Liquidity)#其他信息
