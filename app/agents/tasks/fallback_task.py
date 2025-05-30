@@ -100,43 +100,49 @@ def fallback_task(state: AgentState) -> AgentState:
     """
     print("[Fallback] 已达到最大尝试次数，仍未识别意图，进入兜底处理。")
 
-    FALLBACK_PROMPT = """
-    你是一个区块链助手，擅长根据用户输入推测用户的真实意图，并引导用户更清晰地表达需求。
-    当前系统已经尝试多次识别用户意图但仍未能理解，请你根据以下用户输入和敏感词库，推测用户可能想做的区块链相关操作。
-     
-    【敏感词库】：
-    {sens_words}
-    
+    FALLBACK_PROMPT = FALLBACK_PROMPT = """
+你是一个区块链助手，擅长根据用户输入推测用户的真实意图，并引导用户更清晰地表达需求。
+当前系统已经尝试多次识别用户意图但仍未能理解，请你根据以下用户输入和敏感词库，推测用户可能想做的区块链相关操作。
 
-    请输出一段简洁且友好的自然语言提示，引导用户补充信息或明确意图。不要说“我不确定”、“我不理解”，而是大胆地推测并温和地引导。
+【语言】：
+{language}
 
-    用户输入如下：
-    "{user_input}"
-    
-    请严格按照以下规则输出（不要额外说明）：
+【敏感词库】：
+{sens_words}
+
+请输出一段简洁且友好的自然语言提示，引导用户补充信息或明确意图。不要说“我不确定”“我不理解”，而是大胆地推测并温和地引导。
+
+用户输入如下：
+"{user_input}"
+
+请严格按照以下规则输出（**必须使用传入的 {language} 来决定输出语言**，与 user_input 内容无关）：
 
 【规则】
-1. 如果用户输入相关的语义和敏感词库相符合，则固定输出：
-   Hello, the issue you mentioned may involve sensitive terms, and therefore we are unable to provide an answer. If you have any other questions, please feel free to let me know, and I will be happy to assist you.
 
-2. 如果用户输入是乱码或无法理解（如 Case 1），则输出：
-   Hello, I noticed that the issue you mentioned might have some input or formatting errors, which caused the content to be unclear. If possible, please verify or provide additional information, and I will assist you right away.
+1. 如果用户输入中出现敏感词库中的词，固定输出：
+   - 如果 language 为 “英语”：
+       Hello, the issue you mentioned may involve sensitive terms, and therefore we are unable to provide an answer. If you have any other questions, please feel free to let me know, and I will be happy to assist you.
+   - 如果 language 为 “简体”：
+       您好，我注意到您提到的问题可能存在输入或格式错误，导致内容不明确。如果可能，请您核实或提供更多信息，我将立即为您提供帮助。
+   - 如果 language 为 “繁体”：
+       您好，您提到的問題可能涉及敏感詞彙，因此我們無法提供答案。如果您有任何其他問題，請隨時告訴我，我將很樂意為您提供幫助。
 
-3. 如果以上两种情况都不满足，请推测用户可能的区块链意图，并输出一句简洁、自然、人性化的引导语。
-  
-4. 返回语言应使用 {language} 所指定的语言 
+2. 如果用户输入是乱码或无法理解（如“283y2y438y243y4r4gr74gr734rg4r234r”）：
+   - 如果 language 为 “英语”：
+       Hello, I noticed that the issue you mentioned might have some input or formatting errors, which caused the content to be unclear. If possible, please verify or provide additional information, and I will assist you right away.
+   - 如果 language 为 “简体”：
+       您好，我注意到您提到的问题可能存在输入或格式错误，导致内容不明确。如果可能，请您核实或提供更多信息，我将立即为您提供帮助。
+   - 如果 language 为 “繁体”：
+       您好，我注意到您提到的問題可能存在輸入或格式錯誤，導致內容不明確。如果可能，請您核實或提供更多信息，我將立即為您提供幫助。
 
-    
-    
-Case 1 – Unclear Input:
-   Input:  283y2y438y243y4r4gr74gr734rg4r234r  
-   Output: Hello, I noticed that the issue you mentioned might have some input or formatting errors, which caused the content to be unclear. If possible, please verify or provide additional information, and I will assist you right away.
-   
-Case 2 – Sensitive Terms:
-Input: 特朗普  
-Output:Hello, the issue you mentioned may involve sensitive terms, and therefore we are unable to provide an answer. If you have any other questions, please feel free to let me know, and I will be happy to assist you.   
+3. 如果不满足以上两种情况，请根据用户输入大胆推测其区块链相关意图，并使用对应语言生成自然、人性化的提示，引导用户补充必要信息。
+   - 示例（仅供风格参考）：
+     - 英语：“Would you like to transfer crypto to another wallet? Please provide the recipient address and amount.”
+     - 简体：“您是想进行一笔转账吗？请提供收款地址和金额。”
+     - 繁体：“您是想進行一筆轉帳嗎？請提供收款地址與金額。”
+"""
 
-    """
+
 
     data = {}
     llm = LLMFactory.getDefaultOPENAI()
@@ -145,6 +151,7 @@ Output:Hello, the issue you mentioned may involve sensitive terms, and therefore
         input_variables=["user_input","language","sens_words"],
     )
     chain = p | llm | StrOutputParser()
+    print(state.langguage)
     response = chain.invoke({"user_input": state.user_input,"language":state.langguage,"sens_words":SENSITIVE_WORDS})
     data["description"] = response
     data["intent"] = "fallback"
