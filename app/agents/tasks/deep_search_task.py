@@ -28,8 +28,11 @@ def truncate_link(link):
 
 def format_team_links(team_members):
     """
-    批量处理团队成员的X链接和LinkedIn链接，进行美化展示
+    批量处理团队成员的X链接和LinkedIn链接，进行美化展示，
+    并处理头像字段，如果缺失或为空则填入默认头像。
     """
+    DEFAULT_AVATAR = "https://wallet.tikee.com/resource/default-avatar.png"
+
     if not isinstance(team_members, list) or not team_members:
         return []
 
@@ -37,8 +40,11 @@ def format_team_links(team_members):
         if not isinstance(member, dict):
             continue  # 跳过非法格式
 
-        if "linkedin" not in member:
+        if "linkedin" not in member or not member['linkedin'].strip():
             member['linkedin'] = "--"
+
+        if "head_img" not in member or not member['head_img'].strip():
+            member['head_img'] = DEFAULT_AVATAR
 
     return team_members
 
