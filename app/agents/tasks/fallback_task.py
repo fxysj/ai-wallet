@@ -2,6 +2,8 @@ from langchain.agents import initialize_agent, AgentType
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.tools import Tool
 from langchain_tavily import TavilySearch
+
+from app.agents.emun.LanguageEnum import LanguageEnum
 from app.agents.lib.llm.llm import LLMFactory
 from app.agents.schemas import AgentState
 from langchain.prompts import PromptTemplate
@@ -66,6 +68,32 @@ def searchTools():
 
     return explanations
 
+import re
+def build_sensitive_pattern(sensitive_words: str) -> re.Pattern:
+    words = re.findall(r'\S+', sensitive_words)
+    pattern = r'|'.join(map(re.escape, set(words)))
+    return re.compile(pattern, re.IGNORECASE)
+
+def contains_sensitive(text: str, pattern: re.Pattern) -> bool:
+    return bool(pattern.search(text))
+
+
+def parse_sensitive_words(sensitive_str: str) -> dict:
+    sections = sensitive_str.strip().split('\n')
+    result = {}
+    current_category = None
+    for line in sections:
+        line = line.strip()
+        if not line:
+            continue
+        if line.endswith("：") or line.endswith(":"):
+            current_category = line.rstrip("：:")
+            result[current_category] = []
+        elif current_category:
+            result[current_category].extend(line.split())
+    return result
+
+
 #对上面的敏感词进行重新生成
 #参考定义的类型进行扩展
 def extend_SENSITIVE_WORDS(words):
@@ -94,55 +122,67 @@ def auto_extend_sensitive_words():
     full_set = list(set(SENSITIVE_WORDS + new_words))
     return full_set
 
+def sensitive_check_tool_func(input: str) -> str:
+    # 初始化
+    pattern = build_sensitive_pattern(SENSITIVE_WORDS)
+    if contains_sensitive(input, pattern):
+        return True
+    return False
+
+sensitive_tool = Tool(
+    name="SensitiveWordChecker",
+    func=sensitive_check_tool_func,
+    description="检查用户输入是否包含敏感词"
+)
+
 def fallback_task(state: AgentState) -> AgentState:
     """
     当多次尝试识别用户意图失败后触发 fallback，提示用户重新表达或寻求人类帮助。
     """
     print("[Fallback] 已达到最大尝试次数，仍未识别意图，进入兜底处理。")
 
-    FALLBACK_PROMPT = FALLBACK_PROMPT = """
-你是一个区块链助手，擅长根据用户输入推测用户的真实意图，并引导用户更清晰地表达需求。
-当前系统已经尝试多次识别用户意图但仍未能理解，请你根据以下用户输入和敏感词库，推测用户可能想做的区块链相关操作。
+    FALLBACK_PROMPT = """
+    你是一个区块链助手，擅长根据用户输入推测用户的真实意图，并引导用户更清晰地表达需求。
+    当前系统已经尝试多次识别用户意图但仍未能理解，请你根据以下用户输入和敏感词库，推测用户可能想做的区块链相关操作。
 
-【语言】：
-{language}
+    【语言】：
+    {language}
 
-【敏感词库】：
-{sens_words}
+    【敏感词库】（以下词语均视为“敏感”或“不当”，若用户输入内容与其存在**语义相似性**或明显包含，则应触发规则 1 的输出）：
+    {sens_words}
 
-请输出一段简洁且友好的自然语言提示，引导用户补充信息或明确意图。不要说“我不确定”“我不理解”，而是大胆地推测并温和地引导。
+    请输出一段简洁且友好的自然语言提示，引导用户补充信息或明确意图。不要说“我不确定”“我不理解”，而是大胆地推测并温和地引导。
 
-用户输入如下：
-"{user_input}"
+    用户输入如下：
+    "{user_input}"
 
-请严格按照以下规则输出（**必须使用传入的 {language} 来决定输出语言**，与 user_input 内容无关）：
+    请严格按照以下规则输出（**必须使用传入的 {language} 来决定输出语言**，与 user_input 内容无关）：
 
-【规则】
+    【规则】
 
-1. 如果用户输入中出现敏感词库中的词，固定输出：
-   - 如果 language 为 “英语”：
-       Hello, the issue you mentioned may involve sensitive terms, and therefore we are unable to provide an answer. If you have any other questions, please feel free to let me know, and I will be happy to assist you.
-   - 如果 language 为 “简体”：
-       您好，我注意到您提到的问题可能存在输入或格式错误，导致内容不明确。如果可能，请您核实或提供更多信息，我将立即为您提供帮助。
-   - 如果 language 为 “繁体”：
-       您好，您提到的問題可能涉及敏感詞彙，因此我們無法提供答案。如果您有任何其他問題，請隨時告訴我，我將很樂意為您提供幫助。
+    1. 若用户输入与【敏感词库】中的词语**语义相近**或包含其典型表达，应输出以下内容：
+       - 如果 language 为 “英语”：
+           Hello, the issue you mentioned may involve sensitive terms, and therefore we are unable to provide an answer. If you have any other questions, please feel free to let me know, and I will be happy to assist you.
+       - 如果 language 为 “简体”：
+            您好，您提到的问题可能涉及敏感词汇，因此我们无法提供答案。如果您有任何其他问题，请随时告诉我，我将很乐意为您提供帮助。。
+       - 如果 language 为 “繁体”：
+            您好，您提到的問題可能涉及敏感詞彙，因此我們無法提供答案。如果您有任何其他問題，請隨時告訴我，我將很樂意為您提供幫助。。
 
-2. 如果用户输入是乱码或无法理解（如“283y2y438y243y4r4gr74gr734rg4r234r”）：
-   - 如果 language 为 “英语”：
-       Hello, I noticed that the issue you mentioned might have some input or formatting errors, which caused the content to be unclear. If possible, please verify or provide additional information, and I will assist you right away.
-   - 如果 language 为 “简体”：
-       您好，我注意到您提到的问题可能存在输入或格式错误，导致内容不明确。如果可能，请您核实或提供更多信息，我将立即为您提供帮助。
-   - 如果 language 为 “繁体”：
-       您好，我注意到您提到的問題可能存在輸入或格式錯誤，導致內容不明確。如果可能，請您核實或提供更多信息，我將立即為您提供幫助。
+    2. 若用户输入是乱码、纯数字、无意义字符（如“283y2y438y243y4r4gr74gr734rg4r234r”）：
+       - 如果 language 为 “英语”：
+           Hello, I noticed that the issue you mentioned might have some input or formatting errors, which caused the content to be unclear. If possible, please verify or provide additional information, and I will assist you right away.
+       - 如果 language 为 “简体”：
+           您好，我注意到您提到的问题可能存在输入或格式错误，导致内容不明确。如果可能，请您核实或提供更多信息，我将立即为您提供帮助。
+       - 如果 language 为 “繁体”：
+           您好，我注意到您提到的問題可能存在輸入或格式錯誤，導致內容不明確。如果可能，請您核實或提供更多信息，我將立即為您提供幫助。
 
-3. 如果不满足以上两种情况，请根据用户输入大胆推测其区块链相关意图，并使用对应语言生成自然、人性化的提示，引导用户补充必要信息。
-   - 示例（仅供风格参考）：
-     - 英语：“Would you like to transfer crypto to another wallet? Please provide the recipient address and amount.”
-     - 简体：“您是想进行一笔转账吗？请提供收款地址和金额。”
-     - 繁体：“您是想進行一筆轉帳嗎？請提供收款地址與金額。”
-"""
+    3. 如果不满足以上两种情况，请你根据用户输入大胆推测其可能的区块链相关意图，并使用对应语言生成自然、人性化的提示，引导用户补充必要信息。
 
-
+       - 示例风格（请参考，不可照搬）：
+         - 英语：“Would you like to transfer crypto to another wallet? Please provide the recipient address and amount.”
+         - 简体：“您是想进行一笔转账吗？请提供收款地址和金额。”
+         - 繁体：“您是想進行一筆轉帳嗎？請提供收款地址與金額。”
+    """
 
     data = {}
     llm = LLMFactory.getDefaultOPENAI()
@@ -151,7 +191,7 @@ def fallback_task(state: AgentState) -> AgentState:
         input_variables=["user_input","language","sens_words"],
     )
     chain = p | llm | StrOutputParser()
-    print(state.langguage)
+
     response = chain.invoke({"user_input": state.user_input,"language":state.langguage,"sens_words":SENSITIVE_WORDS})
     data["description"] = response
     data["intent"] = "fallback"

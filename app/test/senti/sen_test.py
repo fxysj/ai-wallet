@@ -7,11 +7,11 @@ from app.agents.tasks.fallback_task import fallback_task
 from app.agents.tasks.fallback_task import *
 def callState():
     return AgentState(
-        user_input="sb",
+        user_input="我想吃屎",
         messages=[],
         attached_data={},
         history="",
-        langguage="en",
+        langguage="简体",
     )
 def Fallback():
    return fallback_task(callState())
