@@ -9,8 +9,8 @@ env:
   REPO: sinrpc/ai-wallet
   SSH_HOST: 52.77.48.131
   SSH_USER: ubuntu
-  DEPLOY_DIR: /home/ubuntu/ai-wallet  # 服务器部署路径
-  GIT_REPO: https://github.com/fxysj/ai-wallet.git  # 你的 GitHub 仓库地址
+  DEPLOY_DIR: /home/ubuntu/ai-wallet
+  GIT_REPO: https://github.com/fxysj/ai-wallet.git
 
 jobs:
   build-deploy:
@@ -23,7 +23,6 @@ jobs:
         id: tag
         run: echo "TAG=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
-      # 优化 Docker 登录方式
       - name: Docker Login
         run: |
           mkdir -p ~/.docker
@@ -35,11 +34,9 @@ jobs:
               }
             }
           }' > ~/.docker/config.json
-          
           docker login -u "986244259@qq.com" -p "${{ secrets.ACR_PASSWORD }}" registry.cn-hangzhou.aliyuncs.com
           echo "✅ Docker 登录成功"
 
-      # 使用 DOCKER_BUILDKIT 加速构建
       - name: Build image
         run: |
           export DOCKER_BUILDKIT=1
@@ -48,7 +45,6 @@ jobs:
             --tag ${{ env.REGISTRY }}/${{ env.REPO }}:latest \
             --progress=plain
 
-      # 并发推送镜像，加快上传速度
       - name: Push image (Parallel)
         run: |
           export DOCKER_CLIENT_TIMEOUT=300
@@ -67,10 +63,9 @@ jobs:
           script: |
             echo "🚀 开始部署新版本"
 
-            # 直接切换到 /home/ubuntu/ai-wallet 目录
             cd ${{ env.DEPLOY_DIR }}
 
-            # 登录阿里云镜像仓库（服务器端）
+            # Docker 登录（服务器）
             sudo mkdir -p ~/.docker
             echo '{
               "auths": {
@@ -82,9 +77,9 @@ jobs:
 
             sudo docker login -u "986244259@qq.com" -p "${{ secrets.ACR_PASSWORD }}" registry.cn-hangzhou.aliyuncs.com
 
-           # 拉取最新镜像
+            # 拉取最新镜像
             sudo docker pull ${{ env.REGISTRY }}/${{ env.REPO }}:latest
-            
+
             # 无中断升级部署
             sudo docker-compose up -d --remove-orphans
 
