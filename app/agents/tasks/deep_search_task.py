@@ -1566,6 +1566,8 @@ async def research_task(state: AgentState) -> AgentState:
             if state.langguage == LanguageEnum.ZH_HANT.value:
                 description = "我已確認待查詢資訊。請你協助檢索相關數據。"
 
+            description =""#默认为空则不返回
+
             if not handled_result.get("details"):
                 if state.langguage == LanguageEnum.ZH_HANS.value:
                     description = "报告暂未生成成功"
