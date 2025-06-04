@@ -82,17 +82,16 @@ jobs:
 
             sudo docker login -u "986244259@qq.com" -p "${{ secrets.ACR_PASSWORD }}" registry.cn-hangzhou.aliyuncs.com
 
-            # 拉取新镜像
-            sudo docker rmi  ${{ env.REGISTRY }}/${{ env.REPO }}:latest
-            sudo docker pull  ${{ env.REGISTRY }}/${{ env.REPO }}:latest
-            #docker pull ${{ env.REGISTRY }}/${{ env.REPO }}:${{ env.TAG }}
-
-            # 使用 docker-compose 部署应用
-            sudo docker-compose down         # 停止并移除旧容器
-            sudo docker-compose up -d       # 启动新版本
-            sudo docker image prune -f      # 清理旧镜像，避免占用过多磁盘空间
-            #删除其他镜像
-            # 保留特定镜像并删除其他镜像
-            sudo docker images --format "{{.Repository}}:{{.Tag}} {{.ID}}" | grep -v "registry.cn-hangzhou.aliyuncs.com/sinrpc/ai-wallet:latest" | awk '{print $2}' | xargs docker rmi
+           # 拉取最新镜像
+            sudo docker pull ${{ env.REGISTRY }}/${{ env.REPO }}:latest
             
-            echo "✅ 部署完成"
+            # 无中断升级部署
+            sudo docker-compose up -d --remove-orphans
+
+            # 清理无用镜像（保留最新）
+            sudo docker image prune -f
+            sudo docker images --format "{{.Repository}}:{{.Tag}} {{.ID}}" \
+              | grep -v "registry.cn-hangzhou.aliyuncs.com/sinrpc/ai-wallet:latest" \
+              | awk '{print $2}' | xargs -r sudo docker rmi || true
+
+            echo "✅ 部署完成（无中断）"
