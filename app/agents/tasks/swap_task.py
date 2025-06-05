@@ -36,6 +36,44 @@ def getIsSwapOrBridege(query: str):
 def build_prompt(user_query: str) -> str:
     return SYSTEM_PROMPT.strip() + "\n用户输入：" + user_query + "\n你的判断："
 
+def apply_default_form_values(data: dict, isSwpRes: str) -> None:
+    """
+    如果用户没有主动修改过 form 字段，则根据 isSwpRes 设置默认值。
+    - Swap: Ethereum → Ethereum 上的 USDT
+    - Bridge: Ethereum → BSC 上的 USDT
+    """
+
+    # 定义默认值
+    default_forms = {
+        "Swap": {
+            "fromChain": "60",
+            "fromTokenAddress": "native",
+            "toTokenAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",  # USDT on Ethereum
+            "toChain": "60"
+        },
+        "Bridge": {
+            "fromChain": "60",
+            "fromTokenAddress": "native",
+            "toTokenAddress": "0x55d398326f99059ff775485246999027b3197955",  # USDT on BSC
+            "toChain": "56"
+        }
+    }
+
+    form = data.setdefault("form", {})
+    defaults = default_forms.get(isSwpRes)
+
+    if not defaults:
+        return  # 无效的 isSwpRes，不处理
+
+    # 判断当前 form 是否与默认值一致（或为空）
+    is_default = all(
+        form.get(k) in [None, "", v]
+        for k, v in defaults.items()
+    )
+
+    if is_default:
+        form.update(defaults)
+
 
 async def swap_task(state: AgentState) -> AgentState:
     print("swap_task")
@@ -83,24 +121,26 @@ async def swap_task(state: AgentState) -> AgentState:
     chain_response = chain.invoke(prompt_variables)
     response_data = chain_response
     data = response_data.get("data")
+    print("response:",data)
     data["intent"] = Intention.swap.value
 
     if not formData.get("form"):
         # 这里进行识别出类型Swap Bridge
         isSwpRes = getIsSwapOrBridege(state.user_input)
         print("类型:",isSwpRes)
+        apply_default_form_values(data, isSwpRes)
         # 如果类型为Swap
-        if isSwpRes == "Swap":
-            data["form"]["fromChain"] = "60"
-            data["form"]["fromTokenAddress"] = "native"
-            data["form"]["toTokenAddress"] = "0xdAC17F958D2ee523a2206206994597C13D831ec7"
-            data["form"]["toChain"] = "60"
-
-        if isSwpRes == "Bridge":
-            data["form"]["fromChain"] = "60"
-            data["form"]["fromTokenAddress"] = "native"
-            data["form"]["toTokenAddress"] = "0x55d398326f99059ff775485246999027b3197955"
-            data["form"]["toChain"] = "56"
+        # if isSwpRes == "Swap":
+        #     data["form"]["fromChain"] = "60"
+        #     data["form"]["fromTokenAddress"] = "native"
+        #     data["form"]["toTokenAddress"] = "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+        #     data["form"]["toChain"] = "60"
+        #
+        # if isSwpRes == "Bridge":
+        #     data["form"]["fromChain"] = "60"
+        #     data["form"]["fromTokenAddress"] = "native"
+        #     data["form"]["toTokenAddress"] = "0x55d398326f99059ff775485246999027b3197955"
+        #     data["form"]["toChain"] = "56"
 
         if state.langguage == LanguageEnum.EN.value:
             data["description"] = "Hello, I’ve prepared the transaction page you need. Please fill in the necessary Exchange details, and I will assist you with the remaining steps. Once you're ready, feel free to proceed."
@@ -128,6 +168,8 @@ async def swap_task(state: AgentState) -> AgentState:
             data["description"] = "好的！您的兌換請求已收到。我已經準備好交易頁面，並預先填寫了主要資訊。請仔細閱讀資訊並填寫剩餘資訊以繼續進行交易。"
 
     return state.copy(update={"result": data})
+
+
 
 
 if __name__ == '__main__':
