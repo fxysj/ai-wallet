@@ -78,6 +78,23 @@ def apply_default_form_values(data: dict, isSwpRes: str) -> None:
         form.update(defaults)
 
 
+def clean_missing_fields_by_form(data: dict) -> None:
+    """
+    如果 form 中某字段已有有效值，则从 missFields 中删除该字段。
+    """
+    form = data.get("form", {})
+    miss_fields = data.get("missFields", [])
+
+    def is_empty(val):
+        return val in [None, "", [], {}, "0", 0]
+
+    # 生成新的 missFields，保留那些在 form 中为空的字段
+    data["missFields"] = [
+        field for field in miss_fields
+        if is_empty(form.get(field["name"]))
+    ]
+
+
 
 async def swap_task(state: AgentState) -> AgentState:
     print("swap_task")
@@ -164,6 +181,11 @@ async def swap_task(state: AgentState) -> AgentState:
 
             if state.langguage == LanguageEnum.ZH_HANT.value:
                 data["description"] = "您好，我已為您準備好交易頁面。請填寫必要的跨鏈交易資訊，其餘步驟我將協助完成。準備好後隨時開始吧"
+
+
+        #清楚一些缺失信息
+        #clean_missing_fields_by_form(data)
+        data["missFields"]=[]#不再进行验证 表单为空则进行返回即可
 
 
 
