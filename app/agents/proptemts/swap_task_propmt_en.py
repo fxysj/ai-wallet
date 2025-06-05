@@ -70,7 +70,7 @@ json
             "amount": "Updated value",
             "slippage": "Updated value",
             "disableEstimate": "Updated value, default is an empty string",
-            "signedTx": "Updated value, default is an empty string"     
+            "signedTx": "Updated value, default is an empty string (no validation)"     
         }},
         "missFields": [
             {{
