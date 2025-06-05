@@ -101,24 +101,20 @@ async def swap_task(state: AgentState) -> AgentState:
             data["form"]["toTokenAddress"] = "0x55d398326f99059ff775485246999027b3197955"
             data["form"]["toChain"] = "56"
 
-    if state.langguage == LanguageEnum.EN.value:
-        data[
-            "description"] = "Hello, I’ve prepared the transaction page you need. Please fill in the necessary Exchange details, and I will assist you with the remaining steps. Once you're ready, feel free to proceed."
+        if state.langguage == LanguageEnum.EN.value:
+            data["description"] = "Hello, I’ve prepared the transaction page you need. Please fill in the necessary Exchange details, and I will assist you with the remaining steps. Once you're ready, feel free to proceed."
 
-    if state.langguage == LanguageEnum.ZH_HANS.value:
-        data["description"] = "您好，我已为您准备好交易页面。请填写必要的兑换交易信息，其余步骤我将协助完成。准备好后随时开始吧"
+        if state.langguage == LanguageEnum.ZH_HANS.value:
+            data["description"] = "您好，我已为您准备好交易页面。请填写必要的兑换交易信息，其余步骤我将协助完成。准备好后随时开始吧"
 
-    if state.langguage == LanguageEnum.ZH_HANT.value:
-        data["description"] = "您好，我已為您準備好交易頁面。請填寫必要的兌換交易資訊，其餘步驟我將協助完成。準備好後隨時開始吧。"
-
-    return state.copy(update={"result": data})
+        if state.langguage == LanguageEnum.ZH_HANT.value:
+            data["description"] = "您好，我已為您準備好交易頁面。請填寫必要的兌換交易資訊，其餘步驟我將協助完成。準備好後隨時開始吧。"
 
     # 这里进行处理 formData
     # 如果确实字段存在
     if data["missFields"]:
         if state.langguage == LanguageEnum.EN.value:
-            data[
-                "description"] = "OK！Your Exchange request has been received. I’ve prepared the transaction page and pre-filled the main details for you. Please review the information and complete the remaining fields to proceed with the transaction."
+            data["description"] = "OK！Your Exchange request has been received. I’ve prepared the transaction page and pre-filled the main details for you. Please review the information and complete the remaining fields to proceed with the transaction."
 
         if state.langguage == LanguageEnum.ZH_HANS.value:
             data["description"] = "好的！您的兑换请求已收到。我已经准备好交易页面，并预先填写了主要信息。请仔细阅读信息并填写剩余信息以继续进行交易"
