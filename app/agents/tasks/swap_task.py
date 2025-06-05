@@ -88,6 +88,7 @@ async def swap_task(state: AgentState) -> AgentState:
     if not formData.get("form"):
         # 这里进行识别出类型Swap Bridge
         isSwpRes = getIsSwapOrBridege(state.user_input)
+        print("类型:",isSwpRes)
         # 如果类型为Swap
         if isSwpRes == "Swap":
             data["form"]["fromChain"] = "60"
