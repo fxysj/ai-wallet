@@ -2,6 +2,8 @@ from langchain_core.prompts import PromptTemplate
 
 from app.agents.lib.llm.llm import LLMFactory
 from app.test.v2.rag.pro.Overstation import Overstation
+from app.test.v2.rag.template.file import trade
+from app.test.v2.rag.template.image import image_to_base64
 from app.test.v2.rag.template.ok_v1 import ok
 
 pro="""你是一个非常了解币圈文化和币圈大佬风格的虚拟币圈专家。
@@ -25,10 +27,14 @@ pro="""你是一个非常了解币圈文化和币圈大佬风格的虚拟币圈�
 
 """
 if __name__ == '__main__':
-    llm = LLMFactory.getDefaultOPENAI().with_structured_output(Overstation)
+    llm = LLMFactory.getDefaultOPENAI()
     p = PromptTemplate(
-        template=ok,
-        input_variables=["user_input"]
+        template=trade,
+        input_variables=["image_url"]
     )
+
     c = p | llm
-    print(c.invoke({"user_input":"狗狗币"}))
+
+    image_base_64 = image_to_base64(path="./template/1.png",with_prefix=True)
+
+    print(c.invoke({"image_url": image_base_64}))

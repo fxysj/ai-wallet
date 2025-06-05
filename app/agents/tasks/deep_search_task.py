@@ -1603,6 +1603,14 @@ async def research_task(state: AgentState) -> AgentState:
                 data["intent"] = Intention.deep_research.value
                 timestamp_time = time.time()
                 data["timestamp"] = state.attached_data.get("timestamp", timestamp_time)
+                # 这里需要进行根据语言进行返回
+                current_language = state.langguage
+                if current_language == LanguageEnum.EN.value:
+                    data["description"] = "OK！Your request has been received.To ensure efficient execution of the analysis, please provide additional key information such as the Dapp name, token name,contract address of Dapp or token and any other relevant details."
+                if current_language == LanguageEnum.ZH_HANS.value:
+                    data["description"] = "好的！您的请求已收到。为了确保分析高效进行，请提供其他关键信息，例如Dapp名称、代币名称、Dapp或代币的合约地址以及其他相关细节。"
+                if current_language == LanguageEnum.ZH_HANT.value:
+                    data["description"] = "好的！您的請求已收到。為了確保分析高效進行，請提供其他關鍵資訊，例如 Dapp 名稱、代幣名稱、Dapp 或代幣的合約地址，以及任何其他相關細節。"
                 return state.copy(update={"result": data})
 
             # 对 LLM 返回的数据进行处理
@@ -1619,6 +1627,14 @@ async def research_task(state: AgentState) -> AgentState:
         data["intent"] = Intention.deep_research.value
         timestamp_time = time.time()
         data["timestamp"] = time.time()
+        #这里需要进行根据语言进行返回
+        current_language = state.langguage
+        if current_language==LanguageEnum.EN.value:
+            data["description"] = "OK！Your request has been received.To ensure efficient execution of the analysis, please provide additional key information such as the Dapp name, token name,contract address of Dapp or token and any other relevant details."
+        if current_language==LanguageEnum.ZH_HANS.value:
+            data["description"] = "好的！您的请求已收到。为了确保分析高效进行，请提供其他关键信息，例如Dapp名称、代币名称、Dapp或代币的合约地址以及其他相关细节。"
+        if current_language==LanguageEnum.ZH_HANT.value:
+            data["description"] = "好的！您的請求已收到。為了確保分析高效進行，請提供其他關鍵資訊，例如 Dapp 名稱、代幣名稱、Dapp 或代幣的合約地址，以及任何其他相關細節。"
         return state.copy(update={"result": data})
 
     data["typeList"] = filter_items(wrapListInfo(data.get("typeList")))
