@@ -65,14 +65,18 @@ def apply_default_form_values(data: dict, isSwpRes: str) -> None:
     if not defaults:
         return  # 无效的 isSwpRes，不处理
 
-    # 判断当前 form 是否与默认值一致（或为空）
+    def is_unmodified_or_empty(value, default):
+        """判断字段是否为空/未设置/未主动修改"""
+        return value in [None, "", 0, "0"] or str(value) == str(default)
+
     is_default = all(
-        form.get(k) in [None, "", v]
+        is_unmodified_or_empty(form.get(k), v)
         for k, v in defaults.items()
     )
 
     if is_default:
         form.update(defaults)
+
 
 
 async def swap_task(state: AgentState) -> AgentState:
