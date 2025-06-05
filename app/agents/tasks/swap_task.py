@@ -56,9 +56,36 @@ async def swap_task(state: AgentState) -> AgentState:
     # 调用链处理用户最新输入
     chain_response = chain.invoke(prompt_variables)
     response_data = chain_response
-    print(response_data)
     data = response_data.get("data")
     data["intent"] = Intention.swap.value
-    print("data====")
-    print(data)
+
+    if not formData.get("form"):
+
+        if state.langguage == LanguageEnum.EN.value:
+            data["description"] = "Hello, I’ve prepared the transaction page you need. Please fill in the necessary Exchange details, and I will assist you with the remaining steps. Once you're ready, feel free to proceed."
+
+        if state.langguage == LanguageEnum.ZH_HANS.value:
+            data["description"] = "您好，我已为您准备好交易页面。请填写必要的兑换交易信息，其余步骤我将协助完成。准备好后随时开始吧"
+
+        if state.langguage == LanguageEnum.ZH_HANT.value:
+            data["description"] = "您好，我已為您準備好交易頁面。請填寫必要的兌換交易資訊，其餘步驟我將協助完成。準備好後隨時開始吧。"
+
+        return state.copy(update={"result": data})
+
+
+
+
+
+    #这里进行处理 formData
+    # 如果确实字段存在
+    if data["missFields"]:
+        if state.langguage == LanguageEnum.EN.value:
+            data["description"] = "OK！Your Exchange request has been received. I’ve prepared the transaction page and pre-filled the main details for you. Please review the information and complete the remaining fields to proceed with the transaction."
+
+        if state.langguage == LanguageEnum.ZH_HANS.value:
+            data["description"] = "好的！您的兑换请求已收到。我已经准备好交易页面，并预先填写了主要信息。请仔细阅读信息并填写剩余信息以继续进行交易"
+
+        if state.langguage == LanguageEnum.ZH_HANT.value:
+            data["description"] = "好的！您的兌換請求已收到。我已經準備好交易頁面，並預先填寫了主要資訊。請仔細閱讀資訊並填寫剩餘資訊以繼續進行交易。"
+
     return state.copy(update={"result": data})

@@ -62,7 +62,15 @@ async def send_task(state: AgentState) -> AgentState:
     #如果确实字段存在
     if data["missFields"]:
         if state.langguage==LanguageEnum.EN.value:
-            data["description"] = "Hello, I’ve prepared the transaction page you need. Please fill in the necessary transfer details, and I will assist you with the remaining steps. Once you're ready, feel free to proceed."
+            data["description"] = "OK！Your transfer request has been received. I’ve prepared the transfer page and pre-filled the main details for you. Please review the information and complete the remaining fields to proceed with the transaction "
+
+        if state.langguage==LanguageEnum.ZH_HANS.value:
+            data["description"] = "好的！您的转账请求已收到。我已经准备好转账页面，并预先填写了主要信息。请仔细阅读信息并填写剩余信息以继续进行交易"
+
+
+        if state.langguage==LanguageEnum.ZH_HANT.value:
+            data["description"] = "好的！您的轉帳請求已收到。我已經準備好轉帳頁面，並預先填寫了主要資訊。請仔細閱讀資訊並填寫剩餘資訊以繼續進行交易。"
+
 
     # 使用 time 模块获取当前时间戳
     timestamp_time = time.time()
@@ -75,5 +83,18 @@ async def send_task(state: AgentState) -> AgentState:
         #如果不存在则需要进行更新
         if not transactionResult.get("txHash"):
             data["state"] = TaskState.SEND_TASK_READY_TO_BROADCAST
+
+    formData = state.attached_data
+    if not formData.get("form"):
+        if state.langguage == LanguageEnum.EN.value:
+            data["description"] = "Hello, I’ve prepared the transaction page you need. Please fill in the necessary transfer details, and I will assist you with the remaining steps. Once you're ready, feel free to proceed."
+
+        if state.langguage == LanguageEnum.ZH_HANS.value:
+            data["description"] = "	您好，我已为您准备好转账页面。请填写必要的转账信息，其余步骤我将协助完成。准备好后随时开始吧"
+
+        if state.langguage == LanguageEnum.ZH_HANT.value:
+            data["description"] = "您好，我已為您準備好轉帳頁面。請填寫必要的轉帳資訊，其餘步驟我將協助完成。準備好後隨時開始吧。"
+
+
 
     return state.copy(update={"result": data})
