@@ -111,6 +111,10 @@ async def swap_task(state: AgentState) -> AgentState:
         if state.langguage == LanguageEnum.ZH_HANT.value:
             data["description"] = "您好，我已為您準備好交易頁面。請填寫必要的兌換交易資訊，其餘步驟我將協助完成。準備好後隨時開始吧。"
 
+        return state.copy(update={"result": data})
+
+
+
     # 这里进行处理 formData
     # 如果确实字段存在
     if data["missFields"]:
