@@ -10,6 +10,7 @@ from app.agents.schemas import AgentState
 from app.agents.lib.llm.llm import LLMFactory
 from app.agents.form.form import *
 from app.agents.proptemts.send_task_propmt_en import PROMPT_TEMPLATE
+from app.agents.services.send_task_service import is_chain_id_60
 from app.agents.tools import *
 from app.utuls.FieldCheckerUtil import FieldChecker
 
@@ -84,13 +85,13 @@ async def send_task(state: AgentState) -> AgentState:
         if not transactionResult.get("txHash"):
             data["state"] = TaskState.SEND_TASK_READY_TO_BROADCAST
 
-    formData = state.attached_data
-    if not formData.get("form"):
+
+    if is_chain_id_60(data.get("form")):
         if state.langguage == LanguageEnum.EN.value:
             data["description"] = "Hello, I’ve prepared the transaction page you need. Please fill in the necessary transfer details, and I will assist you with the remaining steps. Once you're ready, feel free to proceed."
 
         if state.langguage == LanguageEnum.ZH_HANS.value:
-            data["description"] = "	您好，我已为您准备好转账页面。请填写必要的转账信息，其余步骤我将协助完成。准备好后随时开始吧"
+            data["description"] = "您好，我已为您准备好转账页面。请填写必要的转账信息，其余步骤我将协助完成。准备好后随时开始吧"
 
         if state.langguage == LanguageEnum.ZH_HANT.value:
             data["description"] = "您好，我已為您準備好轉帳頁面。請填寫必要的轉帳資訊，其餘步驟我將協助完成。準備好後隨時開始吧。"
