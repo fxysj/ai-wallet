@@ -1,36 +1,13 @@
-def is_chain_id_60(form):
-    return form.get("chainId") == 60
-
-
-def is_valid_empty_form(form):
-    expected = {
-        "chainId": 60,
-        "fromAddress": "",
-        "toAddress": "",
-        "amount": 0.0,
-        "slippage": 0.01,
-        "tokenAddress": "",
-        "rawTx": "",
-        "signedTx": ""
-    }
-
-    for key, expected_value in expected.items():
-        if form.get(key) != expected_value:
-            return False
-    return True
-
-
 def is_valid_empty_form_ok(form):
     expected = {
         "chainId": 60,
         "toAddress": "",
         "slippage": 0.01,
-        "tokenAddress": "",
         "rawTx": "",
         "signedTx": ""
     }
 
-    # 检查除 fromAddress 和 amount 外的字段
+    # 检查除 fromAddress、amount、tokenAddress 外的字段
     for key, expected_value in expected.items():
         if form.get(key) != expected_value:
             return False
@@ -40,19 +17,51 @@ def is_valid_empty_form_ok(form):
     if amount not in ("", 0, 0.0):
         return False
 
-    # 不检查 fromAddress，跳过它
+    # 特殊处理 tokenAddress：允许为 "" 或 "native"
+    token_address = form.get("tokenAddress", "")
+    if token_address not in ("", "native"):
+        return False
+
+    # 不检查 fromAddress
     return True
 
 if __name__ == '__main__':
     form = {
         "chainId": 60,
-        "fromAddress": "任意内容",  # 不影响结果
-        "toAddress": "xx",
-        "amount": "xx",
+        "fromAddress": "任意内容",  # 忽略
+        "toAddress": "",
+        "amount": "",
+        "slippage": 0.01,
+        "tokenAddress": "native",
+        "rawTx": "",
+        "signedTx": ""
+    }
+
+    print(is_valid_empty_form_ok(form))  # 输出: True
+
+    form = {
+        "chainId": 60,
+        "fromAddress": "",  # 忽略
+        "toAddress": "",
+        "amount": "",
         "slippage": 0.01,
         "tokenAddress": "",
         "rawTx": "",
         "signedTx": ""
     }
 
-    print(is_valid_empty_form_ok(form))
+    print(is_valid_empty_form_ok(form))  # 输出: True
+
+    form = {
+        "chainId": 60,
+        "fromAddress": "xxx",  # 忽略
+        "toAddress": "xxx",
+        "amount": "",
+        "slippage": 0.01,
+        "tokenAddress": "native",
+        "rawTx": "",
+        "signedTx": ""
+    }
+
+    print(is_valid_empty_form_ok(form))  # 输出: True
+
