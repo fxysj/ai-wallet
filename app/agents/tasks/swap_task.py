@@ -7,7 +7,7 @@ from app.agents.lib.llm.llm import LLMFactory
 from app.agents.proptemts.swap_task_propmt_en import SWAPTASK_TEMPLATE
 from app.agents.schemas import AgentState, Intention
 from app.agents.form.form import *
-from app.utuls.FieldCheckerUtil import FieldChecker
+from app.agents.services.swap_task_service import  is_form_default
 
 SYSTEM_PROMPT = """
   你是一个加密货币交易类型的意图识别助手。用户会输入一段关于加密货币操作的自然语言内容，请你判断用户的操作是“闪兑”（Swap）还是“跨链”（Bridge）。
@@ -78,21 +78,8 @@ def apply_default_form_values(data: dict, isSwpRes: str) -> None:
         form.update(defaults)
 
 
-def clean_missing_fields_by_form(data: dict) -> None:
-    """
-    如果 form 中某字段已有有效值，则从 missFields 中删除该字段。
-    """
-    form = data.get("form", {})
-    miss_fields = data.get("missFields", [])
 
-    def is_empty(val):
-        return val in [None, "", [], {}, "0", 0]
 
-    # 生成新的 missFields，保留那些在 form 中为空的字段
-    data["missFields"] = [
-        field for field in miss_fields
-        if is_empty(form.get(field["name"]))
-    ]
 
 
 
@@ -145,23 +132,8 @@ async def swap_task(state: AgentState) -> AgentState:
     print("response:",data)
     data["intent"] = Intention.swap.value
     isSwpRes = getIsSwapOrBridege(state.user_input)
-    if not formData.get("form"):
-        # 这里进行识别出类型Swap Bridge
-        print("类型:",isSwpRes)
-        apply_default_form_values(data, isSwpRes)
-        # 如果类型为Swap
-        # if isSwpRes == "Swap":
-        #     data["form"]["fromChain"] = "60"
-        #     data["form"]["fromTokenAddress"] = "native"
-        #     data["form"]["toTokenAddress"] = "0xdAC17F958D2ee523a2206206994597C13D831ec7"
-        #     data["form"]["toChain"] = "60"
-        #
-        # if isSwpRes == "Bridge":
-        #     data["form"]["fromChain"] = "60"
-        #     data["form"]["fromTokenAddress"] = "native"
-        #     data["form"]["toTokenAddress"] = "0x55d398326f99059ff775485246999027b3197955"
-        #     data["form"]["toChain"] = "56"
-
+    form_default = is_form_default(data,isSwpRes)
+    if form_default:
         if isSwpRes=="Swap":
             if state.langguage == LanguageEnum.EN.value:
                 data["description"] = "Hello, I’ve prepared the transaction page you need. Please fill in the necessary swap details, and I will assist you with the remaining steps. Once you're ready, feel free to proceed."
@@ -182,10 +154,6 @@ async def swap_task(state: AgentState) -> AgentState:
             if state.langguage == LanguageEnum.ZH_HANT.value:
                 data["description"] = "您好，我已為您準備好交易頁面。請填寫必要的跨鏈交易資訊，其餘步驟我將協助完成。準備好後隨時開始吧"
 
-
-        #清楚一些缺失信息
-        #clean_missing_fields_by_form(data)
-        data["missFields"]=[]#不再进行验证 表单为空则进行返回即可
 
 
 
