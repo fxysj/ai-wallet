@@ -8,7 +8,7 @@ from app.agents.proptemts.swap_task_propmt_en import SWAPTASK_TEMPLATE
 from app.agents.schemas import AgentState, Intention
 from app.agents.form.form import *
 from app.agents.services.swap_task_service import  is_form_default
-from app.agents.services.swap_task_service import normalize_amount_field
+from app.agents.services.swap_task_service import applay_default_form_values_ok
 
 SYSTEM_PROMPT = """
   你是一个加密货币交易类型的意图识别助手。用户会输入一段关于加密货币操作的自然语言内容，请你判断用户的操作是“闪兑”（Swap）还是“跨链”（Bridge）。
@@ -133,10 +133,9 @@ async def swap_task(state: AgentState) -> AgentState:
     print("response:",data)
     data["intent"] = Intention.swap.value
     isSwpRes = getIsSwapOrBridege(state.user_input)
-    # normalize_amount_field(data)
     form_default = is_form_default(data,isSwpRes)
     if form_default:
-        apply_default_form_values(data, isSwpRes)
+        applay_default_form_values_ok(data, isSwpRes)
         if isSwpRes=="Swap":
             if state.langguage == LanguageEnum.EN.value:
                 data["description"] = "Hello, I’ve prepared the transaction page you need. Please fill in the necessary swap details, and I will assist you with the remaining steps. Once you're ready, feel free to proceed."

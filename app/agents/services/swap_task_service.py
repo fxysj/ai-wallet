@@ -15,6 +15,23 @@ def get_default_form(isSwpRes: str) -> dict:
     }.get(isSwpRes, {})
 
 
+def get_default_form_int(isSwpRes: str) -> dict:
+    return {
+        "Swap": {
+            "fromChain": 60,
+            "fromTokenAddress": "native",
+            "toTokenAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            "toChain": 60
+        },
+        "Bridge": {
+            "fromChain": 60,
+            "fromTokenAddress": "native",
+            "toTokenAddress": "0x55d398326f99059ff775485246999027b3197955",
+            "toChain": 56
+        }
+    }.get(isSwpRes, {})
+
+
 def normalize_value(val):
     if val is None:
         return ""
@@ -52,6 +69,9 @@ def is_form_default(data: dict, isSwpRes: str) -> bool:
 def apply_default_form_values(data: dict, isSwpRes: str) -> None:
     if is_form_default(data, isSwpRes):
         data["form"].update(get_default_form(isSwpRes))
+
+def applay_default_form_values_ok(data: dict,isSwpRes: str)->None:
+    data["form"].update(get_default_form_int(isSwpRes))
 
 
 def normalize_amount_field(data: dict) -> None:
