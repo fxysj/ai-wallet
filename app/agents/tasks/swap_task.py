@@ -132,6 +132,9 @@ async def swap_task(state: AgentState) -> AgentState:
     print("response:",data)
     data["intent"] = Intention.swap.value
     isSwpRes = getIsSwapOrBridege(state.user_input)
+    if data["form"]["amount"]=="":
+        data["form"]["amount"] = 0
+
     form_default = is_form_default(data,isSwpRes)
     if form_default:
         apply_default_form_values(data, isSwpRes)
