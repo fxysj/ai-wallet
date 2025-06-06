@@ -7,9 +7,7 @@ from app.agents.lib.llm.llm import LLMFactory
 from app.agents.proptemts.swap_task_propmt_en import SWAPTASK_TEMPLATE
 from app.agents.schemas import AgentState, Intention
 from app.agents.form.form import *
-from app.agents.services.swap_task_service import  is_form_default
-from app.agents.services.swap_task_service import applay_default_form_values_ok
-
+from app.agents.services.swap_task_service import is_form_default, apply_default_form_values_ok
 SYSTEM_PROMPT = """
   你是一个加密货币交易类型的意图识别助手。用户会输入一段关于加密货币操作的自然语言内容，请你判断用户的操作是“闪兑”（Swap）还是“跨链”（Bridge）。
 
@@ -37,46 +35,7 @@ def getIsSwapOrBridege(query: str):
 def build_prompt(user_query: str) -> str:
     return SYSTEM_PROMPT.strip() + "\n用户输入：" + user_query + "\n你的判断："
 
-def apply_default_form_values(data: dict, isSwpRes: str) -> None:
-    """
-    如果用户没有主动修改过 form 字段，则根据 isSwpRes 设置默认值。
-    - Swap: Ethereum → Ethereum 上的 USDT
-    - Bridge: Ethereum → BSC 上的 USDT
-    """
 
-    # 定义默认值
-    default_forms = {
-        "Swap": {
-            "fromChain": "60",
-            "fromTokenAddress": "native",
-            "toTokenAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",  # USDT on Ethereum
-            "toChain": "60"
-        },
-        "Bridge": {
-            "fromChain": "60",
-            "fromTokenAddress": "native",
-            "toTokenAddress": "0x55d398326f99059ff775485246999027b3197955",  # USDT on BSC
-            "toChain": "56"
-        }
-    }
-
-    form = data.setdefault("form", {})
-    defaults = default_forms.get(isSwpRes)
-
-    if not defaults:
-        return  # 无效的 isSwpRes，不处理
-
-    def is_unmodified_or_empty(value, default):
-        """判断字段是否为空/未设置/未主动修改"""
-        return value in [None, "", 0, "0"] or str(value) == str(default)
-
-    is_default = all(
-        is_unmodified_or_empty(form.get(k), v)
-        for k, v in defaults.items()
-    )
-
-    if is_default:
-        form.update(defaults)
 
 
 
@@ -135,7 +94,7 @@ async def swap_task(state: AgentState) -> AgentState:
     isSwpRes = getIsSwapOrBridege(state.user_input)
     form_default = is_form_default(data,isSwpRes)
     if form_default:
-        applay_default_form_values_ok(data, isSwpRes)
+        apply_default_form_values_ok(data, isSwpRes)
         if isSwpRes=="Swap":
             if state.langguage == LanguageEnum.EN.value:
                 data["description"] = "Hello, I’ve prepared the transaction page you need. Please fill in the necessary swap details, and I will assist you with the remaining steps. Once you're ready, feel free to proceed."
