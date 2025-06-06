@@ -134,6 +134,7 @@ async def swap_task(state: AgentState) -> AgentState:
     isSwpRes = getIsSwapOrBridege(state.user_input)
     form_default = is_form_default(data,isSwpRes)
     if form_default:
+        apply_default_form_values(data, isSwpRes)
         if isSwpRes=="Swap":
             if state.langguage == LanguageEnum.EN.value:
                 data["description"] = "Hello, I’ve prepared the transaction page you need. Please fill in the necessary swap details, and I will assist you with the remaining steps. Once you're ready, feel free to proceed."
