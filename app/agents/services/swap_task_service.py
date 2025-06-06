@@ -54,6 +54,18 @@ def apply_default_form_values(data: dict, isSwpRes: str) -> None:
         data["form"].update(get_default_form(isSwpRes))
 
 
+def normalize_amount_field(data: dict) -> None:
+    """清洗 amount 字段：如果为空或不可用，强制设为 0"""
+    form = data.get("form", {})
+    amount = form.get("amount")
+
+    if isinstance(amount, str):
+        amount = amount.strip()
+        if amount == "" or amount == "0":
+            form["amount"] = 0
+    elif amount in [None, 0]:
+        form["amount"] = 0
+
 def run_tests():
     print("✅ Running tests...")
 
