@@ -10,7 +10,7 @@ from app.agents.schemas import AgentState
 from app.agents.lib.llm.llm import LLMFactory
 from app.agents.form.form import *
 from app.agents.proptemts.send_task_propmt_en import PROMPT_TEMPLATE
-from app.agents.services.send_task_service import  is_valid_empty_form
+from app.agents.services.send_task_service import is_valid_empty_form, is_valid_empty_form_ok
 from app.agents.tools import *
 from app.utuls.FieldCheckerUtil import FieldChecker
 
@@ -73,7 +73,7 @@ async def send_task(state: AgentState) -> AgentState:
             data["state"] = TaskState.SEND_TASK_READY_TO_BROADCAST
 
 
-    if is_valid_empty_form(data.get("form")):
+    if is_valid_empty_form_ok(data.get("form")):
         if state.langguage == LanguageEnum.EN.value:
             data["description"] = "Hello, I’ve prepared the transaction page you need. Please fill in the necessary transfer details, and I will assist you with the remaining steps. Once you're ready, feel free to proceed."
 
